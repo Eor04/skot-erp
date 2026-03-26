@@ -14,9 +14,9 @@ export const PRIX4_CONFIG = {
     baudRate: 9600,
     dataBits: 8 as const,
     stopBits: 1 as const,
-    parity: 'none' as ParityType,
+    parity: 'none' as const,
     bufferSize: 1024,
-    flowControl: 'none' as FlowControlType
+    flowControl: 'none' as const
 };
 
 // Tipos de datos de lectura
