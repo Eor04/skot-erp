@@ -86,7 +86,7 @@ export async function GET(request: NextRequest) {
 
         // Filtrar nulls y ordenar por prioridad
         const validSuggestions = suggestions.filter((s) => s !== null);
-        const priorityOrder = { ALTA: 1, MEDIA: 2, BAJA: 3 };
+        const priorityOrder: Record<string, number> = { ALTA: 1, MEDIA: 2, BAJA: 3 };
         validSuggestions.sort(
             (a: any, b: any) => priorityOrder[a.priority] - priorityOrder[b.priority]
         );

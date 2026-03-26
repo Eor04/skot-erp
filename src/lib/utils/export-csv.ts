@@ -2,10 +2,10 @@
  * Utilidad para exportar datos a CSV
  */
 
-type ExportColumn& lt; T & gt; = {
+type ExportColumn<T> = {
     header: string;
     accessor: keyof T | ((item: T) => any);
-    formatter ?: (value: any) => string;
+    formatter?: (value: any) => string;
 };
 
 /**
@@ -14,9 +14,9 @@ type ExportColumn& lt; T & gt; = {
  * @param columns Configuración de columnas
  * @param filename Nombre del archivo (sin extensión)
  */
-export function exportToCSV& lt; T & gt; (
+export function exportToCSV<T>(
     data: T[],
-    columns: ExportColumn & lt; T&gt;[],
+    columns: ExportColumn<T>[],
     filename: string
 ): void {
     // Generar headers
@@ -90,12 +90,9 @@ export const Formatters = {
         return `${day}/${month}/${year}`;
     },
 
-    // Formato de moneda: $1,234.56
+    // Formato de moneda: Bs. 1,234.56
     currency: (value: number) => {
-        return new Intl.NumberFormat('es-PE', {
-            style: 'currency',
-            currency: 'PEN',
-        }).format(value);
+        return `Bs. ${value.toFixed(2)}`;
     },
 
     // Formato de número: 1,234.56
