@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import Image from 'next/image';
 import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
 
 export default function LoginPage() {
@@ -14,19 +15,14 @@ export default function LoginPage() {
         e.preventDefault();
         setError('');
         setLoading(true);
-
         try {
             const res = await fetch('/api/auth/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ email, password }),
             });
-
             const data = await res.json();
-
             if (data.success) {
-                // Hard navigation para garantizar que la cookie esté disponible
-                // antes de que el SessionProvider re-fetche /api/auth/me
                 window.location.href = '/';
             } else {
                 setError(data.error || 'Error al iniciar sesión');
@@ -39,35 +35,69 @@ export default function LoginPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gradient-to-br from-slate-900 via-slate-800 to-slate-900 flex items-center justify-center p-4">
-            {/* Fondo decorativo */}
-            <div className="absolute inset-0 overflow-hidden pointer-events-none">
-                <div className="absolute -top-40 -right-40 w-80 h-80 bg-purple-500/10 rounded-full blur-3xl" />
-                <div className="absolute -bottom-40 -left-40 w-80 h-80 bg-orange-500/10 rounded-full blur-3xl" />
+        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
+            style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+
+            {/* Glows de fondo inspirados en el logo */}
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                {/* Glow morado/rosa — izquierda */}
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full"
+                    style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.25) 0%, transparent 70%)' }} />
+                {/* Glow rojo/naranja — derecha */}
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full"
+                    style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.2) 0%, transparent 70%)' }} />
+                {/* Glow rosa central sutil */}
+                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full"
+                    style={{ background: 'radial-gradient(ellipse, rgba(236,72,153,0.08) 0%, transparent 70%)' }} />
+                {/* Líneas de hexágono sutiles — patrón del logo */}
+                <div className="absolute inset-0 opacity-[0.04]"
+                    style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`,
+                        backgroundSize: '56px 100px',
+                    }} />
             </div>
 
-            <div className="relative w-full max-w-sm">
+            <div className="relative w-full max-w-sm z-10">
+
                 {/* Logo */}
                 <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-gradient-to-br from-purple-500 to-orange-500 shadow-xl mb-4">
-                        <span className="text-3xl">🧃</span>
+                    <div className="inline-block mb-4 drop-shadow-[0_0_30px_rgba(236,72,153,0.5)]">
+                        <img
+                            src="/logo-skot.png"
+                            alt="Skot"
+                            className="h-20 w-auto mx-auto object-contain"
+                            onError={(e) => {
+                                // Fallback si no existe la imagen
+                                (e.target as HTMLImageElement).style.display = 'none';
+                            }}
+                        />
                     </div>
-                    <h1 className="text-4xl font-black text-white tracking-tight">
-                        <span className="bg-gradient-to-r from-purple-400 via-pink-400 to-orange-400 bg-clip-text text-transparent">Skot</span>{' '}
-                        <span className="text-white/90">ERP</span>
-                    </h1>
-                    <p className="text-slate-400 text-sm mt-1">Sistema de gestión multi-sucursal</p>
+                    <p className="text-sm font-medium mt-2"
+                        style={{ color: 'rgba(255,255,255,0.55)' }}>
+                        Sistema de Gestión Multi-Sucursal
+                    </p>
                 </div>
 
-                {/* Card */}
-                <div className="bg-white/5 backdrop-blur-xl border border-white/10 rounded-3xl p-8 shadow-2xl">
+                {/* Card glassmorphism */}
+                <div className="rounded-3xl p-8 shadow-2xl"
+                    style={{
+                        background: 'rgba(255,255,255,0.04)',
+                        backdropFilter: 'blur(24px)',
+                        border: '1px solid rgba(255,255,255,0.08)',
+                        boxShadow: '0 0 0 1px rgba(192,38,211,0.1), 0 24px 48px rgba(0,0,0,0.5)',
+                    }}>
+
+                    {/* Header del form */}
                     <h2 className="text-white text-xl font-bold mb-1">Bienvenido</h2>
-                    <p className="text-slate-400 text-sm mb-6">Ingresá con tu cuenta de Skot</p>
+                    <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.4)' }}>
+                        Ingresá con tu cuenta de Skot
+                    </p>
 
                     <form onSubmit={handleSubmit} className="space-y-4">
+
                         {/* Email */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                            <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
                                 Correo electrónico
                             </label>
                             <input
@@ -77,13 +107,27 @@ export default function LoginPage() {
                                 placeholder="tu@skot.com"
                                 value={email}
                                 onChange={e => setEmail(e.target.value)}
-                                className="w-full bg-white/8 border border-white/15 rounded-xl px-4 py-3 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                className="w-full rounded-xl px-4 py-3 text-sm transition-all outline-none"
+                                style={{
+                                    background: 'rgba(255,255,255,0.07)',
+                                    border: '1px solid rgba(255,255,255,0.12)',
+                                    color: '#ffffff',
+                                    caretColor: '#e879f9',
+                                }}
+                                onFocus={e => {
+                                    e.target.style.border = '1px solid rgba(192,38,211,0.6)';
+                                    e.target.style.boxShadow = '0 0 0 3px rgba(192,38,211,0.15)';
+                                }}
+                                onBlur={e => {
+                                    e.target.style.border = '1px solid rgba(255,255,255,0.12)';
+                                    e.target.style.boxShadow = 'none';
+                                }}
                             />
                         </div>
 
                         {/* Contraseña */}
                         <div>
-                            <label className="block text-sm font-medium text-slate-300 mb-1.5">
+                            <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
                                 Contraseña
                             </label>
                             <div className="relative">
@@ -94,13 +138,25 @@ export default function LoginPage() {
                                     placeholder="••••••••"
                                     value={password}
                                     onChange={e => setPassword(e.target.value)}
-                                    className="w-full bg-white/8 border border-white/15 rounded-xl px-4 py-3 pr-12 text-white placeholder-slate-500 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500 focus:border-transparent transition-all"
+                                    className="w-full rounded-xl px-4 py-3 pr-12 text-sm transition-all outline-none"
+                                    style={{
+                                        background: 'rgba(255,255,255,0.07)',
+                                        border: '1px solid rgba(255,255,255,0.12)',
+                                        color: '#ffffff',
+                                        caretColor: '#e879f9',
+                                    }}
+                                    onFocus={e => {
+                                        e.target.style.border = '1px solid rgba(192,38,211,0.6)';
+                                        e.target.style.boxShadow = '0 0 0 3px rgba(192,38,211,0.15)';
+                                    }}
+                                    onBlur={e => {
+                                        e.target.style.border = '1px solid rgba(255,255,255,0.12)';
+                                        e.target.style.boxShadow = 'none';
+                                    }}
                                 />
-                                <button
-                                    type="button"
-                                    onClick={() => setShowPass(!showPass)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-200 transition-colors p-1"
-                                >
+                                <button type="button" onClick={() => setShowPass(!showPass)}
+                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 transition-colors"
+                                    style={{ color: 'rgba(255,255,255,0.35)' }}>
                                     {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                                 </button>
                             </div>
@@ -108,17 +164,25 @@ export default function LoginPage() {
 
                         {/* Error */}
                         {error && (
-                            <div className="flex items-center gap-2 bg-red-500/15 border border-red-500/30 rounded-xl px-4 py-3">
-                                <AlertCircle className="h-4 w-4 text-red-400 flex-shrink-0" />
-                                <p className="text-red-300 text-sm">{error}</p>
+                            <div className="flex items-center gap-2 rounded-xl px-4 py-3"
+                                style={{ background: 'rgba(220,38,38,0.12)', border: '1px solid rgba(220,38,38,0.25)' }}>
+                                <AlertCircle className="h-4 w-4 flex-shrink-0" style={{ color: '#f87171' }} />
+                                <p className="text-sm" style={{ color: '#fca5a5' }}>{error}</p>
                             </div>
                         )}
 
-                        {/* Submit */}
+                        {/* Botón */}
                         <button
                             type="submit"
                             disabled={loading}
-                            className="w-full flex items-center justify-center gap-2 bg-gradient-to-r from-purple-600 to-purple-700 hover:from-purple-500 hover:to-purple-600 disabled:from-slate-600 disabled:to-slate-700 text-white font-semibold py-3 rounded-xl transition-all duration-200 shadow-lg hover:shadow-purple-500/25 mt-2"
+                            className="w-full flex items-center justify-center gap-2 font-semibold py-3 rounded-xl transition-all duration-200 mt-2 disabled:opacity-50"
+                            style={{
+                                background: loading
+                                    ? 'rgba(100,100,120,0.5)'
+                                    : 'linear-gradient(135deg, #9333ea 0%, #c026d3 50%, #db2777 100%)',
+                                color: '#ffffff',
+                                boxShadow: loading ? 'none' : '0 0 20px rgba(192,38,211,0.35), 0 4px 15px rgba(0,0,0,0.3)',
+                            }}
                         >
                             {loading ? (
                                 <>
@@ -136,8 +200,8 @@ export default function LoginPage() {
                 </div>
 
                 {/* Footer */}
-                <p className="text-center text-slate-600 text-xs mt-6">
-                    Skot ERP v1.0.0 — Acceso restringido
+                <p className="text-center text-xs mt-6" style={{ color: 'rgba(255,255,255,0.2)' }}>
+                    Skot v1.0 — Acceso restringido
                 </p>
             </div>
         </div>
