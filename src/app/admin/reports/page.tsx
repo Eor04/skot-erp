@@ -1,10 +1,11 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
     ArrowLeft, TrendingUp, DollarSign, ShoppingBag, Target,
-    RefreshCw, Filter, BarChart2
+    RefreshCw, Filter, BarChart2, Users, Clock, Download,
+    AlertTriangle, CheckCircle
 } from 'lucide-react';
 import {
     AreaChart, Area, BarChart, Bar, XAxis, YAxis, CartesianGrid,
@@ -18,101 +19,181 @@ type Summary = {
     byChannel: { channel: string; total: number }[];
     byPayment: { method: string; count: number }[];
 };
-
-const CHANNEL_COLORS: Record<string, string> = {
-    ACAI: '#8b5cf6',
-    BURGUER: '#f97316',
-    BURGER: '#f97316',
-    OTRO: '#6b7280',
+type CashierReport = {
+    userId: string; userName: string;
+    totalSales: number; totalRevenue: number; avgTicket: number;
+    cashAmount: number; cardAmount: number; transferAmount: number;
+    sessionsCount: number; totalHours: number;
 };
+type ShiftReport = {
+    sessionId: string; cashierName: string; branchName: string;
+    openedAt: string | null; closedAt: string | null; durationHours: number | null;
+    sessionStatus: string; openingCash: number; actualCash: number;
+    expectedCash: number; difference: number;
+    totalSales: number; cashSales: number; cardSales: number; transferSales: number;
+    notes: string;
+};
+
 const PAYMENT_COLORS = ['#22c55e', '#3b82f6', '#a855f7', '#f59e0b'];
 const PAYMENT_LABELS: Record<string, string> = {
     CASH: 'Efectivo', CARD: 'Tarjeta', TRANSFER: 'Transferencia', MIXED: 'Mixto',
 };
-
 const PERIOD_OPTIONS = [
-    { label: '7 días', value: 7 },
-    { label: '14 días', value: 14 },
-    { label: '30 días', value: 30 },
-    { label: '60 días', value: 60 },
-    { label: '90 días', value: 90 },
+    { label: '7d', value: 7 }, { label: '14d', value: 14 },
+    { label: '30d', value: 30 }, { label: '60d', value: 60 }, { label: '90d', value: 90 },
 ];
 
-function formatDate(isoDate: string) {
-    const d = new Date(isoDate + 'T12:00:00');
-    return d.toLocaleDateString('es-BO', { day: '2-digit', month: 'short' });
+function fDate(iso: string) {
+    return new Date(iso + 'T12:00:00').toLocaleDateString('es-BO', { day: '2-digit', month: 'short' });
 }
-
-function formatCurrency(v: number) {
-    return `Bs. ${v.toFixed(0)}`;
+function fDatetime(iso: string | null) {
+    if (!iso) return '—';
+    return new Date(iso).toLocaleString('es-BO', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' });
 }
+function fBs(v: number) { return `Bs. ${v.toFixed(0)}`; }
 
-/* ──────────── Tooltip personalizado ──────────── */
 function CustomTooltip({ active, payload, label }: any) {
     if (!active || !payload?.length) return null;
     return (
         <div className="bg-white border border-gray-100 rounded-xl shadow-xl p-3 text-sm">
-            <p className="font-semibold text-gray-700 mb-2">{formatDate(label)}</p>
+            <p className="font-semibold text-gray-700 mb-2">{fDate(label)}</p>
             {payload.map((p: any) => (
                 <p key={p.dataKey} style={{ color: p.color }} className="font-medium">
-                    {p.name}: {p.dataKey === 'ventas' ? p.value : formatCurrency(p.value)}
+                    {p.name}: {p.dataKey === 'ventas' ? p.value : fBs(p.value)}
                 </p>
             ))}
         </div>
     );
 }
 
-/* ──────────── Component ──────────── */
-export default function AdminReportsPage() {
-    const [data, setData] = useState<DayPoint[]>([]);
-    const [summary, setSummary] = useState<Summary | null>(null);
-    const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
-    const [loading, setLoading] = useState(true);
+/* ──────────── CSV Export ──────────── */
+function exportCSV(rows: object[], filename: string) {
+    if (!rows.length) return;
+    const headers = Object.keys(rows[0]);
+    const csv = [
+        '\uFEFF' + headers.join(','),
+        ...rows.map(r => headers.map(h => `"${(r as any)[h] ?? ''}"`).join(',')),
+    ].join('\n');
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = filename;
+    a.click();
+}
 
+type TabId = 'ventas' | 'cajeros' | 'turnos';
+
+/* ──────────── Main Component ──────────── */
+export default function AdminReportsPage() {
+    const [activeTab, setActiveTab] = useState<TabId>('ventas');
+
+    // Filtros compartidos
     const [days, setDays] = useState(30);
     const [branchId, setBranchId] = useState('');
+    const [branches, setBranches] = useState<{ id: string; name: string }[]>([]);
 
-    function loadData() {
+    // Tab ventas
+    const [chartData, setChartData] = useState<DayPoint[]>([]);
+    const [summary, setSummary] = useState<Summary | null>(null);
+
+    // Tab cajeros
+    const [cashiers, setCashiers] = useState<CashierReport[]>([]);
+
+    // Tab turnos
+    const [shifts, setShifts] = useState<ShiftReport[]>([]);
+    const [shiftSummary, setShiftSummary] = useState<any>(null);
+
+    const [loading, setLoading] = useState(false);
+
+    const dateRange = () => {
+        const to = new Date();
+        const from = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
+        return {
+            from: from.toISOString().split('T')[0],
+            to: to.toISOString().split('T')[0],
+        };
+    };
+
+    const loadData = useCallback(() => {
         setLoading(true);
-        const params = new URLSearchParams({ days: String(days), ...(branchId && { branchId }) });
-        Promise.all([
-            fetch(`/api/admin/sales/chart?${params}`).then(r => r.json()),
-            fetch('/api/admin/branches').then(r => r.json()),
-        ]).then(([chart, br]) => {
-            if (chart.success) { setData(chart.data); setSummary(chart.summary); }
+        const { from, to } = dateRange();
+        const bParam = branchId ? `&branchId=${branchId}` : '';
+
+        const requests: Promise<any>[] = [
+            fetch(`/api/admin/branches`).then(r => r.json()),
+        ];
+
+        if (activeTab === 'ventas') {
+            requests.push(
+                fetch(`/api/admin/sales/chart?days=${days}${bParam}`).then(r => r.json()),
+            );
+        } else if (activeTab === 'cajeros') {
+            requests.push(
+                fetch(`/api/admin/reports/cashiers?from=${from}&to=${to}${bParam}`).then(r => r.json()),
+            );
+        } else {
+            requests.push(
+                fetch(`/api/admin/reports/shifts?from=${from}&to=${to}${bParam}`).then(r => r.json()),
+            );
+        }
+
+        Promise.all(requests).then(([br, main]) => {
             if (br.success) setBranches(br.data);
+            if (activeTab === 'ventas' && main?.success) {
+                setChartData(main.data);
+                setSummary(main.summary);
+            } else if (activeTab === 'cajeros' && main?.success) {
+                setCashiers(main.data);
+            } else if (activeTab === 'turnos' && main?.success) {
+                setShifts(main.data);
+                setShiftSummary(main.summary);
+            }
         }).finally(() => setLoading(false));
-    }
+    }, [activeTab, days, branchId]);
 
-    useEffect(() => { loadData(); }, []);
+    useEffect(() => { loadData(); }, [loadData]);
 
+    const tickInterval = days <= 14 ? 0 : days <= 30 ? 3 : days <= 60 ? 6 : 9;
     const pieData = summary?.byPayment.map(p => ({
-        name: PAYMENT_LABELS[p.method] || p.method,
-        value: p.count,
+        name: PAYMENT_LABELS[p.method] || p.method, value: p.count,
     })) ?? [];
 
-    // Ticks: mostrar cada N días para no saturar
-    const tickInterval = days <= 14 ? 0 : days <= 30 ? 3 : days <= 60 ? 6 : 9;
+    const tabs: { id: TabId; label: string; icon: React.ReactNode }[] = [
+        { id: 'ventas', label: 'Ingresos', icon: <TrendingUp className="h-4 w-4" /> },
+        { id: 'cajeros', label: 'Por Cajero', icon: <Users className="h-4 w-4" /> },
+        { id: 'turnos', label: 'Por Turno', icon: <Clock className="h-4 w-4" /> },
+    ];
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6 md:p-8">
+        <div className="min-h-screen bg-gray-50 p-4 md:p-8">
             <div className="max-w-6xl mx-auto space-y-6">
 
                 {/* Header */}
-                <div className="flex items-center justify-between flex-wrap gap-4">
+                <div className="flex items-center justify-between flex-wrap gap-3">
                     <div>
                         <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
                             <ArrowLeft className="h-4 w-4" /> Volver a Admin
                         </Link>
                         <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            <BarChart2 className="h-7 w-7 text-indigo-600" /> Reportes de Ventas
+                            <BarChart2 className="h-7 w-7 text-indigo-600" /> Reportes
                         </h1>
-                        <p className="text-gray-500 mt-1 text-sm">Análisis de ingresos y tendencias por período</p>
                     </div>
                     <button onClick={loadData} disabled={loading}
                         className="flex items-center gap-2 bg-white border border-gray-200 hover:bg-gray-50 text-gray-700 px-4 py-2.5 rounded-xl font-medium transition text-sm shadow-sm disabled:opacity-40">
                         <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar
                     </button>
+                </div>
+
+                {/* Tabs */}
+                <div className="flex gap-1 bg-white rounded-2xl shadow p-1.5 w-fit">
+                    {tabs.map(t => (
+                        <button key={t.id} onClick={() => setActiveTab(t.id)}
+                            className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-medium transition ${activeTab === t.id
+                                ? 'bg-indigo-600 text-white shadow'
+                                : 'text-gray-500 hover:text-gray-700 hover:bg-gray-50'}`}>
+                            {t.icon}{t.label}
+                        </button>
+                    ))}
                 </div>
 
                 {/* Filtros */}
@@ -142,142 +223,277 @@ export default function AdminReportsPage() {
                     </button>
                 </div>
 
-                {/* KPIs */}
-                {summary && !loading && (
-                    <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                        {[
-                            { label: `Ingresos (${days}d)`, value: `Bs. ${summary.totalRevenue.toFixed(2)}`, icon: <DollarSign className="h-5 w-5 text-green-600" />, bg: 'bg-green-100' },
-                            { label: `Ventas (${days}d)`, value: summary.totalSales.toString(), icon: <ShoppingBag className="h-5 w-5 text-blue-600" />, bg: 'bg-blue-100' },
-                            { label: 'Ticket promedio', value: `Bs. ${summary.avgTicket.toFixed(2)}`, icon: <Target className="h-5 w-5 text-purple-600" />, bg: 'bg-purple-100' },
-                        ].map(kpi => (
-                            <div key={kpi.label} className="bg-white rounded-2xl shadow p-5 flex items-center gap-4">
-                                <div className={`w-12 h-12 rounded-xl ${kpi.bg} flex items-center justify-center flex-shrink-0`}>
-                                    {kpi.icon}
-                                </div>
-                                <div>
-                                    <p className="text-sm text-gray-500 font-medium">{kpi.label}</p>
-                                    <p className="text-2xl font-black text-gray-900">{kpi.value}</p>
-                                </div>
+                {/* ── TAB: VENTAS ── */}
+                {activeTab === 'ventas' && (
+                    <>
+                        {summary && !loading && (
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                                {[
+                                    { label: `Ingresos (${days}d)`, value: `Bs. ${summary.totalRevenue.toFixed(2)}`, icon: <DollarSign className="h-5 w-5 text-green-600" />, bg: 'bg-green-100' },
+                                    { label: `Ventas (${days}d)`, value: summary.totalSales.toString(), icon: <ShoppingBag className="h-5 w-5 text-blue-600" />, bg: 'bg-blue-100' },
+                                    { label: 'Ticket promedio', value: `Bs. ${summary.avgTicket.toFixed(2)}`, icon: <Target className="h-5 w-5 text-purple-600" />, bg: 'bg-purple-100' },
+                                ].map(kpi => (
+                                    <div key={kpi.label} className="bg-white rounded-2xl shadow p-5 flex items-center gap-4">
+                                        <div className={`w-12 h-12 rounded-xl ${kpi.bg} flex items-center justify-center flex-shrink-0`}>{kpi.icon}</div>
+                                        <div>
+                                            <p className="text-sm text-gray-500 font-medium">{kpi.label}</p>
+                                            <p className="text-2xl font-black text-gray-900">{kpi.value}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        ))}
+                        )}
+                        <div className="bg-white rounded-2xl shadow p-6">
+                            <h2 className="font-bold text-gray-900 mb-1 flex items-center gap-2">
+                                <TrendingUp className="h-5 w-5 text-indigo-500" /> Ingresos diarios
+                            </h2>
+                            <p className="text-xs text-gray-400 mb-5">Últimos {days} días en Bs.</p>
+                            {loading ? <div className="h-64 flex items-center justify-center text-gray-400 text-sm">Cargando…</div> : (
+                                <ResponsiveContainer width="100%" height={280}>
+                                    <AreaChart data={chartData} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
+                                        <defs>
+                                            <linearGradient id="gI" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25} /><stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                                            </linearGradient>
+                                            <linearGradient id="gB" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} /><stop offset="95%" stopColor="#f97316" stopOpacity={0} />
+                                            </linearGradient>
+                                            <linearGradient id="gA" x1="0" y1="0" x2="0" y2="1">
+                                                <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2} /><stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
+                                            </linearGradient>
+                                        </defs>
+                                        <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                                        <XAxis dataKey="date" tickFormatter={fDate} interval={tickInterval} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                                        <YAxis tickFormatter={v => `${v}`} tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} width={45} />
+                                        <Tooltip content={<CustomTooltip />} />
+                                        <Legend formatter={(v: string) => ({ ingresos: 'Total', burger: '🍔 Burger', acai: '🥤 Açaí' }[v] ?? v)} />
+                                        <Area type="monotone" dataKey="ingresos" name="ingresos" stroke="#6366f1" strokeWidth={2} fill="url(#gI)" dot={false} activeDot={{ r: 5 }} />
+                                        <Area type="monotone" dataKey="burger" name="burger" stroke="#f97316" strokeWidth={1.5} fill="url(#gB)" dot={false} activeDot={{ r: 4 }} />
+                                        <Area type="monotone" dataKey="acai" name="acai" stroke="#8b5cf6" strokeWidth={1.5} fill="url(#gA)" dot={false} activeDot={{ r: 4 }} />
+                                    </AreaChart>
+                                </ResponsiveContainer>
+                            )}
+                        </div>
+                        <div className="grid md:grid-cols-2 gap-6">
+                            <div className="bg-white rounded-2xl shadow p-6">
+                                <h2 className="font-bold text-gray-900 mb-1">Ventas por día</h2>
+                                <p className="text-xs text-gray-400 mb-5">Cantidad de transacciones</p>
+                                {loading ? <div className="h-52 flex items-center justify-center text-gray-400 text-sm">Cargando…</div> : (
+                                    <ResponsiveContainer width="100%" height={220}>
+                                        <BarChart data={chartData} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
+                                            <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
+                                            <XAxis dataKey="date" tickFormatter={fDate} interval={tickInterval} tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                                            <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
+                                            <Tooltip content={<CustomTooltip />} />
+                                            <Bar dataKey="ventas" name="ventas" fill="#6366f1" radius={[4, 4, 0, 0]} maxBarSize={28} />
+                                        </BarChart>
+                                    </ResponsiveContainer>
+                                )}
+                            </div>
+                            <div className="bg-white rounded-2xl shadow p-6">
+                                <h2 className="font-bold text-gray-900 mb-1">Métodos de pago</h2>
+                                <p className="text-xs text-gray-400 mb-3">Distribución por cantidad de ventas</p>
+                                {loading || !pieData.length ? (
+                                    <div className="h-52 flex items-center justify-center text-gray-400 text-sm">{loading ? 'Cargando…' : 'Sin datos'}</div>
+                                ) : (
+                                    <div className="flex items-center gap-4">
+                                        <ResponsiveContainer width="55%" height={200}>
+                                            <PieChart>
+                                                <Pie data={pieData} innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value">
+                                                    {pieData.map((_, i) => <Cell key={i} fill={PAYMENT_COLORS[i % PAYMENT_COLORS.length]} />)}
+                                                </Pie>
+                                                <Tooltip formatter={(v: number | undefined) => [`${v ?? 0} ventas`, '']} />
+                                            </PieChart>
+                                        </ResponsiveContainer>
+                                        <div className="flex-1 space-y-2">
+                                            {pieData.map((d, i) => {
+                                                const total = pieData.reduce((s, x) => s + x.value, 0);
+                                                const pct = total > 0 ? (d.value / total * 100).toFixed(0) : '0';
+                                                return (
+                                                    <div key={d.name} className="flex items-center gap-2">
+                                                        <div className="w-3 h-3 rounded-full flex-shrink-0" style={{ background: PAYMENT_COLORS[i % PAYMENT_COLORS.length] }} />
+                                                        <span className="text-xs text-gray-700 flex-1">{d.name}</span>
+                                                        <span className="text-xs font-bold text-gray-900">{pct}%</span>
+                                                    </div>
+                                                );
+                                            })}
+                                        </div>
+                                    </div>
+                                )}
+                            </div>
+                        </div>
+                        <div className="text-center pb-2">
+                            <Link href="/admin/sales" className="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium hover:underline">
+                                Ver historial detallado de ventas →
+                            </Link>
+                        </div>
+                    </>
+                )}
+
+                {/* ── TAB: POR CAJERO ── */}
+                {activeTab === 'cajeros' && (
+                    <div className="space-y-4">
+                        {/* KPIs */}
+                        {!loading && cashiers.length > 0 && (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {[
+                                    { label: 'Cajeros activos', value: cashiers.length, icon: <Users className="h-5 w-5 text-indigo-600" />, bg: 'bg-indigo-50' },
+                                    { label: 'Total ingresos', value: fBs(cashiers.reduce((s, c) => s + c.totalRevenue, 0)), icon: <DollarSign className="h-5 w-5 text-green-600" />, bg: 'bg-green-50' },
+                                    { label: 'Total ventas', value: cashiers.reduce((s, c) => s + c.totalSales, 0), icon: <ShoppingBag className="h-5 w-5 text-blue-600" />, bg: 'bg-blue-50' },
+                                    { label: 'Top cajero', value: cashiers[0]?.userName.split(' ')[0] ?? '—', icon: <Target className="h-5 w-5 text-purple-600" />, bg: 'bg-purple-50' },
+                                ].map(k => (
+                                    <div key={k.label} className="bg-white rounded-2xl shadow p-4 flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-xl ${k.bg} flex items-center justify-center flex-shrink-0`}>{k.icon}</div>
+                                        <div>
+                                            <p className="text-xs text-gray-500">{k.label}</p>
+                                            <p className="text-lg font-black text-gray-900">{k.value}</p>
+                                        </div>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+
+                        <div className="bg-white rounded-2xl shadow overflow-hidden">
+                            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                                <h2 className="font-bold text-gray-900 flex items-center gap-2">
+                                    <Users className="h-5 w-5 text-indigo-500" /> Ranking de Cajeros
+                                </h2>
+                                <button onClick={() => exportCSV(cashiers, `cajeros-${days}d.csv`)}
+                                    className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-indigo-600 border border-gray-200 hover:border-indigo-300 px-3 py-1.5 rounded-lg transition">
+                                    <Download className="h-3.5 w-3.5" /> CSV
+                                </button>
+                            </div>
+                            {loading ? (
+                                <div className="p-10 text-center text-gray-400 text-sm">Cargando datos…</div>
+                            ) : cashiers.length === 0 ? (
+                                <div className="p-10 text-center text-gray-400 text-sm">Sin datos para el período</div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                                                <th className="px-5 py-3 text-left">#</th>
+                                                <th className="px-5 py-3 text-left">Cajero</th>
+                                                <th className="px-5 py-3 text-right">Ventas</th>
+                                                <th className="px-5 py-3 text-right">Ingresos</th>
+                                                <th className="px-5 py-3 text-right">Ticket Prom.</th>
+                                                <th className="px-5 py-3 text-right">Efectivo</th>
+                                                <th className="px-5 py-3 text-right">Tarjeta</th>
+                                                <th className="px-5 py-3 text-right">Transferencia</th>
+                                                <th className="px-5 py-3 text-right">Turnos</th>
+                                                <th className="px-5 py-3 text-right">Horas</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-50">
+                                            {cashiers.map((c, i) => (
+                                                <tr key={c.userId} className={`hover:bg-gray-50 transition ${i === 0 ? 'bg-amber-50/50' : ''}`}>
+                                                    <td className="px-5 py-3.5 font-bold text-gray-400">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</td>
+                                                    <td className="px-5 py-3.5 font-semibold text-gray-900">{c.userName}</td>
+                                                    <td className="px-5 py-3.5 text-right font-medium text-gray-700">{c.totalSales}</td>
+                                                    <td className="px-5 py-3.5 text-right font-bold text-green-700">{fBs(c.totalRevenue)}</td>
+                                                    <td className="px-5 py-3.5 text-right text-gray-600">{fBs(c.avgTicket)}</td>
+                                                    <td className="px-5 py-3.5 text-right text-gray-600">{fBs(c.cashAmount)}</td>
+                                                    <td className="px-5 py-3.5 text-right text-gray-600">{fBs(c.cardAmount)}</td>
+                                                    <td className="px-5 py-3.5 text-right text-gray-600">{fBs(c.transferAmount)}</td>
+                                                    <td className="px-5 py-3.5 text-right text-gray-600">{c.sessionsCount}</td>
+                                                    <td className="px-5 py-3.5 text-right text-gray-600">{c.totalHours > 0 ? `${c.totalHours}h` : '—'}</td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                    </table>
+                                </div>
+                            )}
+                        </div>
                     </div>
                 )}
 
-                {/* Gráfico de ingresos (AreaChart) */}
-                <div className="bg-white rounded-2xl shadow p-6">
-                    <h2 className="font-bold text-gray-900 mb-1 flex items-center gap-2">
-                        <TrendingUp className="h-5 w-5 text-indigo-500" /> Ingresos diarios
-                    </h2>
-                    <p className="text-xs text-gray-400 mb-5">Ingresos totales en Bolivianos — últimos {days} días</p>
-                    {loading ? (
-                        <div className="h-64 flex items-center justify-center text-gray-400 text-sm">Cargando gráfico…</div>
-                    ) : (
-                        <ResponsiveContainer width="100%" height={280}>
-                            <AreaChart data={data} margin={{ top: 5, right: 10, left: 10, bottom: 5 }}>
-                                <defs>
-                                    <linearGradient id="gradIngresos" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#6366f1" stopOpacity={0.25} />
-                                        <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="gradBurger" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#f97316" stopOpacity={0.2} />
-                                        <stop offset="95%" stopColor="#f97316" stopOpacity={0} />
-                                    </linearGradient>
-                                    <linearGradient id="gradAcai" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="5%" stopColor="#8b5cf6" stopOpacity={0.2} />
-                                        <stop offset="95%" stopColor="#8b5cf6" stopOpacity={0} />
-                                    </linearGradient>
-                                </defs>
-                                <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                                <XAxis dataKey="date" tickFormatter={formatDate} interval={tickInterval}
-                                    tick={{ fontSize: 11, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                                <YAxis tickFormatter={v => `${v}`} tick={{ fontSize: 11, fill: '#94a3b8' }}
-                                    axisLine={false} tickLine={false} width={45} />
-                                <Tooltip content={<CustomTooltip />} />
-                                <Legend formatter={(v: string) => {
-                                    const labels: Record<string, string> = { ingresos: 'Total', burger: '🍔 Burger', acai: '🥤 Açaí' };
-                                    return labels[v] ?? v;
-                                }} />
-                                <Area type="monotone" dataKey="ingresos" name="ingresos" stroke="#6366f1" strokeWidth={2}
-                                    fill="url(#gradIngresos)" dot={false} activeDot={{ r: 5 }} />
-                                <Area type="monotone" dataKey="burger" name="burger" stroke="#f97316" strokeWidth={1.5}
-                                    fill="url(#gradBurger)" dot={false} activeDot={{ r: 4 }} />
-                                <Area type="monotone" dataKey="acai" name="acai" stroke="#8b5cf6" strokeWidth={1.5}
-                                    fill="url(#gradAcai)" dot={false} activeDot={{ r: 4 }} />
-                            </AreaChart>
-                        </ResponsiveContainer>
-                    )}
-                </div>
-
-                {/* Gráfico de cantidad de ventas (BarChart) + Pie de métodos de pago */}
-                <div className="grid md:grid-cols-2 gap-6">
-                    {/* Bar chart ventas por día */}
-                    <div className="bg-white rounded-2xl shadow p-6">
-                        <h2 className="font-bold text-gray-900 mb-1">Ventas por día</h2>
-                        <p className="text-xs text-gray-400 mb-5">Cantidad de transacciones diarias</p>
-                        {loading ? (
-                            <div className="h-52 flex items-center justify-center text-gray-400 text-sm">Cargando…</div>
-                        ) : (
-                            <ResponsiveContainer width="100%" height={220}>
-                                <BarChart data={data} margin={{ top: 5, right: 10, left: -20, bottom: 5 }}>
-                                    <CartesianGrid strokeDasharray="3 3" stroke="#f1f5f9" />
-                                    <XAxis dataKey="date" tickFormatter={formatDate} interval={tickInterval}
-                                        tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                                    <YAxis tick={{ fontSize: 10, fill: '#94a3b8' }} axisLine={false} tickLine={false} />
-                                    <Tooltip content={<CustomTooltip />} />
-                                    <Bar dataKey="ventas" name="ventas" fill="#6366f1" radius={[4, 4, 0, 0]} maxBarSize={28} />
-                                </BarChart>
-                            </ResponsiveContainer>
-                        )}
-                    </div>
-
-                    {/* Pie chart métodos de pago */}
-                    <div className="bg-white rounded-2xl shadow p-6">
-                        <h2 className="font-bold text-gray-900 mb-1">Métodos de pago</h2>
-                        <p className="text-xs text-gray-400 mb-3">Distribución por cantidad de ventas</p>
-                        {loading || !pieData.length ? (
-                            <div className="h-52 flex items-center justify-center text-gray-400 text-sm">
-                                {loading ? 'Cargando…' : 'Sin datos de pago'}
+                {/* ── TAB: POR TURNO ── */}
+                {activeTab === 'turnos' && (
+                    <div className="space-y-4">
+                        {/* KPIs */}
+                        {!loading && shiftSummary && (
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                {[
+                                    { label: 'Total turnos', value: shiftSummary.totalSessions, icon: <Clock className="h-5 w-5 text-indigo-600" />, bg: 'bg-indigo-50' },
+                                    { label: 'Ingresos totales', value: fBs(shiftSummary.totalRevenue), icon: <DollarSign className="h-5 w-5 text-green-600" />, bg: 'bg-green-50' },
+                                    { label: 'Duración media', value: `${shiftSummary.avgDurationHours}h`, icon: <Target className="h-5 w-5 text-blue-600" />, bg: 'bg-blue-50' },
+                                    { label: 'Con diferencia', value: shiftSummary.sessionsWithDifference, icon: <AlertTriangle className="h-5 w-5 text-amber-600" />, bg: 'bg-amber-50' },
+                                ].map(k => (
+                                    <div key={k.label} className="bg-white rounded-2xl shadow p-4 flex items-center gap-3">
+                                        <div className={`w-10 h-10 rounded-xl ${k.bg} flex items-center justify-center flex-shrink-0`}>{k.icon}</div>
+                                        <div>
+                                            <p className="text-xs text-gray-500">{k.label}</p>
+                                            <p className="text-lg font-black text-gray-900">{k.value}</p>
+                                        </div>
+                                    </div>
+                                ))}
                             </div>
-                        ) : (
-                            <div className="flex items-center gap-4">
-                                <ResponsiveContainer width="55%" height={200}>
-                                    <PieChart>
-                                        <Pie data={pieData} innerRadius={55} outerRadius={85} paddingAngle={3} dataKey="value">
-                                            {pieData.map((_, i) => (
-                                                <Cell key={i} fill={PAYMENT_COLORS[i % PAYMENT_COLORS.length]} />
-                                            ))}
-                                        </Pie>
-                                        <Tooltip formatter={(v: number | undefined) => [`${v ?? 0} ventas`, '']} />
+                        )}
 
-                                    </PieChart>
-                                </ResponsiveContainer>
-                                <div className="flex-1 space-y-2">
-                                    {pieData.map((d, i) => {
-                                        const total = pieData.reduce((s, x) => s + x.value, 0);
-                                        const pct = total > 0 ? (d.value / total * 100).toFixed(0) : '0';
-                                        return (
-                                            <div key={d.name} className="flex items-center gap-2">
-                                                <div className="w-3 h-3 rounded-full flex-shrink-0"
-                                                    style={{ background: PAYMENT_COLORS[i % PAYMENT_COLORS.length] }} />
-                                                <span className="text-xs text-gray-700 flex-1">{d.name}</span>
-                                                <span className="text-xs font-bold text-gray-900">{pct}%</span>
-                                            </div>
-                                        );
-                                    })}
+                        <div className="bg-white rounded-2xl shadow overflow-hidden">
+                            <div className="p-5 border-b border-gray-100 flex items-center justify-between">
+                                <h2 className="font-bold text-gray-900 flex items-center gap-2">
+                                    <Clock className="h-5 w-5 text-indigo-500" /> Historial de Turnos
+                                </h2>
+                                <button onClick={() => exportCSV(shifts, `turnos-${days}d.csv`)}
+                                    className="flex items-center gap-1.5 text-xs text-gray-500 hover:text-indigo-600 border border-gray-200 hover:border-indigo-300 px-3 py-1.5 rounded-lg transition">
+                                    <Download className="h-3.5 w-3.5" /> CSV
+                                </button>
+                            </div>
+                            {loading ? (
+                                <div className="p-10 text-center text-gray-400 text-sm">Cargando datos…</div>
+                            ) : shifts.length === 0 ? (
+                                <div className="p-10 text-center text-gray-400 text-sm">Sin datos para el período</div>
+                            ) : (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full text-sm">
+                                        <thead>
+                                            <tr className="bg-gray-50 text-xs text-gray-500 uppercase tracking-wide">
+                                                <th className="px-4 py-3 text-left">Cajero</th>
+                                                <th className="px-4 py-3 text-left">Sucursal</th>
+                                                <th className="px-4 py-3 text-left">Apertura</th>
+                                                <th className="px-4 py-3 text-left">Cierre</th>
+                                                <th className="px-4 py-3 text-right">Duración</th>
+                                                <th className="px-4 py-3 text-right">Ventas</th>
+                                                <th className="px-4 py-3 text-right">Efectivo</th>
+                                                <th className="px-4 py-3 text-right">Diferencia</th>
+                                                <th className="px-4 py-3 text-center">Estado</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-50">
+                                            {shifts.map(s => {
+                                                const hasDiff = Math.abs(s.difference) > 0.5;
+                                                return (
+                                                    <tr key={s.sessionId} className={`hover:bg-gray-50 transition ${hasDiff ? 'bg-red-50/30' : ''}`}>
+                                                        <td className="px-4 py-3.5 font-semibold text-gray-900">{s.cashierName}</td>
+                                                        <td className="px-4 py-3.5 text-gray-600">{s.branchName}</td>
+                                                        <td className="px-4 py-3.5 text-gray-600 text-xs">{fDatetime(s.openedAt)}</td>
+                                                        <td className="px-4 py-3.5 text-gray-600 text-xs">{fDatetime(s.closedAt)}</td>
+                                                        <td className="px-4 py-3.5 text-right text-gray-600">
+                                                            {s.durationHours !== null ? `${s.durationHours}h` : '—'}
+                                                        </td>
+                                                        <td className="px-4 py-3.5 text-right font-bold text-green-700">{fBs(s.totalSales)}</td>
+                                                        <td className="px-4 py-3.5 text-right text-gray-600">{fBs(s.cashSales)}</td>
+                                                        <td className={`px-4 py-3.5 text-right font-bold ${hasDiff ? 'text-red-600' : 'text-gray-500'}`}>
+                                                            {hasDiff ? `${s.difference > 0 ? '+' : ''}${fBs(s.difference)}` : '—'}
+                                                        </td>
+                                                        <td className="px-4 py-3.5 text-center">
+                                                            {s.sessionStatus === 'OPEN'
+                                                                ? <span className="inline-flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium"><CheckCircle className="h-3 w-3" />Abierto</span>
+                                                                : <span className="inline-flex items-center gap-1 text-xs bg-gray-100 text-gray-600 px-2 py-0.5 rounded-full font-medium">Cerrado</span>
+                                                            }
+                                                        </td>
+                                                    </tr>
+                                                );
+                                            })}
+                                        </tbody>
+                                    </table>
                                 </div>
-                            </div>
-                        )}
+                            )}
+                        </div>
                     </div>
-                </div>
+                )}
 
-                {/* Link a ventas detalladas */}
-                <div className="text-center pb-2">
-                    <Link href="/admin/sales"
-                        className="inline-flex items-center gap-2 text-sm text-indigo-600 hover:text-indigo-800 font-medium hover:underline">
-                        Ver historial detallado de ventas →
-                    </Link>
-                </div>
             </div>
         </div>
     );
