@@ -23,9 +23,7 @@ export async function getUserContext(userId: string): Promise<UserContext | null
         include: {
             branches: {
                 include: {
-                    branch: {
-                        where: { active: true, deletedAt: null },
-                    },
+                    branch: true,
                 },
             },
         },
@@ -49,11 +47,13 @@ export async function getUserContext(userId: string): Promise<UserContext | null
         };
     }
 
-    // Otros usuarios solo acceden a sus sucursales asignadas
+    // Otros usuarios solo acceden a sus sucursales asignadas (activas)
     return {
         userId: user.id,
         role: user.role,
-        allowedBranchIds: user.branches.map((ub) => ub.branch.id),
+        allowedBranchIds: user.branches
+            .filter((ub) => ub.branch?.active && !ub.branch?.deletedAt)
+            .map((ub) => ub.branch.id),
     };
 }
 
@@ -87,41 +87,42 @@ export async function getBranchFilter(userId: string): Promise<string[]> {
 export const Permissions = {
     // Permisos de inventario
     canManageInventory: (role: UserRole) =>
-        [UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE].includes(role),
+        role === UserRole.ADMIN || role === UserRole.MANAGER || role === UserRole.WAREHOUSE,
 
     canViewInventory: (role: UserRole) =>
-        [UserRole.ADMIN, UserRole.MANAGER, UserRole.WAREHOUSE, UserRole.CASHIER].includes(role),
+        role === UserRole.ADMIN || role === UserRole.MANAGER ||
+        role === UserRole.WAREHOUSE || role === UserRole.CASHIER,
 
     // Permisos de ventas
     canCreateSale: (role: UserRole) =>
-        [UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER].includes(role),
+        role === UserRole.ADMIN || role === UserRole.MANAGER || role === UserRole.CASHIER,
 
-    canDeleteSale: (role: UserRole) => [UserRole.ADMIN, UserRole.MANAGER].includes(role),
+    canDeleteSale: (role: UserRole) => role === UserRole.ADMIN || role === UserRole.MANAGER,
 
     // Permisos de gestión de usuarios
-    canManageUsers: (role: UserRole) => [UserRole.ADMIN].includes(role),
+    canManageUsers: (role: UserRole) => role === UserRole.ADMIN,
 
     // Permisos de gestión de sucursales
-    canManageBranches: (role: UserRole) => [UserRole.ADMIN].includes(role),
+    canManageBranches: (role: UserRole) => role === UserRole.ADMIN,
 
     // Permisos de gestión de productos
-    canManageProducts: (role: UserRole) => [UserRole.ADMIN, UserRole.MANAGER].includes(role),
+    canManageProducts: (role: UserRole) => role === UserRole.ADMIN || role === UserRole.MANAGER,
 
     // Permisos de configuración de balanza
-    canManageScales: (role: UserRole) => [UserRole.ADMIN, UserRole.MANAGER].includes(role),
+    canManageScales: (role: UserRole) => role === UserRole.ADMIN || role === UserRole.MANAGER,
 
     // Permisos de panel admin (acceso a dashboard, analytics, etc.)
-    canAccessAdminPanel: (role: UserRole) => [UserRole.ADMIN, UserRole.MANAGER].includes(role),
+    canAccessAdminPanel: (role: UserRole) => role === UserRole.ADMIN || role === UserRole.MANAGER,
 
     // Permisos de autorización de descuentos (>15%)
-    canAuthorizeDiscounts: (role: UserRole) => [UserRole.ADMIN, UserRole.MANAGER].includes(role),
+    canAuthorizeDiscounts: (role: UserRole) => role === UserRole.ADMIN || role === UserRole.MANAGER,
 
     // Permisos de cierre de caja
     canCloseCashRegister: (role: UserRole) =>
-        [UserRole.ADMIN, UserRole.MANAGER, UserRole.CASHIER].includes(role),
+        role === UserRole.ADMIN || role === UserRole.MANAGER || role === UserRole.CASHIER,
 
     // Permisos de visualización de analytics
-    canViewAnalytics: (role: UserRole) => [UserRole.ADMIN, UserRole.MANAGER].includes(role),
+    canViewAnalytics: (role: UserRole) => role === UserRole.ADMIN || role === UserRole.MANAGER,
 };
 
 /**
