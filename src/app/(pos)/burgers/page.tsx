@@ -12,7 +12,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { ArrowLeft, CheckCircle, AlertCircle, Layers, Package, ShoppingBag, ClipboardList, X } from 'lucide-react';
 
-type ProductWithPrice = Product & { customPrice: number };
+type ProductWithPrice = Product & { customPrice?: number };
 
 type ComboItem = {
     id: string;
@@ -98,7 +98,9 @@ export default function BurgersPOSPage() {
     };
 
     const handleProductSelect = (product: ProductWithPrice) => {
-        setSelectedProduct(product);
+        // Garantizamos que customPrice siempre tiene valor antes de agregarlo al carrito
+        const productWithPrice: ProductWithPrice = { ...product, customPrice: product.customPrice ?? 0 };
+        setSelectedProduct(productWithPrice);
         setShowModifierModal(true);
     };
 
