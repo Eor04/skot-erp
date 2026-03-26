@@ -1,0 +1,888 @@
+// SKOT ERP - Esquema de Base de Datos Multi-Tenant
+// PostgreSQL con Prisma ORM - Optimizado para Neon + Vercel
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// =============================
+// ENUMS (Enumeraciones)
+// =============================
+
+enum UserRole {
+  ADMIN       // Acceso total al sistema
+  MANAGER     // Gestión de sucursal
+  CASHIER     // Operaciones de ventas
+  WAREHOUSE   // Gestión de inventario
+}
+
+enum BranchType {
+  ACAI
+  HAMBURGUESAS
+  FABRICA
+}
+
+enum ProductType {
+  ACAI_TOPPING
+  ACAI_BASE
+  BURGER
+  BURGER_EXTRA  // Extras / Porciones (papas, chorizo, porción de carne, etc.)
+  BEVERAGE
+  RAW_MATERIAL
+}
+
+
+enum PaymentMethod {
+  CASH        // Efectivo
+  CARD        // Tarjeta
+  TRANSFER    // Transferencia
+  MIXED       // Mixto
+}
+
+enum SyncStatus {
+  PENDING     // Pendiente
+  IN_PROGRESS // En progreso
+  COMPLETED   // Completado
+  FAILED      // Fallido
+}
+
+enum InventoryStatus {
+  AVAILABLE   // Disponible para venta
+  RESERVED    // Reservado para producción
+  IN_TRANSIT  // En tránsito entre ubicaciones
+}
+
+enum ProductionOrderStatus {
+  DRAFT       // Borrador
+  SCHEDULED   // Programada
+  IN_PROGRESS // En progreso
+  COMPLETED   // Completada
+  CANCELLED   // Cancelada
+}
+
+enum TransferStatus {
+  PENDING     // Pendiente de envío
+  IN_TRANSIT  // En tránsito
+  RECEIVED    // Recibida
+  CANCELLED   // Cancelada
+}
+
+enum SalesChannel {
+  DIRECT      // Venta directa en caja (presencial)
+  PEDIDOS_YA  // App PedidosYa
+  UBER_EATS   // App Uber Eats
+  PICKUP      // Pedido para retiro
+}
+
+enum InternalOrderStatus {
+  PENDING     // Generado por sucursal
+  APPROVED    // Aprobado por fábrica
+  DISPATCHED  // Despachado desde fábrica
+  RECEIVED    // Recibido en sucursal
+  CANCELLED
+}
+
+enum MermaReason {
+  VENCIMIENTO           // Producto vencido
+  DANO_FISICO           // Daño físico
+  DIFERENCIA_RECEPCION  // Diferencia al recibir pedido interno
+  PROCESO_PRODUCCION    // Merma normal de producción
+  OTRO
+}
+
+// =============================
+// USUARIO Y AUTENTICACIÓN
+// =============================
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  name      String
+  password  String   // bcrypt hashed
+  role      UserRole @default(CASHIER)
+  active    Boolean  @default(true)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  // Relaciones
+  branches            UserBranch[]
+  sales               Sale[]
+  authorizedDiscounts Discount[]          @relation("AuthorizedDiscounts")
+  cashCloses          CashRegisterClose[]
+  purchaseOrders      PurchaseOrder[]     @relation("PurchaseOrdersCreated")
+
+  @@index([email])
+  @@index([role])
+  @@map("users")
+}
+
+// Muchos-a-muchos: Usuarios pueden acceder a múltiples sucursales
+model UserBranch {
+  userId   String
+  branchId String
+
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  assignedAt DateTime @default(now())
+
+  @@id([userId, branchId])
+  @@map("user_branches")
+}
+
+// =============================
+// SUCURSAL (INQUILINO/TENANT)
+// =============================
+
+model Branch {
+  id        String     @id @default(cuid())
+  name      String
+  type      BranchType
+  address   String?
+  phone     String?
+  active    Boolean    @default(true)
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+  deletedAt DateTime?
+
+  // Configuración de cierre de caja
+  requireCashClose Boolean @default(true) // Cierre obligatorio por defecto
+  settings         Json?   // Configuraciones adicionales
+
+  // Relaciones
+  users          UserBranch[]
+  inventory      Inventory[]
+  sales          Sale[]
+  scaleConfig    ScaleConfig?
+  syncQueue      SyncQueue[]
+  branchProducts BranchProduct[]
+  cashCloses     CashRegisterClose[]
+  
+  // NUEVAS RELACIONES - Módulo Fábrica
+  transfersFrom    StockTransfer[]  @relation("TransfersFrom")
+  transfersTo      StockTransfer[]  @relation("TransfersTo")
+  productionOrders ProductionOrder[]
+  stockMovements   StockMovement[]
+  stockAlerts      StockAlert[]
+  // Pedidos Internos
+  internalOrdersFrom InternalOrder[] @relation("InternalOrdersFrom")
+  internalOrdersTo   InternalOrder[] @relation("InternalOrdersTo")
+  mermaRecords       MermaRecord[]
+  expenses           Expense[]
+  purchaseOrders     PurchaseOrder[]
+
+  @@index([type])
+  @@index([active])
+  @@map("branches")
+}
+
+// =============================
+// PRODUCTOS
+// =============================
+
+model Product {
+  id          String      @id @default(cuid())
+  name        String
+  description String?
+  sku         String      @unique
+  type        ProductType
+  unit        String      @default("unit") // unidad, kg, litro, etc.
+  imageUrl    String?     // URL de Cloudinary
+  category    String?     // Categoría para filtrado (Hamburguesas, Papas, Bebidas, Combos)
+  active      Boolean     @default(true)
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  deletedAt   DateTime?
+
+  // Relaciones
+  inventory      Inventory[]
+  saleItems      SaleItem[]
+  branchProducts BranchProduct[]
+  
+  // NUEVAS RELACIONES - Módulo Fábrica
+  recipes           Recipe[]
+  recipeIngredients RecipeIngredient[] @relation("RecipeIngredients")
+  transferItems     StockTransferItem[]
+  stockMovements    StockMovement[]
+  stockAlerts       StockAlert[]
+  // Pedidos Internos y Merma
+  internalOrderItems InternalOrderItem[]
+  mermaRecords       MermaRecord[]
+  comboItems         ComboItem[]
+  purchaseOrderItems PurchaseOrderItem[]
+
+  @@index([sku])
+  @@index([type])
+  @@index([active])
+  @@map("products")
+}
+
+// =============================
+// INVENTARIO (Multi-tenant)
+// =============================
+
+model Inventory {
+  id           String          @id @default(cuid())
+  branchId     String
+  productId    String
+  currentStock Float           @default(0)
+  minStock     Float           @default(0)
+  maxStock     Float?
+  
+  // NUEVOS CAMPOS - Módulo Fábrica
+  status         InventoryStatus @default(AVAILABLE)
+  batchNumber    String?         // Número de lote de producción
+  productionDate DateTime?       // Fecha de producción
+  expirationDate DateTime?       // Fecha de vencimiento
+  cost           Float?          // Costo unitario (para valoración FIFO)
+  
+  lastUpdated  DateTime        @default(now())
+  updatedAt    DateTime        @updatedAt
+
+  // Relaciones
+  branch   Branch          @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  product  Product         @relation(fields: [productId], references: [id], onDelete: Cascade)
+  movements StockMovement[]  // NUEVA relación
+
+  @@unique([branchId, productId])
+  @@index([branchId])
+  @@index([productId])
+  @@index([currentStock])
+  @@index([status])  // NUEVO índice
+  @@map("inventory")
+}
+
+// =============================
+// VENTAS
+// =============================
+
+model Sale {
+  id            String        @id @default(cuid())
+  branchId      String
+  userId        String
+  saleNumber    String        @unique // Secuencial por sucursal
+  totalAmount   Float
+  paymentMethod PaymentMethod
+  salesChannel  SalesChannel  @default(DIRECT) // Canal de venta
+  externalOrderId String?     // ID del pedido en PedidosYa/UberEats
+  
+  // Split payment (cuando paymentMethod = MIXED)
+  cashAmount     Float?
+  cardAmount     Float?
+  transferAmount Float?
+  
+  notes     String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  deletedAt DateTime?
+
+  // Relaciones
+  branch    Branch     @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  user      User       @relation(fields: [userId], references: [id], onDelete: Restrict)
+  items     SaleItem[]
+  discounts Discount[]
+
+  @@index([branchId])
+  @@index([userId])
+  @@index([saleNumber])
+  @@index([createdAt])
+  @@index([salesChannel])
+  @@map("sales")
+}
+
+model SaleItem {
+  id        String   @id @default(cuid())
+  saleId    String
+  productId String
+  quantity  Float
+  unitPrice Float
+  subtotal  Float
+  discount  Float    @default(0)
+  createdAt DateTime @default(now())
+
+  // Relaciones
+  sale      Sale                 @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  product   Product              @relation(fields: [productId], references: [id], onDelete: Restrict)
+  modifiers SaleItemModifier[]
+
+  @@index([saleId])
+  @@index([productId])
+  @@map("sale_items")
+}
+
+// =============================
+// CONFIGURACIÓN DE BALANZA (Prix 4)
+// =============================
+
+// =============================
+// COLA DE SINCRONIZACIÓN (Offline-first)
+// =============================
+
+model SyncQueue {
+  id         String     @id @default(cuid())
+  branchId   String
+  action     String // CREATE, UPDATE, DELETE
+  entity     String // Sale, Inventory, etc.
+  payload    Json
+  status     SyncStatus @default(PENDING)
+  retryCount Int        @default(0)
+  error      String?
+  createdAt  DateTime   @default(now())
+  updatedAt  DateTime   @updatedAt
+
+  // Relaciones
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+
+  @@index([branchId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("sync_queue")
+}
+
+// =============================
+// PRECIOS POR SUCURSAL
+// =============================
+
+model BranchProduct {
+  id          String   @id @default(cuid())
+  branchId    String
+  productId   String
+  customPrice Float?   // Precio fijo personalizado por sucursal
+  pricePerKg  Float?   // Precio por kg personalizado (para productos por peso)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  branch  Branch  @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id], onDelete: Cascade)
+
+  @@unique([branchId, productId])
+  @@index([branchId])
+  @@index([productId])
+  @@map("branch_products")
+}
+
+// =============================
+// MODIFICADORES DE PRODUCTOS
+// =============================
+
+model ProductModifier {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float    // Precio adicional
+  category    String?  // Para filtrar por tipo de producto (BURGER, BEVERAGE, etc.)
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  // Relaciones
+  saleItemModifiers SaleItemModifier[]
+
+  @@index([category])
+  @@index([active])
+  @@map("product_modifiers")
+}
+
+model SaleItemModifier {
+  id         String   @id @default(cuid())
+  saleItemId String
+  modifierId String
+  quantity   Float    @default(1)
+  price      Float    // Precio al momento de la venta
+
+  // Relaciones
+  saleItem SaleItem        @relation(fields: [saleItemId], references: [id], onDelete: Cascade)
+  modifier ProductModifier @relation(fields: [modifierId], references: [id], onDelete: Restrict)
+
+  @@index([saleItemId])
+  @@index([modifierId])
+  @@map("sale_item_modifiers")
+}
+
+// =============================
+// DESCUENTOS AUTORIZADOS
+// =============================
+
+model Discount {
+  id                String   @id @default(cuid())
+  saleId            String
+  type              String   // PERCENTAGE, FIXED
+  value             Float
+  authorizedBy      String?  // ID del usuario que autorizó
+  authorizationNote String?
+  createdAt         DateTime @default(now())
+
+  // Relaciones
+  sale       Sale  @relation(fields: [saleId], references: [id], onDelete: Cascade)
+  authorizer User? @relation("AuthorizedDiscounts", fields: [authorizedBy], references: [id], onDelete: SetNull)
+
+  @@index([saleId])
+  @@index([authorizedBy])
+  @@map("discounts")
+}
+
+// =============================
+// CIERRE DE CAJA
+// =============================
+
+model CashRegisterClose {
+  id             String   @id @default(cuid())
+  branchId       String
+  userId         String
+  openingAmount  Float
+  expectedCash   Float
+  actualCash     Float
+  difference     Float
+  totalSales     Float
+  cashSales      Float
+  cardSales      Float
+  transferSales  Float
+  notes          String?
+  reportUrl      String?  // URL del PDF del reporte Z
+  // Campos de sesión de caja
+  openedAt       DateTime?         // Hora de apertura de caja
+  closedAt       DateTime?         // Hora de cierre de caja
+  openedBy       String?           // Nombre del cajero que abrió
+  sessionStatus  String  @default("CLOSED") // OPEN | CLOSED
+  createdAt      DateTime @default(now())
+
+  // Relaciones
+  branch Branch @relation(fields: [branchId], references: [id], onDelete: Cascade)
+  user   User   @relation(fields: [userId], references: [id], onDelete: Restrict)
+
+  @@index([branchId])
+  @@index([userId])
+  @@index([createdAt])
+  @@index([sessionStatus])
+  @@map("cash_register_closes")
+}
+
+
+// =============================
+// CONFIGURACIÓN DE CLOUDINARY
+// =============================
+
+model CloudinaryConfig {
+  id         String   @id @default(cuid())
+  cloudName  String
+  apiKey     String
+  apiSecret  String
+  folder     String   @default("skot/products")
+  active     Boolean  @default(true)
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@map("cloudinary_config")
+}
+
+// =============================
+// MÓDULO FÁBRICA - RECETAS Y PRODUCCIÓN
+// =============================
+
+model Recipe {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  productId   String   // Producto final que se produce
+  yield       Float    // Cantidad del producto final (ej: 10 litros)
+  yieldUnit   String   // Unidad (litros, kg, unidades)
+  merma       Float    @default(0) // Porcentaje de merma (0-100)
+  notes       String?
+  active      Boolean  @default(true)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  // Relaciones
+  product           Product             @relation(fields: [productId], references: [id])
+  ingredients       RecipeIngredient[]
+  productionOrders  ProductionOrder[]
+  
+  @@index([productId])
+  @@index([active])
+  @@map("recipes")
+}
+
+model RecipeIngredient {
+  id           String   @id @default(cuid())
+  recipeId     String
+  ingredientId String   // Producto de materia prima
+  quantity     Float    // Cantidad necesaria
+  unit         String   // Unidad de medida
+  
+  // Relaciones
+  recipe     Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
+  ingredient Product @relation("RecipeIngredients", fields: [ingredientId], references: [id])
+  
+  @@index([recipeId])
+  @@index([ingredientId])
+  @@map("recipe_ingredients")
+}
+
+model ProductionOrder {
+  id             String                @id @default(cuid())
+  orderNumber    String                @unique // POD-2024-0001
+  branchId       String                // Fábrica
+  recipeId       String
+  batchNumber    String                // Número de lote generado
+  plannedYield   Float                 // Cantidad planeada
+  actualYield    Float?                // Cantidad real producida
+  status         ProductionOrderStatus @default(DRAFT)
+  scheduledDate  DateTime?
+  productionDate DateTime?
+  expirationDate DateTime?             // Calculado según tipo de producto
+  notes          String?
+  createdBy      String
+  completedBy    String?
+  createdAt      DateTime              @default(now())
+  completedAt    DateTime?
+  
+  // Relaciones
+  branch       Branch                  @relation(fields: [branchId], references: [id])
+  recipe       Recipe                  @relation(fields: [recipeId], references: [id])
+  movements    StockMovement[]
+  
+  @@index([branchId])
+  @@index([recipeId])
+  @@index([status])
+  @@index([batchNumber])
+  @@map("production_orders")
+}
+
+// =============================
+// MÓDULO INVENTARIO - TRANSFERENCIAS Y KARDEX
+// =============================
+
+model StockTransfer {
+  id               String         @id @default(cuid())
+  transferNumber   String         @unique // TRF-2024-0001
+  fromBranchId     String
+  toBranchId       String
+  status           TransferStatus @default(PENDING)
+  requestedBy      String
+  approvedBy       String?
+  receivedBy       String?
+  requestedDate    DateTime       @default(now())
+  approvedDate     DateTime?
+  receivedDate     DateTime?
+  notes            String?
+  
+  // Relaciones
+  fromBranch Branch               @relation("TransfersFrom", fields: [fromBranchId], references: [id])
+  toBranch   Branch               @relation("TransfersTo", fields: [toBranchId], references: [id])
+  items      StockTransferItem[]
+  movements  StockMovement[]
+  
+  @@index([fromBranchId])
+  @@index([toBranchId])
+  @@index([status])
+  @@map("stock_transfers")
+}
+
+model StockTransferItem {
+  id              String   @id @default(cuid())
+  transferId      String
+  productId       String
+  requestedQty    Float
+  approvedQty     Float?
+  receivedQty     Float?
+  batchNumber     String?
+  expirationDate  DateTime?
+  
+  // Relaciones
+  transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
+  product  Product       @relation(fields: [productId], references: [id])
+  
+  @@index([transferId])
+  @@index([productId])
+  @@map("stock_transfer_items")
+}
+
+model StockMovement {
+  id                String    @id @default(cuid())
+  branchId          String
+  productId         String
+  type              String    // ENTRADA, SALIDA, TRANSFERENCIA, PRODUCCION, MERMA, AJUSTE
+  quantity          Float     // Positivo = entrada, Negativo = salida
+  previousStock     Float
+  newStock          Float
+  cost              Float?    // Costo unitario (para valoración)
+  reference         String?   // Número de venta, transferencia, orden de producción, etc.
+  batchNumber       String?
+  expirationDate    DateTime?
+  notes             String?
+  createdBy         String
+  createdAt         DateTime  @default(now())
+  
+  // Referencias opcionales
+  productionOrderId String?
+  transferId        String?
+  saleId            String?
+  inventoryId       String?
+  
+  // Relaciones
+  branch          Branch           @relation(fields: [branchId], references: [id])
+  product         Product          @relation(fields: [productId], references: [id])
+  inventory       Inventory?       @relation(fields: [inventoryId], references: [id])
+  productionOrder ProductionOrder? @relation(fields: [productionOrderId], references: [id])
+  transfer        StockTransfer?   @relation(fields: [transferId], references: [id])
+  
+  @@index([branchId])
+  @@index([productId])
+  @@index([type])
+  @@index([createdAt])
+  @@map("stock_movements")
+}
+
+model StockAlert {
+  id            String   @id @default(cuid())
+  branchId      String
+  productId     String
+  alertType     String   // LOW_STOCK, EXPIRING_SOON, OVERSTOCKING
+  threshold     Float?   // Umbral personalizado
+  isActive      Boolean  @default(true)
+  lastTriggered DateTime?
+  emailEnabled  Boolean  @default(true)
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  
+  // Relaciones
+  branch  Branch  @relation(fields: [branchId], references: [id])
+  product Product @relation(fields: [productId], references: [id])
+  
+  @@unique([branchId, productId, alertType])
+  @@index([branchId])
+  @@index([productId])
+  @@map("stock_alerts")
+}
+
+// =============================
+// PEDIDOS INTERNOS
+// Sucursales solicitan stock a la fábrica
+// =============================
+
+model InternalOrder {
+  id           String              @id @default(cuid())
+  orderNumber  String              @unique // PI-2024-0001
+  fromBranchId String              // Sucursal que solicita
+  toBranchId   String              // Fábrica que despacha
+  status       InternalOrderStatus @default(PENDING)
+  requestedBy  String              // Nombre del solicitante
+  approvedBy   String?
+  dispatchedBy String?
+  receivedBy   String?
+  requestedAt  DateTime            @default(now())
+  approvedAt   DateTime?
+  dispatchedAt DateTime?
+  receivedAt   DateTime?
+  notes        String?
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
+
+  fromBranch Branch              @relation("InternalOrdersFrom", fields: [fromBranchId], references: [id])
+  toBranch   Branch              @relation("InternalOrdersTo", fields: [toBranchId], references: [id])
+  items      InternalOrderItem[]
+  mermas     MermaRecord[]
+
+  @@index([fromBranchId])
+  @@index([toBranchId])
+  @@index([status])
+  @@map("internal_orders")
+}
+
+model InternalOrderItem {
+  id            String  @id @default(cuid())
+  orderId       String
+  productId     String
+  requestedQty  Float
+  approvedQty   Float?
+  dispatchedQty Float?
+  receivedQty   Float?
+  unit          String  @default("unit")
+  notes         String?
+
+  order   InternalOrder @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  product Product       @relation(fields: [productId], references: [id])
+
+  @@index([orderId])
+  @@index([productId])
+  @@map("internal_order_items")
+}
+
+// =============================
+// MERMA
+// Registro formal de baja de stock
+// =============================
+
+model MermaRecord {
+  id              String      @id @default(cuid())
+  branchId        String
+  productId       String
+  quantity        Float       // Cantidad dada de baja
+  unit            String      @default("unit")
+  reason          MermaReason
+  description     String?
+  internalOrderId String?     // Si viene de diferencia en recepción
+  registeredBy    String      // Nombre del usuario
+  createdAt       DateTime    @default(now())
+
+  branch        Branch         @relation(fields: [branchId], references: [id])
+  product       Product        @relation(fields: [productId], references: [id])
+  internalOrder InternalOrder? @relation(fields: [internalOrderId], references: [id])
+
+  @@index([branchId])
+  @@index([productId])
+  @@index([createdAt])
+  @@map("merma_records")
+}
+
+// =============================
+// COMBOS
+// Productos combinados cross-categoría (burger + açaí)
+// =============================
+
+model Combo {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  price       Float    // Precio del combo (puede ser < suma individual)
+  active      Boolean  @default(true)
+  imageUrl    String?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  items ComboItem[]
+
+  @@index([active])
+  @@map("combos")
+}
+
+model ComboItem {
+  id        String @id @default(cuid())
+  comboId   String
+  productId String
+  quantity  Float  @default(1)
+
+  combo   Combo   @relation(fields: [comboId], references: [id], onDelete: Cascade)
+  product Product @relation(fields: [productId], references: [id])
+
+  @@index([comboId])
+  @@map("combo_items")
+}
+
+// =============================
+// GASTOS
+// =============================
+
+enum ExpenseCategory {
+  PROVEEDOR     // Pago a proveedor
+  SERVICIOS     // Agua, luz, gas, internet
+  MANTENIMIENTO // Reparación, limpieza
+  SUELDOS       // Pago de personal
+  LOGISTICA     // Envíos, transporte
+  OTRO
+}
+
+model Expense {
+  id          String          @id @default(cuid())
+  branchId    String
+  category    ExpenseCategory @default(PROVEEDOR)
+  description String          // "Pago proveedor X", "Factura gas", etc.
+  amount      Float           // En moneda local (S/)
+  supplier    String?         // Nombre del proveedor (opcional)
+  receiptUrl  String?         // URL de comprobante (Cloudinary, opcional)
+  paymentMethod PaymentMethod @default(CASH)
+  registeredBy  String        // userId del cajero/encargado
+  notes         String?
+  expenseDate   DateTime      @default(now())
+  createdAt     DateTime      @default(now())
+
+  branch Branch @relation(fields: [branchId], references: [id])
+
+  @@index([branchId])
+  @@index([expenseDate])
+  @@index([category])
+  @@map("expenses")
+}
+
+// =============================
+// PEDIDOS A PROVEEDORES
+// =============================
+
+enum PurchaseOrderStatus {
+  PENDING    // Creado, pendiente de envío
+  SENT       // Enviado al proveedor
+  PARTIAL    // Recibido parcialmente
+  RECEIVED   // Recibido completo
+  CANCELLED  // Cancelado
+}
+
+model PurchaseOrder {
+  id          String              @id @default(cuid())
+  orderNumber String              @unique
+  branchId    String
+  userId      String
+  supplier    String
+  status      PurchaseOrderStatus @default(PENDING)
+  totalAmount Float               @default(0)
+  expectedDate DateTime?
+  receivedDate DateTime?
+  notes       String?
+  deletedAt   DateTime?
+  createdAt   DateTime            @default(now())
+  updatedAt   DateTime            @updatedAt
+
+  branch Branch @relation(fields: [branchId], references: [id])
+  user   User   @relation("PurchaseOrdersCreated", fields: [userId], references: [id])
+  items  PurchaseOrderItem[]
+
+  @@index([branchId])
+  @@index([status])
+  @@index([createdAt])
+  @@map("purchase_orders")
+}
+
+model PurchaseOrderItem {
+  id              String @id @default(cuid())
+  purchaseOrderId String
+  productId       String
+  quantity        Float
+  receivedQty     Float  @default(0)
+  unitCost        Float
+  subtotal        Float
+
+  purchaseOrder PurchaseOrder @relation(fields: [purchaseOrderId], references: [id], onDelete: Cascade)
+  product       Product       @relation(fields: [productId], references: [id])
+
+  @@index([purchaseOrderId])
+  @@map("purchase_order_items")
+}
+
+// =============================
+// CONFIGURACIÓN DE BALANZA
+// =============================
+
+model ScaleConfig {
+  id           String   @id @default(cuid())
+  branchId     String   @unique
+  modelName    String   @default("Prix 4")      // Modelo de balanza
+  serialNumber String?                           // Número de serie
+  port         String   @default("COM1")         // Puerto serie (COM1, COM3, /dev/ttyUSB0)
+  baudRate     Int      @default(9600)           // 1200, 2400, 4800, 9600, 19200
+  tara         Float    @default(0.15)           // Tara del recipiente en kg
+  active       Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  branch Branch @relation(fields: [branchId], references: [id])
+
+  @@map("scale_configs")
+}
