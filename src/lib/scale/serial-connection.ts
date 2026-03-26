@@ -80,7 +80,7 @@ export class SerialConnection {
 
             // Abrir el puerto con la configuración Prix 4
             await this.port.open({
-                baudRate: this.options.baudRate,
+                baudRate: this.options.baudRate ?? PRIX4_CONFIG.baudRate,
                 dataBits: PRIX4_CONFIG.dataBits,
                 stopBits: PRIX4_CONFIG.stopBits,
                 parity: PRIX4_CONFIG.parity,
@@ -152,7 +152,7 @@ export class SerialConnection {
 
                 if (value) {
                     // Emitir datos recibidos
-                    this.options.onData?.(value.buffer);
+                    this.options.onData?.(value.buffer.slice(0) as ArrayBuffer);
                 }
             }
 
