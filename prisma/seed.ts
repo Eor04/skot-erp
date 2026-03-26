@@ -83,15 +83,11 @@ async function main() {
     await prisma.scaleConfig.create({
         data: {
             branchId: acaiBranch.id,
-            model: 'Prix 4',
+            modelName: 'Prix 4',
             serialNumber: 'PX4-2024-001',
             port: 'COM1',
             baudRate: 9600,
-            settings: {
-                unitMode: 'kg',
-                precision: 3,
-                timeout: 5000,
-            },
+            tara: 0.15,
             active: true,
         },
     });
