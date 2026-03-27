@@ -36,7 +36,6 @@ export async function GET(request: NextRequest) {
             return {
                 sessionId: s.id,
                 cashierName: s.user.name,
-                cashierEmail: s.user.email ?? '',
                 branchName: s.branch.name,
                 openedAt: s.openedAt?.toISOString() ?? null,
                 closedAt: s.closedAt?.toISOString() ?? null,
