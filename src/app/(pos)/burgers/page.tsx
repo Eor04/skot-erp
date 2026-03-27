@@ -229,7 +229,13 @@ export default function BurgersPOSPage() {
             <div className="flex-1 p-4 overflow-hidden flex flex-col">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-3">
-                    <h1 className="text-2xl font-bold text-gray-800">🍔 POS Hamburguesas</h1>
+                    <div className="flex items-center gap-3">
+                        {/* Logo Burger */}
+                        <img src="/logo-burger.png" alt="Skot Burger"
+                            className="h-10 w-auto object-contain"
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        <h1 className="text-2xl font-bold text-gray-800">POS Hamburguesas</h1>
+                    </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setShowHistory(v => !v)}
@@ -264,13 +270,21 @@ export default function BurgersPOSPage() {
                     </button>
                 </div>
 
-                {/* Contenido del tab */}
-                <div className="bg-white rounded-xl shadow flex-1 p-4 overflow-hidden">
+                {/* Contenido del tab con watermark */}
+                <div className="bg-white rounded-xl shadow flex-1 p-4 overflow-hidden relative">
+                    {/* Marca de agua */}
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-0">
+                        <img src="/logo-burger.png" alt=""
+                            className="w-72 h-72 object-contain opacity-[0.05] select-none"
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    </div>
+                    <div className="relative z-10 h-full">
                     {activeTab === 'productos' ? (
                         <ProductGrid products={products} onProductSelect={handleProductSelect} />
                     ) : (
                         <CombosGrid combos={combos} onComboSelect={handleComboSelect} />
                     )}
+                    </div>
                 </div>
             </div>
 

@@ -180,7 +180,11 @@ export default function AcaiPOSPage() {
                         <Link href="/" className="text-purple-600 hover:text-purple-800">
                             <ArrowLeft className="h-5 w-5" />
                         </Link>
-                        <h1 className="text-2xl font-bold text-gray-800">🥤 POS Açaí</h1>
+                        {/* Logo Açaí */}
+                        <img src="/logo-acai.png" alt="Açaí Skot"
+                            className="h-10 w-auto object-contain"
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                        <h1 className="text-2xl font-bold text-gray-800">POS Açaí</h1>
                     </div>
                     {/* Estado de balanza */}
                     <div className="flex items-center gap-2">
@@ -246,8 +250,14 @@ export default function AcaiPOSPage() {
                 ) : null}
 
                 {/* Grid de productos */}
-                <div className="flex-1 overflow-y-auto">
-                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                <div className="flex-1 overflow-y-auto relative">
+                    {/* Marca de agua */}
+                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-0">
+                        <img src="/logo-acai.png" alt=""
+                            className="w-72 h-72 object-contain opacity-[0.06] select-none"
+                            onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                    </div>
+                    <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3 relative z-10">
                         {activeTab === 'base' && bases.map((p) => (
                             <button
                                 key={p.id}

@@ -11,46 +11,46 @@ import { NotificationBell } from '@/components/notification-bell';
 /* ─── Módulos del sistema ─────────────────────────────────────────── */
 const ALL_MODULES = [
     {
-        href: '/acai', emoji: '🥤', title: 'POS Açaí',
+        href: '/acai', emoji: '🥤', logo: '/logo-acai.png', title: 'POS Açaí',
         description: 'Punto de venta con balanza Prix 4. Venta por peso, toppings y pagos.',
-        gradient: 'linear-gradient(135deg,#9333ea,#ec4899)', badge: 'Balanza Prix 4', glow: 'rgba(147,51,234,0.3)',
+        gradient: 'linear-gradient(135deg,#9333ea,#ec4899)', badge: 'Balanza Prix 4', glow: 'rgba(147,51,234,0.35)',
         showWhen: (role: string, types: string[]) =>
             ['ADMIN', 'MANAGER'].includes(role) || (role === 'CASHIER' && (types.length === 0 || types.includes('ACAI'))),
     },
     {
-        href: '/burgers', emoji: '🍔', title: 'POS Burgers',
+        href: '/burgers', emoji: '🍔', logo: '/logo-burger.png', title: 'POS Burgers',
         description: 'Punto de venta táctil con modificadores, combos y gestión de carrito.',
-        gradient: 'linear-gradient(135deg,#f97316,#eab308)', badge: 'Táctil', glow: 'rgba(249,115,22,0.3)',
+        gradient: 'linear-gradient(135deg,#f97316,#eab308)', badge: 'Táctil', glow: 'rgba(249,115,22,0.35)',
         showWhen: (role: string, types: string[]) =>
             ['ADMIN', 'MANAGER'].includes(role) || (role === 'CASHIER' && (types.length === 0 || types.includes('HAMBURGUESAS'))),
     },
     {
-        href: '/cash-close', emoji: '💰', title: 'Cierre de Caja',
+        href: '/cash-close', emoji: '💰', logo: '', title: 'Cierre de Caja',
         description: 'Registrá el cierre del turno: efectivo, tarjeta y diferencias.',
         gradient: 'linear-gradient(135deg,#64748b,#334155)', badge: 'Turno', glow: 'rgba(100,116,139,0.3)',
         showWhen: (role: string) => ['ADMIN', 'MANAGER', 'CASHIER'].includes(role),
     },
     {
-        href: '/expenses', emoji: '🧾', title: 'Gastos',
+        href: '/expenses', emoji: '🧾', logo: '', title: 'Gastos',
         description: 'Registrá pagos a proveedores, servicios y otros gastos operativos.',
         gradient: 'linear-gradient(135deg,#dc2626,#db2777)', badge: 'Proveedores', glow: 'rgba(220,38,38,0.3)',
         showWhen: (role: string) => ['ADMIN', 'MANAGER', 'CASHIER', 'WAREHOUSE'].includes(role),
     },
     {
-        href: '/factory', emoji: '🏭', title: 'Fábrica',
+        href: '/factory', emoji: '🏭', logo: '', title: 'Fábrica',
         description: 'Gestión de recetas, órdenes de producción y kardex de movimientos.',
         gradient: 'linear-gradient(135deg,#2563eb,#0891b2)', badge: 'Producción', glow: 'rgba(37,99,235,0.3)',
         showWhen: (role: string, types: string[]) =>
             ['ADMIN', 'MANAGER'].includes(role) || (role === 'WAREHOUSE' && (types.length === 0 || types.includes('FABRICA'))),
     },
     {
-        href: '/inventory', emoji: '📦', title: 'Inventario',
+        href: '/inventory', emoji: '📦', logo: '', title: 'Inventario',
         description: 'Stock en tiempo real, alertas automáticas y transferencias entre sucursales.',
         gradient: 'linear-gradient(135deg,#059669,#0d9488)', badge: 'Multi-sucursal', glow: 'rgba(5,150,105,0.3)',
         showWhen: (role: string) => ['ADMIN', 'MANAGER', 'WAREHOUSE', 'CASHIER'].includes(role),
     },
     {
-        href: '/admin', emoji: '⚙️', title: 'Administración',
+        href: '/admin', emoji: '⚙️', logo: '', title: 'Administración',
         description: 'Usuarios, sucursales, productos, reportes de ventas y configuración.',
         gradient: 'linear-gradient(135deg,#4f46e5,#7c3aed)', badge: 'Admin', glow: 'rgba(79,70,229,0.3)',
         showWhen: (role: string) => ['ADMIN', 'MANAGER'].includes(role),
@@ -230,14 +230,16 @@ export default function HomePage() {
             )}
 
             {/* ── Hero ── */}
-            <div className="relative z-10 px-8 pt-10 pb-8 text-center">
-                {/* Logo grande */}
-                <div className="mb-4 inline-block" style={{ filter: 'drop-shadow(0 0 40px rgba(236,72,153,0.45))' }}>
-                    <img src="/logo-skot.png" alt="Skot" className="h-24 w-auto mx-auto object-contain"
+            <div className="relative z-10 px-8 pt-10 pb-8 text-center flex flex-col items-center">
+                {/* Logo grande centrado */}
+                <div className="mb-5" style={{ filter: 'drop-shadow(0 0 50px rgba(236,72,153,0.5))' }}>
+                    <img src="/logo-skot.png" alt="Skot"
+                        className="h-28 w-auto mx-auto object-contain"
                         onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                 </div>
 
-                <div className="inline-flex items-center gap-3 mt-2 mb-4 px-4 py-2 rounded-full"
+                {/* Badge sesión activa */}
+                <div className="inline-flex items-center gap-3 mb-3 px-4 py-2 rounded-full"
                     style={{ background: 'rgba(255,255,255,0.06)', border: '1px solid rgba(255,255,255,0.1)', backdropFilter: 'blur(8px)' }}>
                     <ShieldCheck className="h-4 w-4 text-green-400" />
                     <span className="text-sm font-medium" style={{ color: 'rgba(255,255,255,0.65)' }}>
@@ -349,11 +351,25 @@ export default function HomePage() {
                                 style={{ background: mod.gradient, opacity: 0.85 }}>
                                 {mod.badge}
                             </span>
-                            {/* Ícono */}
-                            <div className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl mb-4 shadow-lg group-hover:scale-105 transition-transform duration-200"
-                                style={{ background: mod.gradient }}>
-                                {mod.emoji}
-                            </div>
+                            {/* Ícono — logo si existe, sino fondo degradado con emoji */}
+                            {mod.logo ? (
+                                <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-4 overflow-hidden shadow-lg group-hover:scale-105 transition-transform duration-200"
+                                    style={{ background: 'rgba(255,255,255,0.08)' }}>
+                                    <img src={mod.logo} alt={mod.title}
+                                        className="w-full h-full object-contain p-1"
+                                        onError={e => {
+                                            const parent = (e.target as HTMLImageElement).parentElement!;
+                                            parent.style.background = mod.gradient;
+                                            (e.target as HTMLImageElement).style.display = 'none';
+                                            parent.innerHTML = `<span style='font-size:2rem'>${mod.emoji}</span>`;
+                                        }} />
+                                </div>
+                            ) : (
+                                <div className="w-14 h-14 rounded-xl flex items-center justify-center text-3xl mb-4 shadow-lg group-hover:scale-105 transition-transform duration-200"
+                                    style={{ background: mod.gradient }}>
+                                    {mod.emoji}
+                                </div>
+                            )}
                             {/* Texto */}
                             <h2 className="text-xl font-bold text-white mb-1">{mod.title}</h2>
                             <p className="text-sm leading-relaxed" style={{ color: 'rgba(255,255,255,0.45)' }}>{mod.description}</p>
