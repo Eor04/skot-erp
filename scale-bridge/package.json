@@ -1,0 +1,13 @@
+{
+  "name": "skot-scale-bridge",
+  "version": "1.0.0",
+  "description": "Puente TCP/IP → WebSocket para balanza Toledo Prix 4 Uno",
+  "main": "bridge.js",
+  "scripts": {
+    "start": "node bridge.js",
+    "dev": "node --watch bridge.js"
+  },
+  "dependencies": {
+    "ws": "^8.18.0"
+  }
+}
