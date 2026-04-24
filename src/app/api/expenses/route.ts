@@ -25,8 +25,10 @@ export async function GET(request: NextRequest) {
             ...(startDate || endDate
                 ? {
                     expenseDate: {
+                        // Si startDate contiene 'T' es un datetime completo; si no, es solo fecha (desde medianoche)
                         ...(startDate && { gte: new Date(startDate) }),
-                        ...(endDate && { lte: new Date(endDate + 'T23:59:59') }),
+                        // Si endDate contiene 'T' úsalo tal cual; si es solo fecha, añadir fin de día
+                        ...(endDate && { lte: endDate.includes('T') ? new Date(endDate) : new Date(endDate + 'T23:59:59') }),
                     },
                 }
                 : {}),

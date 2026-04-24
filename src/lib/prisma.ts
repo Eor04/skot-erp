@@ -3,5 +3,5 @@
  * Re-exporta el cliente Prisma desde db.ts
  * Usado por los route handlers generados en conversaciones anteriores.
  */
-export { prisma } from './db';
+export { prisma, withRetry } from './db';
 export { testConnection, disconnectDatabase, getPoolStats } from './db';

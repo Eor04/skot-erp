@@ -2,7 +2,11 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, ClipboardList, Search, ChevronDown, ChevronUp, User } from 'lucide-react';
+import {
+    ArrowLeft, ClipboardList, Search, ChevronDown, ChevronUp, User,
+    ShoppingCart, AlertCircle, Loader2, Banknote, CreditCard, Smartphone,
+    TrendingUp, DollarSign, Package,
+} from 'lucide-react';
 
 type CashClose = {
     id: string;
@@ -15,6 +19,8 @@ type CashClose = {
     cashSales: number | null;
     cardSales: number | null;
     transferSales: number | null;
+    totalExpenses: number | null;
+    netCash: number | null;
     difference: number | null;
     notes: string | null;
     openedAt: string | null;
@@ -24,7 +30,24 @@ type CashClose = {
     user?: { id: string; name: string; email: string };
 };
 
-type Branch = { id: string; name: string; type: string };
+type SaleItem = { quantity: number; unitPrice: number; product: { name: string } };
+type Sale = {
+    id: string; saleNumber: string; totalAmount: number;
+    paymentMethod: string; cashAmount: number | null; cardAmount: number | null;
+    transferAmount: number | null; createdAt: string; items: SaleItem[];
+};
+type Expense = {
+    id: string; description: string; amount: number;
+    category: string; paymentMethod: string; supplier: string | null; expenseDate: string;
+};
+type DetailData = {
+    session: CashClose;
+    sales: Sale[];
+    expenses: Expense[];
+    totals: { salesCount: number; totalExpenses: number; cashExpenses: number };
+};
+
+type Branch  = { id: string; name: string; type: string };
 type Summary = {
     totalSessions: number; closedSessions: number; openSessions: number;
     totalSales: number; totalCash: number; totalCard: number; totalTransfer: number;
@@ -37,22 +60,45 @@ const PERIODS = [
     { label: 'Últimos 30d', days: 30 },
 ];
 
-function toDateStr(d: Date) {
-    return d.toISOString().split('T')[0];
+const METHOD_ICON: Record<string, React.ReactNode> = {
+    CASH:     <Banknote className="h-3.5 w-3.5 text-green-600" />,
+    CARD:     <CreditCard className="h-3.5 w-3.5 text-blue-600" />,
+    TRANSFER: <Smartphone className="h-3.5 w-3.5 text-purple-600" />,
+    MIXED:    <DollarSign className="h-3.5 w-3.5 text-orange-500" />,
+};
+const METHOD_LABEL: Record<string, string> = {
+    CASH: 'Efectivo', CARD: 'Tarjeta', TRANSFER: 'Transferencia', MIXED: 'Mixto',
+};
+const CATEGORY_LABEL: Record<string, string> = {
+    PROVEEDOR: 'Proveedor', SUELDOS: 'Sueldo', SERVICIOS: 'Servicios',
+    MANTENIMIENTO: 'Mantenimiento', OTROS: 'Otros',
+};
+
+function toDateStr(d: Date) { return d.toISOString().split('T')[0]; }
+function fmt(n: number | null | undefined) {
+    if (n == null) return '—';
+    return `Bs. ${n.toFixed(2)}`;
+}
+function fmtDate(s: string | null) {
+    if (!s) return '—';
+    return new Date(s).toLocaleString('es-BO', { dateStyle: 'short', timeStyle: 'short' });
+}
+function fmtTime(s: string) {
+    return new Date(s).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' });
 }
 
 export default function CashClosesReportPage() {
-    const [branches, setBranches] = useState<Branch[]>([]);
-    const [closes, setCloses] = useState<CashClose[]>([]);
-    const [summary, setSummary] = useState<Summary | null>(null);
-    const [loading, setLoading] = useState(false);
+    const [branches, setBranches]   = useState<Branch[]>([]);
+    const [closes, setCloses]       = useState<CashClose[]>([]);
+    const [summary, setSummary]     = useState<Summary | null>(null);
+    const [loading, setLoading]     = useState(false);
     const [branchFilter, setBranchFilter] = useState('');
-    const [fromDate, setFromDate] = useState(toDateStr(new Date()));
-    const [toDate, setToDate] = useState(toDateStr(new Date()));
-    const [search, setSearch] = useState('');
+    const [fromDate, setFromDate]   = useState(toDateStr(new Date()));
+    const [toDate, setToDate]       = useState(toDateStr(new Date()));
+    const [search, setSearch]       = useState('');
     const [expandedId, setExpandedId] = useState<string | null>(null);
-
-    function toggleExpand(id: string) { setExpandedId(prev => prev === id ? null : id); }
+    const [detail, setDetail]         = useState<DetailData | null>(null);
+    const [detailLoading, setDetailLoading] = useState(false);
 
     useEffect(() => {
         fetch('/api/admin/branches').then(r => r.json()).then(d => {
@@ -67,42 +113,35 @@ export default function CashClosesReportPage() {
             if (branchFilter) params.set('branchId', branchFilter);
             const res = await fetch(`/api/admin/cash-closes?${params}`);
             const d = await res.json();
-            if (d.success) {
-                setCloses(d.data);
-                setSummary(d.summary);
-            }
+            if (d.success) { setCloses(d.data); setSummary(d.summary); }
         } catch { }
         finally { setLoading(false); }
     }, [fromDate, toDate, branchFilter]);
 
     useEffect(() => { load(); }, [load]);
 
+    async function toggleExpand(id: string) {
+        if (expandedId === id) { setExpandedId(null); setDetail(null); return; }
+        setExpandedId(id);
+        setDetail(null);
+        setDetailLoading(true);
+        try {
+            const res = await fetch(`/api/admin/cash-closes/${id}`).then(r => r.json());
+            if (res.success) setDetail(res.data);
+        } finally { setDetailLoading(false); }
+    }
+
     function applyPeriod(days: number) {
         const today = new Date();
-        if (days === 0) {
-            setFromDate(toDateStr(today));
-            setToDate(toDateStr(today));
-        } else {
-            const from = new Date(today);
-            from.setDate(today.getDate() - days);
-            setFromDate(toDateStr(from));
-            setToDate(toDateStr(today));
+        if (days === 0) { setFromDate(toDateStr(today)); setToDate(toDateStr(today)); }
+        else {
+            const from = new Date(today); from.setDate(today.getDate() - days);
+            setFromDate(toDateStr(from)); setToDate(toDateStr(today));
         }
     }
 
-    function fmt(n: number | null | undefined) {
-        if (n == null) return '—';
-        return `Bs. ${n.toFixed(2)}`;
-    }
-
-    function fmtDate(s: string | null) {
-        if (!s) return '—';
-        return new Date(s).toLocaleString('es-BO', { dateStyle: 'short', timeStyle: 'short' });
-    }
-
     const filtered = closes.filter(c =>
-        !search ||
-        c.branch.name.toLowerCase().includes(search.toLowerCase())
+        !search || c.branch.name.toLowerCase().includes(search.toLowerCase())
     );
 
     return (
@@ -121,7 +160,6 @@ export default function CashClosesReportPage() {
 
                 {/* Filtros */}
                 <div className="bg-white rounded-2xl shadow p-5 mb-6 flex flex-wrap gap-4 items-end">
-                    {/* Períodos rápidos */}
                     <div>
                         <p className="text-xs font-semibold text-gray-500 mb-2">Período rápido</p>
                         <div className="flex gap-2">
@@ -133,7 +171,6 @@ export default function CashClosesReportPage() {
                             ))}
                         </div>
                     </div>
-                    {/* Fechas */}
                     <div className="flex gap-2 items-end">
                         <div>
                             <label className="block text-xs font-semibold text-gray-500 mb-1">Desde</label>
@@ -146,7 +183,6 @@ export default function CashClosesReportPage() {
                                 className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300" />
                         </div>
                     </div>
-                    {/* Sucursal */}
                     <div>
                         <label className="block text-xs font-semibold text-gray-500 mb-1">Sucursal</label>
                         <select value={branchFilter} onChange={e => setBranchFilter(e.target.value)}
@@ -155,7 +191,6 @@ export default function CashClosesReportPage() {
                             {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                         </select>
                     </div>
-                    {/* Búsqueda */}
                     <div className="relative flex-1 min-w-[180px]">
                         <label className="block text-xs font-semibold text-gray-500 mb-1">Buscar</label>
                         <div className="relative">
@@ -170,10 +205,10 @@ export default function CashClosesReportPage() {
                 {summary && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                         {[
-                            { label: 'Total ventas', value: fmt(summary.totalSales), color: 'text-gray-900' },
-                            { label: 'Efectivo', value: fmt(summary.totalCash), color: 'text-green-700' },
-                            { label: 'Tarjeta', value: fmt(summary.totalCard), color: 'text-blue-700' },
-                            { label: 'Transferencia', value: fmt(summary.totalTransfer), color: 'text-purple-700' },
+                            { label: 'Total ventas',    value: fmt(summary.totalSales),    color: 'text-gray-900' },
+                            { label: 'Efectivo',        value: fmt(summary.totalCash),     color: 'text-green-700' },
+                            { label: 'Tarjeta',         value: fmt(summary.totalCard),     color: 'text-blue-700' },
+                            { label: 'Transferencia',   value: fmt(summary.totalTransfer), color: 'text-purple-700' },
                         ].map(k => (
                             <div key={k.label} className="bg-white rounded-2xl shadow p-5">
                                 <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">{k.label}</p>
@@ -191,12 +226,13 @@ export default function CashClosesReportPage() {
                         <table className="w-full text-sm">
                             <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600"></th>
+                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600 w-8"></th>
                                     <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Sucursal</th>
                                     <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Cajero</th>
                                     <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Apertura</th>
                                     <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Cierre</th>
                                     <th className="text-right px-5 py-3.5 font-semibold text-gray-600">Ventas</th>
+                                    <th className="text-right px-5 py-3.5 font-semibold text-gray-600">Gastos</th>
                                     <th className="text-right px-5 py-3.5 font-semibold text-gray-600">Diferencia</th>
                                     <th className="text-center px-5 py-3.5 font-semibold text-gray-600">Estado</th>
                                 </tr>
@@ -224,6 +260,7 @@ export default function CashClosesReportPage() {
                                                 <td className="px-5 py-3.5 text-gray-500 text-xs">{fmtDate(c.openedAt)}</td>
                                                 <td className="px-5 py-3.5 text-gray-500 text-xs">{fmtDate(c.closedAt)}</td>
                                                 <td className="px-5 py-3.5 text-right font-semibold text-gray-900">{fmt(c.totalSales)}</td>
+                                                <td className="px-5 py-3.5 text-right font-semibold text-red-600">{fmt(c.totalExpenses)}</td>
                                                 <td className={`px-5 py-3.5 text-right font-semibold ${(c.difference ?? 0) < 0 ? 'text-red-600' : 'text-green-600'}`}>
                                                     {fmt(c.difference)}
                                                 </td>
@@ -233,26 +270,157 @@ export default function CashClosesReportPage() {
                                                     </span>
                                                 </td>
                                             </tr>
-                                            {/* Desglose expandible */}
+
+                                            {/* ── Panel de detalle expandible ── */}
                                             {isExpanded && (
-                                                <tr key={`${c.id}-detail`} className="bg-slate-50">
-                                                    <td colSpan={8} className="px-8 py-4">
-                                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                                                            {[
-                                                                { label: '💵 Ventas efectivo', val: fmt(c.cashSales), color: 'text-green-700' },
-                                                                { label: '💳 Ventas tarjeta',  val: fmt(c.cardSales), color: 'text-blue-700' },
-                                                                { label: '📲 Transferencias',  val: fmt(c.transferSales), color: 'text-purple-700' },
-                                                                { label: '💰 Apertura caja',   val: fmt(c.openingAmount), color: 'text-gray-700' },
-                                                            ].map(k => (
-                                                                <div key={k.label} className="bg-white rounded-xl border border-gray-100 px-4 py-3">
-                                                                    <p className="text-xs text-gray-400">{k.label}</p>
-                                                                    <p className={`text-lg font-bold mt-0.5 ${k.color}`}>{k.val}</p>
+                                                <tr key={`${c.id}-detail`} className="bg-slate-50/60">
+                                                    <td colSpan={9} className="px-6 py-5">
+                                                        {detailLoading && !detail ? (
+                                                            <div className="flex justify-center py-6">
+                                                                <Loader2 className="h-6 w-6 animate-spin text-slate-400" />
+                                                            </div>
+                                                        ) : detail ? (
+                                                            <div className="space-y-5">
+
+                                                                {/* KPIs del turno */}
+                                                                <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
+                                                                    {[
+                                                                        { label: '💰 Apertura', val: fmt(c.openingAmount), color: 'text-gray-700' },
+                                                                        { label: '💵 Efectivo ventas', val: fmt(c.cashSales), color: 'text-green-700' },
+                                                                        { label: '💳 Tarjeta', val: fmt(c.cardSales), color: 'text-blue-700' },
+                                                                        { label: '📲 Transferencia', val: fmt(c.transferSales), color: 'text-purple-700' },
+                                                                        { label: '🧾 Total gastos', val: fmt(c.totalExpenses), color: 'text-red-600' },
+                                                                        { label: '📊 Neto', val: fmt(c.netCash), color: 'text-slate-800' },
+                                                                        { label: '📦 Ventas (#)', val: String(detail.totals.salesCount), color: 'text-indigo-700' },
+                                                                    ].map(k => (
+                                                                        <div key={k.label} className="bg-white rounded-xl border border-gray-100 px-3 py-2.5">
+                                                                            <p className="text-xs text-gray-400">{k.label}</p>
+                                                                            <p className={`text-base font-bold mt-0.5 ${k.color}`}>{k.val}</p>
+                                                                        </div>
+                                                                    ))}
                                                                 </div>
-                                                            ))}
-                                                        </div>
-                                                        {c.notes && (
-                                                            <p className="mt-2 text-xs text-gray-400 italic">Nota: "{c.notes}"</p>
-                                                        )}
+
+                                                                <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+                                                                    {/* ── VENTAS DEL TURNO ── */}
+                                                                    <div>
+                                                                        <div className="flex items-center gap-2 mb-2">
+                                                                            <ShoppingCart className="h-4 w-4 text-indigo-500" />
+                                                                            <h3 className="font-bold text-gray-800 text-sm">
+                                                                                Ventas del turno ({detail.sales.length})
+                                                                            </h3>
+                                                                        </div>
+                                                                        {detail.sales.length === 0 ? (
+                                                                            <p className="text-xs text-gray-400 italic py-4 text-center">Sin ventas en este turno</p>
+                                                                        ) : (
+                                                                            <div className="rounded-xl border border-gray-100 overflow-hidden max-h-72 overflow-y-auto">
+                                                                                {detail.sales.map(sale => (
+                                                                                    <div key={sale.id} className="border-b border-gray-50 last:border-0 px-3 py-2.5 bg-white hover:bg-gray-50">
+                                                                                        <div className="flex items-center justify-between gap-2">
+                                                                                            <span className="font-mono text-xs text-gray-400 flex-shrink-0">{sale.saleNumber}</span>
+                                                                                            <div className="flex items-center gap-1 text-xs text-gray-500 flex-shrink-0">
+                                                                                                {METHOD_ICON[sale.paymentMethod]}
+                                                                                                {METHOD_LABEL[sale.paymentMethod] || sale.paymentMethod}
+                                                                                            </div>
+                                                                                            <span className="text-xs text-gray-400 flex-shrink-0">{fmtTime(sale.createdAt)}</span>
+                                                                                            <span className="font-bold text-gray-900 text-sm ml-auto flex-shrink-0">{fmt(sale.totalAmount)}</span>
+                                                                                        </div>
+                                                                                        {/* Items de la venta */}
+                                                                                        {sale.items.length > 0 && (
+                                                                                            <div className="mt-1 pl-2 border-l-2 border-gray-100 space-y-0.5">
+                                                                                                {sale.items.map((item, i) => (
+                                                                                                    <p key={i} className="text-xs text-gray-400">
+                                                                                                        {item.quantity}× {item.product.name}
+                                                                                                        <span className="ml-1 text-gray-300">— {fmt(item.quantity * item.unitPrice)}</span>
+                                                                                                    </p>
+                                                                                                ))}
+                                                                                            </div>
+                                                                                        )}
+                                                                                    </div>
+                                                                                ))}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+
+                                                                    {/* ── GASTOS DEL TURNO ── */}
+                                                                    <div>
+                                                                        <div className="flex items-center justify-between mb-2">
+                                                                            <div className="flex items-center gap-2">
+                                                                                <AlertCircle className="h-4 w-4 text-red-400" />
+                                                                                <h3 className="font-bold text-gray-800 text-sm">
+                                                                                    Gastos del turno ({detail.expenses.length})
+                                                                                </h3>
+                                                                            </div>
+                                                                            {detail.expenses.length > 0 && (
+                                                                                <span className="text-sm font-bold text-red-600">
+                                                                                    {fmt(detail.totals.totalExpenses)}
+                                                                                </span>
+                                                                            )}
+                                                                        </div>
+                                                                        {detail.expenses.length === 0 ? (
+                                                                            <p className="text-xs text-gray-400 italic py-4 text-center">Sin gastos registrados en este turno</p>
+                                                                        ) : (
+                                                                            <div className="rounded-xl border border-red-100 overflow-hidden max-h-72 overflow-y-auto">
+                                                                                {detail.expenses.map(exp => (
+                                                                                    <div key={exp.id} className="border-b border-red-50 last:border-0 px-3 py-2.5 bg-red-50/30 hover:bg-red-50/60">
+                                                                                        <div className="flex items-center gap-2">
+                                                                                            <div className="flex-1 min-w-0">
+                                                                                                <p className="font-medium text-gray-800 text-xs truncate">{exp.description}</p>
+                                                                                                {exp.supplier && (
+                                                                                                    <p className="text-xs text-gray-400">Proveedor: {exp.supplier}</p>
+                                                                                                )}
+                                                                                            </div>
+                                                                                            <div className="text-right flex-shrink-0 space-y-0.5">
+                                                                                                <p className="font-bold text-red-600 text-sm">{fmt(exp.amount)}</p>
+                                                                                                <div className="flex items-center gap-1 justify-end">
+                                                                                                    <span className="text-xs text-gray-400">{CATEGORY_LABEL[exp.category] ?? exp.category}</span>
+                                                                                                    <span className="text-gray-300">·</span>
+                                                                                                    {METHOD_ICON[exp.paymentMethod]}
+                                                                                                    <span className="text-xs text-gray-400">{METHOD_LABEL[exp.paymentMethod]}</span>
+                                                                                                </div>
+                                                                                            </div>
+                                                                                        </div>
+                                                                                    </div>
+                                                                                ))}
+                                                                                {/* Total gastos en efectivo */}
+                                                                                {detail.totals.cashExpenses > 0 && (
+                                                                                    <div className="px-3 py-2 bg-red-100/60 flex justify-between text-xs font-semibold text-red-700">
+                                                                                        <span>Gastos pagados en efectivo</span>
+                                                                                        <span>{fmt(detail.totals.cashExpenses)}</span>
+                                                                                    </div>
+                                                                                )}
+                                                                            </div>
+                                                                        )}
+                                                                    </div>
+                                                                </div>
+
+                                                                {/* Cuadre final */}
+                                                                <div className="bg-slate-800 text-white rounded-xl px-5 py-3.5 grid grid-cols-3 gap-4 text-sm">
+                                                                    <div>
+                                                                        <p className="text-slate-400 text-xs">Efectivo esperado en caja</p>
+                                                                        <p className="font-bold text-lg">{fmt(c.openingAmount! + (c.cashSales ?? 0) - detail.totals.cashExpenses)}</p>
+                                                                        <p className="text-xs text-slate-500 mt-0.5">apertura + ventas efectivo − gastos efectivo</p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-slate-400 text-xs">Efectivo real (contado)</p>
+                                                                        <p className="font-bold text-lg">{fmt(c.actualCash)}</p>
+                                                                    </div>
+                                                                    <div>
+                                                                        <p className="text-slate-400 text-xs">Diferencia</p>
+                                                                        <p className={`font-bold text-lg ${(c.difference ?? 0) < 0 ? 'text-red-400' : 'text-green-400'}`}>
+                                                                            {(c.difference ?? 0) > 0 ? '+' : ''}{fmt(c.difference)}
+                                                                        </p>
+                                                                        <p className="text-xs text-slate-500 mt-0.5">
+                                                                            {(c.difference ?? 0) === 0 ? '✅ Cuadra perfectamente'
+                                                                                : (c.difference ?? 0) > 0 ? '⬆️ Sobrante' : '⬇️ Faltante'}
+                                                                        </p>
+                                                                    </div>
+                                                                </div>
+
+                                                                {c.notes && (
+                                                                    <p className="text-xs text-gray-400 italic">📝 Nota: "{c.notes}"</p>
+                                                                )}
+                                                            </div>
+                                                        ) : null}
                                                     </td>
                                                 </tr>
                                             )}
@@ -260,7 +428,7 @@ export default function CashClosesReportPage() {
                                     );
                                 })}
                                 {filtered.length === 0 && (
-                                    <tr><td colSpan={8} className="px-5 py-12 text-center text-gray-400">No hay registros en el período seleccionado</td></tr>
+                                    <tr><td colSpan={9} className="px-5 py-12 text-center text-gray-400">No hay registros en el período seleccionado</td></tr>
                                 )}
                             </tbody>
                         </table>

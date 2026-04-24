@@ -2,6 +2,32 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 /**
+ * GET /api/cash-close/open?branchId=xxx
+ * Verifica si hay una caja abierta para la sucursal.
+ * Usado por los POS para bloquear ventas si no hay sesión activa.
+ */
+export async function GET(request: NextRequest) {
+    try {
+        const branchId = new URL(request.url).searchParams.get('branchId');
+        if (!branchId) {
+            return NextResponse.json({ success: false, error: 'branchId requerido' }, { status: 400 });
+        }
+        const session = await prisma.cashRegisterClose.findFirst({
+            where: { branchId, sessionStatus: 'OPEN' },
+            select: { id: true, openingAmount: true, openedAt: true, openedBy: true },
+        });
+        return NextResponse.json({
+            success: true,
+            isOpen: !!session,
+            session: session ?? null,
+        });
+    } catch (error) {
+        console.error('GET /api/cash-close/open:', error);
+        return NextResponse.json({ success: false, error: 'Error verificando caja' }, { status: 500 });
+    }
+}
+
+/**
  * POST /api/cash-close/open
  * Abre una sesión de caja — crea un registro con sessionStatus = 'OPEN' y openedAt = now()
  */
@@ -45,10 +71,7 @@ export async function POST(request: NextRequest) {
                 cardSales: 0,
                 transferSales: 0,
             },
-            include: {
-                branch: { select: { name: true } },
-                user: { select: { name: true } },
-            },
+            select: { id: true, openingAmount: true, openedAt: true, openedBy: true },
         });
 
         return NextResponse.json({ success: true, data: session }, { status: 201 });

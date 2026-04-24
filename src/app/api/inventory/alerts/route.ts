@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma, withRetry } from '@/lib/prisma';
 
 // GET: Obtener alertas de stock activas
 export async function GET(request: NextRequest) {
@@ -7,84 +7,78 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const branchId = searchParams.get('branchId');
 
-        // Obtener todo el inventario disponible y filtrar por stock bajo
-        const allInventory = await prisma.inventory.findMany({
+        // 1. Obtener todo el inventario disponible con sus productos
+        const allInventory = await withRetry(() => prisma.inventory.findMany({
             where: {
                 ...(branchId && { branchId }),
                 status: 'AVAILABLE',
             },
             include: {
-                product: true,
-                branch: {
-                    select: {
-                        id: true,
-                        name: true,
-                    },
-                },
+                product: { select: { id: true, name: true, sku: true, unit: true } },
+                branch: { select: { id: true, name: true } },
             },
-        });
+        }));
 
-        // Filtrar los que tienen stock bajo (currentStock <= minStock)
+        // 2. Filtrar items con stock bajo
         const lowStockItems = allInventory.filter(
             (item) => item.minStock !== null && item.currentStock <= item.minStock
         );
 
-        // Calcular días restantes aproximados (basado en ventas promedio últimos 7 días)
-        const alertsWithPrediction = await Promise.all(
-            lowStockItems.map(async (item) => {
-                // Obtener movimientos de salida de los últimos 7 días
-                const sevenDaysAgo = new Date();
-                sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+        // 3. Obtener movimientos de SALIDA de todos los productos de stock bajo
+        //    en una SOLA query (evita el N+1 del código anterior)
+        let movementsMap: Map<string, number> = new Map();
+        if (lowStockItems.length > 0) {
+            const sevenDaysAgo = new Date();
+            sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
 
-                const recentMovements = await prisma.stockMovement.findMany({
-                    where: {
-                        branchId: item.branchId,
-                        productId: item.productId,
-                        type: 'SALIDA',
-                        createdAt: {
-                            gte: sevenDaysAgo,
-                        },
-                    },
-                });
+            const movements = await withRetry(() => prisma.stockMovement.findMany({
+                where: {
+                    productId: { in: lowStockItems.map(i => i.productId) },
+                    ...(branchId && { branchId }),
+                    type: 'SALIDA',
+                    createdAt: { gte: sevenDaysAgo },
+                },
+                select: { productId: true, quantity: true, branchId: true },
+            }));
 
-                const totalSold = recentMovements.reduce((sum, mov) => sum + Math.abs(mov.quantity), 0);
-                const dailyAverage = totalSold / 7;
-                const daysRemaining = dailyAverage > 0 ? Math.floor(item.currentStock / dailyAverage) : null;
+            // Agrupar por productId+branchId
+            for (const mov of movements) {
+                const key = `${mov.branchId}_${mov.productId}`;
+                movementsMap.set(key, (movementsMap.get(key) ?? 0) + Math.abs(mov.quantity));
+            }
+        }
 
-                return {
-                    ...item,
-                    dailyAverage,
-                    daysRemaining,
-                    severity:
-                        item.currentStock <= 0
-                            ? 'CRITICO'
-                            : daysRemaining && daysRemaining <= 2
-                                ? 'ALTO'
-                                : 'MEDIO',
-                };
-            })
-        );
+        const alertsWithPrediction = lowStockItems.map((item) => {
+            const key = `${item.branchId}_${item.productId}`;
+            const totalSold = movementsMap.get(key) ?? 0;
+            const dailyAverage = totalSold / 7;
+            const daysRemaining = dailyAverage > 0 ? Math.floor(item.currentStock / dailyAverage) : null;
 
-        // Productos próximos a vencer (30 días)
+            return {
+                ...item,
+                dailyAverage,
+                daysRemaining,
+                severity:
+                    item.currentStock <= 0
+                        ? 'CRITICO'
+                        : daysRemaining !== null && daysRemaining <= 2
+                            ? 'ALTO'
+                            : 'MEDIO',
+            };
+        });
+
+        // 4. Productos próximos a vencer (30 días) — query ligera
         const thirtyDaysFromNow = new Date();
         thirtyDaysFromNow.setDate(thirtyDaysFromNow.getDate() + 30);
 
         const expiringItems = await prisma.inventory.findMany({
             where: {
                 ...(branchId && { branchId }),
-                expirationDate: {
-                    lte: thirtyDaysFromNow,
-                    gte: new Date(),
-                },
+                expirationDate: { lte: thirtyDaysFromNow, gte: new Date() },
             },
             include: {
-                product: true,
-                branch: {
-                    select: {
-                        id: true,
-                        name: true,
-                    },
-                },
+                product: { select: { id: true, name: true, sku: true, unit: true } },
+                branch: { select: { id: true, name: true } },
             },
         });
 
@@ -103,10 +97,7 @@ export async function GET(request: NextRequest) {
     } catch (error) {
         console.error('Error al obtener alertas:', error);
         return NextResponse.json(
-            {
-                success: false,
-                error: 'Error al obtener alertas',
-            },
+            { success: false, error: 'Error al obtener alertas' },
             { status: 500 }
         );
     }
@@ -120,43 +111,24 @@ export async function POST(request: NextRequest) {
 
         if (!branchId || !productId || !alertType) {
             return NextResponse.json(
-                {
-                    success: false,
-                    error: 'Faltan campos requeridos: branchId, productId, alertType',
-                },
+                { success: false, error: 'Faltan campos requeridos: branchId, productId, alertType' },
                 { status: 400 }
             );
         }
 
         const alert = await prisma.stockAlert.create({
-            data: {
-                branchId,
-                productId,
-                alertType,
-                threshold,
-                emailEnabled: emailEnabled !== undefined ? emailEnabled : true,
-            },
-            include: {
-                product: true,
-                branch: true,
-            },
+            data: { branchId, productId, alertType, threshold, emailEnabled: emailEnabled ?? true },
+            include: { product: true, branch: true },
         });
 
         return NextResponse.json(
-            {
-                success: true,
-                data: alert,
-                message: 'Alerta configurada exitosamente',
-            },
+            { success: true, data: alert, message: 'Alerta configurada exitosamente' },
             { status: 201 }
         );
     } catch (error) {
         console.error('Error al crear alerta:', error);
         return NextResponse.json(
-            {
-                success: false,
-                error: 'Error al crear alerta',
-            },
+            { success: false, error: 'Error al crear alerta' },
             { status: 500 }
         );
     }

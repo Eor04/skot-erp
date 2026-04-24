@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { prisma, withRetry } from '@/lib/prisma';
 import { signToken, setSessionCookie } from '@/lib/auth';
 import bcrypt from 'bcryptjs';
 
@@ -11,10 +11,13 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Email y contraseña requeridos' }, { status: 400 });
         }
 
-        const user = await prisma.user.findUnique({
-            where: { email: email.toLowerCase().trim(), active: true },
-            select: { id: true, email: true, name: true, role: true, password: true, active: true },
-        });
+        // withRetry maneja el cold start de Neon en el primer login del día
+        const user = await withRetry(() =>
+            prisma.user.findUnique({
+                where: { email: email.toLowerCase().trim(), active: true },
+                select: { id: true, email: true, name: true, role: true, password: true, active: true },
+            })
+        );
 
         if (!user) {
             return NextResponse.json({ success: false, error: 'Credenciales incorrectas' }, { status: 401 });
@@ -50,8 +53,16 @@ export async function POST(request: NextRequest) {
         response.cookies.set(cookie);
 
         return response;
-    } catch (error) {
-        console.error('Login error:', error);
+    } catch (error: any) {
+        const isColdStart = error?.message?.includes("Can't reach database") ||
+            error?.message?.includes('connection pool');
+        if (isColdStart) {
+            return NextResponse.json({
+                success: false,
+                error: 'La base de datos está iniciando. Esperá 15 segundos e intentá de nuevo.',
+            }, { status: 503 });
+        }
+        console.error('Login error:', error?.message?.split('\n')[0]);
         return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 });
     }
 }

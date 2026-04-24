@@ -1,0 +1,395 @@
+# Manual de Usuario — Skot ERP
+
+> **Versión:** 1.0 · **Moneda:** Bolivianos (Bs.) · **Idioma del sistema:** Español
+
+---
+
+## 1. Acceso al Sistema
+
+### Iniciar Sesión
+1. Abrí el navegador y andá a la URL del sistema (o instalalo como app desde el botón "Instalar" en Chrome/Edge)
+2. Ingresá tu **correo electrónico** y **contraseña**
+3. Click en **"Ingresar"**
+
+> El sistema detecta automáticamente tu rol y te lleva al panel que te corresponde.
+
+### Roles del Sistema
+
+| Rol | ¿Qué puede hacer? |
+|---|---|
+| 🔴 **ADMIN** | Todo el sistema: todas las sucursales, usuarios, productos, reportes, configuración |
+| 🟠 **MANAGER** | Panel de su sucursal, inventario, ventas, reportes, pedidos |
+| 🟡 **CAJERO** | Solo el POS de su sucursal, inventario y cierre de caja |
+| 🔵 **WAREHOUSE** | Módulo Fábrica: producción, inventario, pedidos internos |
+
+---
+
+## 2. Panel Principal (Dashboard)
+
+Al ingresar verás el panel según tu rol:
+
+### Dashboard Admin / Manager
+- **KPIs del día:** ventas totales, número de transacciones, efectivo vs tarjeta
+- **Campana de alertas** (🔔): notifica stock bajo en tiempo real
+- **Acceso rápido** a todos los módulos del sistema
+
+### Dashboard Cajero
+Solo ve los botones relevantes a su sucursal:
+- POS (Açaí, Burgers o Fábrica según su sucursal)
+- Inventario de su sucursal
+- Cierre de Caja
+
+---
+
+## 3. POS — Punto de Venta
+
+### 🥤 POS Açaí (`/acai`)
+**Quién lo usa:** Cajeros y Managers de sucursales Açaí
+
+**Flujo de venta:**
+1. Colocá el bowl en la balanza Prix 4 → el peso se lee automáticamente
+2. Seleccioná la **base** (Açaí, Pitahaya, etc.)
+3. Agregá los **toppings** deseados (granola, banana, miel, etc.)
+4. El sistema calcula: **peso neto × precio/kg**
+5. Elegí el **método de pago:** Efectivo / Tarjeta / Transferencia / Mixto
+6. Si es efectivo, ingresá el monto recibido → el sistema calcula el **vuelto**
+7. Click en **"Registrar Venta"**
+
+> ⚠️ Si la balanza no está conectada, podés ingresar el peso manualmente.
+
+---
+
+### 🍔 POS Burgers (`/burgers`)
+**Quién lo usa:** Cajeros y Managers de sucursales Burgers
+
+**Flujo de venta:**
+1. Hacé click en el producto del grid táctil
+2. Si el producto tiene **modificadores** (extra queso, sin cebolla, etc.) se abre un modal → seleccioná los que quieras
+3. El producto se agrega al **carrito** con su precio actualizado
+4. Podés aplicar un **descuento** (descuentos mayores al 15% requieren autorización de Admin/Manager)
+5. Click en **"Pagar"** → elegí el método de pago
+6. Ingresá el monto recibido si es efectivo → ver el vuelto
+7. Click en **"Confirmar Pago"**
+
+**Panel de Historial del Turno:**
+- Tocá el botón **"Turno"** con el badge contador para ver todas las ventas del turno actual
+- Muestra el total acumulado y permite limpiar el historial
+
+---
+
+### 🏭 POS Fábrica (`/factory`)
+**Quién lo usa:** Cajeros de sucursal Fábrica
+
+Funciona igual que el POS Burgers pero para ventas internas de la fábrica.
+
+---
+
+### 💰 Cierre de Caja (`/cash-close`)
+**Quién lo usa:** Cajeros, Managers, Admins
+
+**Abrir caja (inicio del turno):**
+1. Tab **"Abrir Caja"**
+2. Ingresá el **monto inicial en efectivo**
+3. Click en **"Abrir Caja"** → queda registrado con hora y usuario
+
+**Cerrar caja (fin del turno):**
+1. Tab **"Cerrar Caja"**
+2. Contá el efectivo real y escribilo en **"Efectivo declarado"**
+3. El sistema calcula la **diferencia** (sobrante o faltante)
+4. Agregá notas si hay diferencia
+5. Click en **"Cerrar Caja"** → queda registrado el reporte completo
+
+---
+
+## 4. Inventario
+
+### 📦 Stock por Sucursal (`/inventory/stock`)
+**Quién lo usa:** Admin, Manager, Warehouse
+
+- Seleccioná la sucursal
+- Ves todos los productos con su **stock actual, mínimo y máximo**
+- Para ajustar stock: click en el producto → ingresá cantidad y motivo:
+  - **ENTRADA** — recibiste mercadería
+  - **SALIDA** — retiro manual
+  - **AJUSTE** — corrección de inventario
+  - **MERMA** — producto dado de baja
+
+---
+
+### 🔄 Transferencias (`/inventory/transfers`)
+Mueve stock entre sucursales.
+
+**Crear transferencia:**
+1. Click en **"Nueva Transferencia"**
+2. Seleccioná sucursal **origen** y **destino**
+3. Agregá los productos y cantidades
+4. Click en **"Crear"** → queda en estado **PENDIENTE**
+
+**Estados y acciones:**
+| Estado | Quién actúa | Acción |
+|---|---|---|
+| PENDIENTE | Admin / Manager | ✅ Aprobar o ❌ Rechazar |
+| EN TRÁNSITO | Sucursal destino | 📦 Confirmar Recepción |
+| RECIBIDO | — | Stock acreditado automáticamente |
+
+---
+
+### 📋 Pedidos Internos (`/inventory/internal-orders`)
+Sucursales solicitan productos a la Fábrica.
+
+**Crear pedido:**
+1. Click en **"Nuevo Pedido"**
+2. Seleccioná los productos y cantidades necesarias
+3. Click en **"Enviar Pedido"** → estado: PENDIENTE
+
+**Flujo completo:**
+```
+Sucursal crea pedido → PENDIENTE
+Admin/Manager aprueba → APROBADO
+Fábrica despacha (con cantidades reales) → DESPACHADO
+Sucursal confirma recepción → RECIBIDO ✅
+```
+
+---
+
+### 🗂️ Kardex — Movimientos (`/inventory/movements`)
+Registro completo e inmutable de todos los movimientos de stock.
+
+**Filtros disponibles:**
+- Tipo de movimiento (Entrada, Salida, Merma, Transferencia, Producción)
+- Sucursal
+- Rango de fechas
+- Búsqueda por producto o nota
+
+**Exportar:** Click en **"CSV"** para descargar el historial completo (compatible con Excel)
+
+---
+
+### 🗑️ Registro de Mermas (`/inventory/mermas`)
+Para registrar productos dados de baja.
+
+1. Seleccioná sucursal y producto (ves el stock actual disponible)
+2. Ingresá la cantidad a dar de baja
+3. Seleccioná el **motivo:** Vencimiento / Daño físico / Diferencia recepción / Producción / Otro
+4. Click en **"Registrar Merma"** → descuenta del stock y registra en Kardex
+
+---
+
+### 🔔 Sugerencias de Reabasto (`/inventory/suggestions`)
+El sistema analiza el promedio de ventas y sugiere cuándo y cuánto reabastecer cada producto.
+
+---
+
+## 5. Módulo Fábrica
+
+### 🏭 Dashboard Fábrica (`/factory`)
+**Quién lo usa:** Admin, Warehouse
+
+KPIs del día: órdenes en proceso, alertas de materia prima, producción completada.
+
+---
+
+### 📖 Recetas (`/factory/recipes`)
+Define los ingredientes para producir cada producto.
+
+**Crear receta:**
+1. Click en **"Nueva Receta"**
+2. Seleccioná el **producto final**
+3. Agregá los **ingredientes** con sus cantidades y unidades
+4. Definí el **rendimiento** (ej: 10 litros por lote)
+5. Click en **"Guardar"**
+
+---
+
+### ⚙️ Órdenes de Producción (`/factory/production`)
+**Crear orden:**
+1. Click en **"Nueva Orden"**
+2. Seleccioná la receta
+3. Ingresá la cantidad a producir
+4. Click en **"Crear"** → estado: BORRADOR
+
+**Completar orden:**
+1. Click en **"Completar"** en la orden
+2. El sistema valida que haya materia prima suficiente
+3. Al confirmar (transacción atómica):
+   - Descuenta materia prima del inventario
+   - Registra consumo en Kardex
+   - Acredita el producto terminado
+   - Registra producción en Kardex
+
+---
+
+### 📦 Materiales / Materia Prima (`/factory/materials`)
+Vista del inventario de materias primas en la fábrica con alertas de stock bajo.
+
+---
+
+## 6. Administración
+
+### 🏪 Sucursales (`/admin/branches`)
+**Solo Admin**
+
+- Ver todas las sucursales activas
+- **Crear/editar** sucursal: nombre, tipo (Açaí / Burgers / Fábrica), dirección, teléfono
+- Click en **"Ver Panel"** → resumen de ventas recientes, stock crítico y cierres de caja de esa sucursal
+
+---
+
+### 👤 Usuarios (`/admin/users`)
+**Solo Admin**
+
+- Ver todos los usuarios del sistema
+- **Crear usuario:** nombre, email, contraseña, rol, sucursal(es) asignada(s)
+- **Editar / Desactivar** usuarios existentes
+
+---
+
+### 🛒 Catálogo de Productos (`/admin/products`)
+**Admin y Manager**
+
+- Lista completa de productos con su tipo, SKU y precio base
+- **Crear producto:** nombre, SKU, tipo, unidad, categoría, imagen (Cloudinary)
+- **Tipos de producto:**
+
+| Tipo | Aparece en |
+|---|---|
+| Base Açaí | POS Açaí |
+| Topping Açaí | POS Açaí |
+| Hamburguesa | POS Burgers |
+| Extra / Porción | POS Burgers |
+| Bebida | Ambos POS |
+| Materia Prima | Solo inventario / fábrica |
+
+---
+
+### 🛍️ Pedidos a Proveedores (`/admin/purchase-orders`)
+**Admin y Manager**
+
+Para registrar compras a proveedores externos.
+
+1. Click en **"Nuevo Pedido"**
+2. Ingresá proveedor, fecha esperada y productos con precios
+3. Estados: PENDIENTE → ENVIADO → PARCIAL → RECIBIDO
+4. Al marcar como **RECIBIDO** → el inventario se actualiza automáticamente + registro en Kardex
+
+---
+
+### 🔔 Alertas de Stock (`/admin/alerts`)
+Panel con todos los productos en stock bajo o por vencer.
+- **Crítico:** stock por debajo del mínimo configurado
+- La campana 🔔 en el header actualiza este conteo en tiempo real
+
+---
+
+### 🔧 Configuración de Balanza (`/admin/scale-config`)
+**Solo Admin**
+
+Para configurar la balanza Prix 4 por sucursal:
+- Puerto COM (COM1-COM8)
+- Baud rate (9600 por defecto)
+- Tara en kg (peso del recipiente vacío)
+- Activar/desactivar la balanza
+
+---
+
+## 7. Reportes y Analytics
+
+### 📊 Analytics (`/admin/analytics`)
+Filtros: período (hoy, 7d, 14d, 30d, mes, año) y sucursal.
+- Gráfico de ingresos diarios (Açaí vs Burgers vs Total)
+- Gráfico de cantidad de ventas por día
+- Distribución de métodos de pago (pie chart)
+- Exportar CSV / PDF
+
+### 📈 Reportes Avanzados (`/admin/reports`)
+**Tab "Por Cajero":**
+- Ranking de cajeros por ingresos del período
+- Métricas: ventas, ingresos, ticket promedio, desglose por método de pago, horas trabajadas
+
+**Tab "Por Turno":**
+- Historial de cada sesión de caja: cajero, apertura, cierre, duración, ventas del turno
+- Diferencias de caja resaltadas en rojo
+
+### 📋 Historial de Ventas (`/admin/sales`)
+Lista paginada con filtros de sucursal, fecha, método de pago. Muestra el desglose de cada venta.
+
+---
+
+## 8. Mi Perfil (`/profile`)
+
+Cualquier usuario puede:
+- Ver y editar su información personal (nombre, email)
+- **Cambiar contraseña:**
+  1. Ingresá la contraseña actual
+  2. Ingresá la nueva contraseña (el indicador muestra la fortaleza en tiempo real)
+  3. Click en **"Guardar"**
+
+---
+
+## 9. Gastos Operativos (`/expenses`)
+
+Registro de gastos por sucursal.
+
+1. Seleccioná la sucursal
+2. Elegí la categoría: Proveedor / Servicios / Mantenimiento / Sueldos / Logística / Otro
+3. Ingresá monto, descripción y proveedor (opcional)
+4. Click en **"Registrar Gasto"**
+
+---
+
+## 10. Modo Offline
+
+El sistema funciona **sin internet** para ventas en POS:
+- Las ventas se guardan localmente en el dispositivo
+- La barra naranja **"Sin conexión"** apparece en la parte superior
+- Al recuperar internet, las ventas se sincronizan automáticamente
+- El ícono de sincronización muestra el progreso
+
+---
+
+## 11. Instalar como App (PWA)
+
+En Chrome / Edge:
+1. Abrí la URL del sistema
+2. Click en el ícono 📥 en la barra del navegador
+3. Click en **"Instalar"**
+
+En iOS (iPhone / iPad):
+1. Abrí en Safari
+2. Toca el botón **Compartir** (cuadrado con flecha)
+3. Seleccioná **"Agregar a pantalla de inicio"**
+
+---
+
+## 12. Guía Rápida por Rol
+
+### Como CAJERO
+1. Entrar → ir al POS de tu sucursal
+2. Abrir caja al inicio del turno (`/cash-close`)
+3. Registrar ventas durante el turno
+4. Ver stock de tu sucursal si es necesario
+5. Cerrar caja al final del turno
+
+### Como MANAGER
+Todo lo del cajero más:
+- Ver reportes de tu sucursal
+- Aprobar transferencias y pedidos internos
+- Autorizar descuentos mayores al 15%
+- Gestionar pedidos a proveedores
+
+### Como ADMIN
+Acceso completo. Adicionalmente:
+- Crear y gestionar usuarios
+- Configurar sucursales y balanzas
+- Ver analytics y reportes de todas las sucursales
+- Gestionar el catálogo global de productos
+
+### Como WAREHOUSE (Fábrica)
+- Gestionar órdenes de producción
+- Administrar recetas
+- Ver y ajustar inventario de fábrica
+- Atender pedidos internos de sucursales
+
+---
+
+*Skot ERP v1.0 — Desarrollado para Skot Bolivia*

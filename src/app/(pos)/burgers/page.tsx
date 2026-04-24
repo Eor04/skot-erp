@@ -10,7 +10,8 @@ import { useBurgerSale } from '@/hooks/use-burger-sale';
 import { useSession } from '@/lib/session-context';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, CheckCircle, AlertCircle, Layers, Package, ShoppingBag, ClipboardList, X } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertCircle, Layers, Package, ShoppingBag, ClipboardList, X, ChefHat } from 'lucide-react';
+import CashGate from '@/components/pos/cash-gate';
 
 type ProductWithPrice = Product & { customPrice?: number };
 
@@ -37,6 +38,7 @@ interface TurnSale {
     paymentMethod: string;
     itemCount: number;
     time: string;
+    customerName?: string;
 }
 
 const METHOD_LABEL: Record<string, string> = {
@@ -48,7 +50,7 @@ export default function BurgersPOSPage() {
     const [products, setProducts] = useState<ProductWithPrice[]>([]);
     const [combos, setCombos] = useState<Combo[]>([]);
     const [modifiers, setModifiers] = useState<ProductModifier[]>([]);
-    const [activeTab, setActiveTab] = useState<'productos' | 'combos'>('productos');
+    const [activeTab, setActiveTab] = useState<'productos' | 'combos' | 'extras'>('productos');
 
     const [selectedProduct, setSelectedProduct] = useState<ProductWithPrice | null>(null);
     const [showModifierModal, setShowModifierModal] = useState(false);
@@ -97,10 +99,16 @@ export default function BurgersPOSPage() {
         }
     };
 
-    const handleProductSelect = (product: ProductWithPrice) => {
-        // Garantizamos que customPrice siempre tiene valor antes de agregarlo al carrito
-        const productWithPrice: ProductWithPrice = { ...product, customPrice: product.customPrice ?? 0 };
-        setSelectedProduct(productWithPrice);
+    /** Clic directo en el producto → agrega al carrito sin modificadores */
+    const handleProductAdd = (product: ProductWithPrice) => {
+        const p: ProductWithPrice = { ...product, customPrice: product.customPrice ?? 0 };
+        addToCart(p, []);
+    };
+
+    /** Botón "Extras" de la tarjeta → abre el modal de modificadores */
+    const handleProductModify = (product: ProductWithPrice) => {
+        const p: ProductWithPrice = { ...product, customPrice: product.customPrice ?? 0 };
+        setSelectedProduct(p);
         setShowModifierModal(true);
     };
 
@@ -131,11 +139,24 @@ export default function BurgersPOSPage() {
     const handlePaymentConfirm = async (paymentData: {
         method: PaymentMethod;
         cashAmount?: number; cardAmount?: number; transferAmount?: number;
+        customerName?: string;
     }) => {
         try {
             // Expandir combos a sus productos reales (con productId válido en Product table)
+            // Los EXTRA (modificadores sueltos) NO tienen productId real → se excluyen de sale_items
+            // y su monto se envía por separado como extrasTotal.
             const expandedItems: any[] = [];
+            let extrasTotal = 0;
+
             for (const item of cart) {
+                const productId: string = (item.product as any).id ?? '';
+
+                // ── EXTRA suelto ─────────────────────────────────────────────
+                if (productId.startsWith('EXTRA-')) {
+                    extrasTotal += item.subtotal;
+                    continue;
+                }
+
                 const comboRef = (item.product as any)._comboRef as Combo | undefined;
                 if (comboRef) {
                     // Es un combo: distribuir el precio entre sus items proporcionalmente
@@ -167,6 +188,12 @@ export default function BurgersPOSPage() {
                 }
             }
 
+            // Necesitamos al menos un ítem real para crear la venta
+            if (expandedItems.length === 0 && extrasTotal > 0) {
+                setSaleResult({ type: 'error', message: 'No se puede procesar una venta solo con extras. Agregá al menos un producto.' });
+                return;
+            }
+
             const response = await fetch('/api/pos/sale', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
@@ -178,6 +205,7 @@ export default function BurgersPOSPage() {
                     cardAmount: paymentData.cardAmount,
                     transferAmount: paymentData.transferAmount,
                     items: expandedItems,
+                    extrasTotal: extrasTotal > 0 ? extrasTotal : undefined,
                     discount: discount
                         ? { type: discount.type, value: discount.value, authorizedBy: discount.authorizedBy }
                         : undefined,
@@ -192,10 +220,11 @@ export default function BurgersPOSPage() {
                     paymentMethod: paymentData.method,
                     itemCount: cart.reduce((s, i) => s + i.quantity, 0),
                     time: new Date().toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }),
+                    customerName: paymentData.customerName,
                 }, ...prev].slice(0, 20));
                 clearCart();
                 setShowPaymentModal(false);
-                setSaleResult({ type: 'success', message: `¡Venta ${data.data.saleNumber} registrada!`, saleNumber: data.data.saleNumber });
+                setSaleResult({ type: 'success', message: `¡Venta ${data.data.saleNumber}${paymentData.customerName ? ` — ${paymentData.customerName}` : ''} registrada!`, saleNumber: data.data.saleNumber });
             } else {
                 setSaleResult({ type: 'error', message: data.error || 'Error al procesar la venta' });
             }
@@ -206,17 +235,18 @@ export default function BurgersPOSPage() {
 
     if (isLoading) {
         return (
-            <div className="flex items-center justify-center h-screen bg-gray-100">
+            <div className="flex items-center justify-center h-screen bg-black">
                 <div className="text-center">
-                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-orange-600 mx-auto mb-4" />
-                    <p className="text-gray-600">Cargando POS...</p>
+                    <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-yellow-400 mx-auto mb-4" />
+                    <p className="text-white/60">Cargando POS...</p>
                 </div>
             </div>
         );
     }
 
     return (
-        <div className="flex h-screen bg-gray-100 relative">
+        <CashGate branchId={branchId} userId={user?.userId || ''} theme="burger">
+        <div className="flex h-screen bg-black relative">
             {/* Toast de resultado */}
             {saleResult && (
                 <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-6 py-3 rounded-xl shadow-xl text-white font-semibold animate-bounce ${saleResult.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
@@ -228,45 +258,50 @@ export default function BurgersPOSPage() {
             {/* Lado izquierdo */}
             <div className="flex-1 p-4 overflow-hidden flex flex-col">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-3">
+                <div className="flex items-center justify-between mb-3 bg-black rounded-xl px-4 py-3 border border-white/10">
                     <div className="flex items-center gap-3">
                         {/* Logo Burger */}
                         <img src="/logo-burger.png" alt="Skot Burger"
                             className="h-10 w-auto object-contain"
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                        <h1 className="text-2xl font-bold text-gray-800">POS Hamburguesas</h1>
+                        <h1 className="text-2xl font-bold text-white">POS Hamburguesas</h1>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setShowHistory(v => !v)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition ${showHistory ? 'bg-orange-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition ${showHistory ? 'bg-yellow-400 text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}>
                             <ClipboardList className="h-4 w-4" />
                             Turno
                             {turnHistory.length > 0 && (
-                                <span className="bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-black">
+                                <span className="bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-black">
                                     {turnHistory.length}
                                 </span>
                             )}
                         </button>
-                        <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1">
+                        <Link href="/" className="text-sm text-white/50 hover:text-white flex items-center gap-1 transition">
                             <ArrowLeft className="h-4 w-4" /> Dashboard
                         </Link>
                     </div>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-1 mb-3 bg-gray-200 rounded-xl p-1 w-fit">
+                <div className="flex gap-1 mb-3 bg-black rounded-xl p-1 w-fit">
                     <button onClick={() => setActiveTab('productos')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${activeTab === 'productos' ? 'bg-white shadow text-orange-700' : 'text-gray-600 hover:text-gray-800'}`}>
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'productos' ? 'bg-yellow-400 text-black shadow' : 'text-white/70 hover:text-white'}`}>
                         <Package className="h-4 w-4" /> Productos ({products.length})
                     </button>
                     <button onClick={() => setActiveTab('combos')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-semibold transition ${activeTab === 'combos' ? 'bg-white shadow text-teal-700' : 'text-gray-600 hover:text-gray-800'}`}>
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'combos' ? 'bg-yellow-400 text-black shadow' : 'text-white/70 hover:text-white'}`}>
                         <Layers className="h-4 w-4" />
                         Combos ({combos.length})
                         {combos.length > 0 && activeTab !== 'combos' && (
-                            <span className="ml-1 bg-teal-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center">{combos.length}</span>
+                            <span className="ml-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">{combos.length}</span>
                         )}
+                    </button>
+                    <button onClick={() => setActiveTab('extras')}
+                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'extras' ? 'bg-yellow-400 text-black shadow' : 'text-white/70 hover:text-white'}`}>
+                        <ChefHat className="h-4 w-4" />
+                        Extras ({modifiers.length})
                     </button>
                 </div>
 
@@ -275,14 +310,35 @@ export default function BurgersPOSPage() {
                     {/* Marca de agua */}
                     <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-0">
                         <img src="/logo-burger.png" alt=""
-                            className="w-72 h-72 object-contain opacity-[0.05] select-none"
+                            className="w-[90%] h-[90%] object-contain opacity-[0.05] select-none"
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     </div>
                     <div className="relative z-10 h-full">
                     {activeTab === 'productos' ? (
-                        <ProductGrid products={products} onProductSelect={handleProductSelect} />
-                    ) : (
+                        <ProductGrid
+                            products={products}
+                            onProductAdd={handleProductAdd}
+                            onOpenModifiers={handleProductModify}
+                        />
+                    ) : activeTab === 'combos' ? (
                         <CombosGrid combos={combos} onComboSelect={handleComboSelect} />
+                    ) : (
+                        <ExtrasGrid modifiers={modifiers} onExtraAdd={(mod) => {
+                            // Agregar el extra como ítem independiente al carrito
+                            const syntheticProduct = {
+                                id: `EXTRA-${mod.id}`,
+                                name: `⭐ ${mod.name}`,
+                                description: mod.description || '',
+                                price: mod.price,
+                                customPrice: mod.price,
+                                imageUrl: null,
+                                sku: `EXTRA-${mod.id.slice(0, 6)}`,
+                                category: 'EXTRA',
+                                unit: 'UND',
+                                active: true,
+                            } as any;
+                            addToCart(syntheticProduct, []);
+                        }} />
                     )}
                     </div>
                 </div>
@@ -311,10 +367,10 @@ export default function BurgersPOSPage() {
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Header del panel */}
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-100 bg-orange-600 text-white">
+                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-900 bg-black text-white">
                             <div>
                                 <p className="font-bold text-sm">📋 Historial del Turno</p>
-                                <p className="text-xs text-orange-200">{turnHistory.length} venta{turnHistory.length !== 1 ? 's' : ''}</p>
+                                <p className="text-xs text-white/60">{turnHistory.length} venta{turnHistory.length !== 1 ? 's' : ''}</p>
                             </div>
                             <button onClick={() => setShowHistory(false)} className="p-1 hover:bg-white/10 rounded-lg">
                                 <X className="h-4 w-4" />
@@ -323,9 +379,9 @@ export default function BurgersPOSPage() {
 
                         {/* Total del turno */}
                         {turnHistory.length > 0 && (
-                            <div className="px-4 py-3 bg-orange-50 border-b border-orange-100 flex justify-between items-center">
-                                <span className="text-xs font-semibold text-orange-700">Total del turno</span>
-                                <span className="text-lg font-black text-orange-700">
+                            <div className="px-4 py-3 bg-red-50 border-b border-red-100 flex justify-between items-center">
+                                <span className="text-xs font-semibold text-red-700">Total del turno</span>
+                                <span className="text-lg font-black text-red-700">
                                     Bs. {turnHistory.reduce((s, v) => s + v.total, 0).toFixed(2)}
                                 </span>
                             </div>
@@ -345,6 +401,11 @@ export default function BurgersPOSPage() {
                                             <span className="font-mono text-xs text-gray-400">{sale.saleNumber}</span>
                                             <span className="text-xs text-gray-400">{sale.time}</span>
                                         </div>
+                                        {sale.customerName && (
+                                            <div className="mt-0.5">
+                                                <span className="text-xs font-bold text-yellow-700 bg-yellow-100 px-1.5 py-0.5 rounded">👤 {sale.customerName}</span>
+                                            </div>
+                                        )}
                                         <div className="flex items-center justify-between mt-1">
                                             <span className="text-xs text-gray-500">
                                                 {METHOD_LABEL[sale.paymentMethod] || sale.paymentMethod} · {sale.itemCount} ítem{sale.itemCount !== 1 ? 's' : ''}
@@ -385,6 +446,7 @@ export default function BurgersPOSPage() {
                 onConfirm={handlePaymentConfirm}
             />
         </div>
+        </CashGate>
     );
 }
 
@@ -439,6 +501,50 @@ function CombosGrid({ combos, onComboSelect }: { combos: Combo[]; onComboSelect:
                         {/* Precio */}
                         <div className="mt-2 text-lg font-black text-teal-600">
                             Bs. {combo.price.toFixed(2)}
+                        </div>
+                    </div>
+                </button>
+            ))}
+        </div>
+    );
+}
+
+/* ──────────── Grid de extras (modificadores como productos) ──────────── */
+function ExtrasGrid({ modifiers, onExtraAdd }: { modifiers: ProductModifier[]; onExtraAdd: (m: ProductModifier) => void }) {
+    if (modifiers.length === 0) {
+        return (
+            <div className="flex flex-col items-center justify-center h-full text-gray-400 py-16">
+                <ChefHat className="h-14 w-14 mb-3 opacity-30" />
+                <p className="text-lg font-medium">No hay extras disponibles</p>
+                <p className="text-sm text-gray-400 mt-1">Creá modificadores desde Admin</p>
+            </div>
+        );
+    }
+
+    return (
+        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto h-full pb-2">
+            {modifiers.map(mod => (
+                <button key={mod.id} onClick={() => onExtraAdd(mod)}
+                    className="flex flex-col bg-white border-2 border-gray-200 rounded-xl overflow-hidden hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-100 transition group text-left">
+                    {/* Icono decorativo */}
+                    <div className="relative w-full pt-[60%] bg-amber-50">
+                        <div className="absolute inset-0 flex items-center justify-center">
+                            <ChefHat className="h-14 w-14 text-amber-200 group-hover:text-amber-300 transition" />
+                        </div>
+                        <div className="absolute top-2 left-2 bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                            EXTRA
+                        </div>
+                    </div>
+                    {/* Info */}
+                    <div className="p-3 flex flex-col flex-1">
+                        <h3 className="font-bold text-gray-800 line-clamp-1 group-hover:text-amber-700 transition text-sm">
+                            {mod.name}
+                        </h3>
+                        {mod.description && (
+                            <p className="text-xs text-gray-500 line-clamp-2 mt-0.5 flex-1">{mod.description}</p>
+                        )}
+                        <div className="mt-2 text-lg font-black text-red-600">
+                            + Bs. {mod.price.toFixed(2)}
                         </div>
                     </div>
                 </button>

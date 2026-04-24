@@ -43,6 +43,10 @@ export default function TransfersPage() {
         try {
             const params = new URLSearchParams();
             if (statusFilter) params.set('status', statusFilter);
+            // Cajeros: solo ven transferencias de su sucursal
+            if (!isAdmin && user?.branchIds?.[0]) {
+                params.set('fromBranchId', user.branchIds[0]);
+            }
             const res = await fetch(`/api/inventory/transfers?${params}`);
             const d = await res.json();
             if (d.success) setTransfers(d.data);

@@ -446,6 +446,8 @@ model CashRegisterClose {
   cashSales      Float
   cardSales      Float
   transferSales  Float
+  totalExpenses  Float    @default(0)  // Total de gastos registrados en el turno
+  netCash        Float    @default(0)  // Efectivo neto = ventas en efectivo - gastos en efectivo
   notes          String?
   reportUrl      String?  // URL del PDF del reporte Z
   // Campos de sesión de caja

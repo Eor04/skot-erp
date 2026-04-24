@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { getSession } from '@/lib/auth';
-import { prisma } from '@/lib/prisma';
+import { prisma, withRetry } from '@/lib/prisma';
 
 export async function GET() {
     const session = await getSession();
@@ -13,24 +13,29 @@ export async function GET() {
 
     try {
         if (session.role === 'ADMIN') {
-            // Admin accede a todas las sucursales
-            const branches = await prisma.branch.findMany({
-                where: { active: true },
-                select: { id: true, type: true },
-            });
+            const branches = await withRetry(() =>
+                prisma.branch.findMany({
+                    where: { active: true },
+                    select: { id: true, type: true },
+                })
+            );
             branchIds = branches.map((b) => b.id);
             branchTypes = [...new Set(branches.map((b) => b.type))];
         } else {
-            const userBranches = await prisma.userBranch.findMany({
-                where: { userId: session.userId },
-                include: { branch: { select: { id: true, type: true, active: true } } },
-            });
+            const userBranches = await withRetry(() =>
+                prisma.userBranch.findMany({
+                    where: { userId: session.userId },
+                    include: { branch: { select: { id: true, type: true, active: true } } },
+                })
+            );
             const active = userBranches.filter((ub) => ub.branch.active);
             branchIds = active.map((ub) => ub.branch.id);
             branchTypes = [...new Set(active.map((ub) => ub.branch.type))];
         }
-    } catch {
-        // Si falla, devolver sesión sin branchIds
+    } catch (e) {
+        // Si falla incluso con reintentos, devolvemos sesión sin branchIds
+        // (el frontend reintentará con el siguiente request)
+        console.error('[auth/me] No se pudo cargar branchIds:', (e as Error).message?.split('\n')[0]);
     }
 
     return NextResponse.json({

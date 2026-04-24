@@ -37,23 +37,26 @@ export async function GET(request: NextRequest) {
 
         // Totales del período filtrado
         const closed = closes.filter(c => c.sessionStatus === 'CLOSED');
-        const totalSales = closed.reduce((s, c) => s + (c.totalSales ?? 0), 0);
-        const totalCash = closed.reduce((s, c) => s + (c.cashSales ?? 0), 0);
-        const totalCard = closed.reduce((s, c) => s + (c.cardSales ?? 0), 0);
+        const totalSales    = closed.reduce((s, c) => s + (c.totalSales ?? 0), 0);
+        const totalCash     = closed.reduce((s, c) => s + (c.cashSales ?? 0), 0);
+        const totalCard     = closed.reduce((s, c) => s + (c.cardSales ?? 0), 0);
         const totalTransfer = closed.reduce((s, c) => s + (c.transferSales ?? 0), 0);
-
+        const totalExpenses = closed.reduce((s, c) => s + ((c as any).totalExpenses ?? 0), 0);
+        const totalNet      = closed.reduce((s, c) => s + ((c as any).netCash ?? (c.totalSales ?? 0)), 0);
 
         return NextResponse.json({
             success: true,
             data: closes,
             summary: {
-                totalSessions: closes.length,
+                totalSessions:  closes.length,
                 closedSessions: closed.length,
-                openSessions: closes.length - closed.length,
+                openSessions:   closes.length - closed.length,
                 totalSales,
                 totalCash,
                 totalCard,
                 totalTransfer,
+                totalExpenses,
+                totalNet,
             },
         });
     } catch (error) {

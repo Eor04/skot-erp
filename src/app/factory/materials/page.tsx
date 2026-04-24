@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import {
     ArrowLeft, Package, Search, RefreshCw, AlertTriangle,
-    TrendingDown, CheckCircle2, XCircle, Filter
+    TrendingDown, CheckCircle2, XCircle, Filter, PackagePlus
 } from 'lucide-react';
 
 type Stock = {
@@ -214,12 +214,17 @@ export default function FactoryMaterialsPage() {
                     </div>
                 )}
 
-                {/* Link a ajuste de stock */}
-                <div className="text-center">
+                {/* Links de acciones */}
+                <div className="flex flex-wrap justify-center gap-4">
+                    <Link href="/factory/receiving"
+                        className="inline-flex items-center gap-2 text-sm text-green-600 hover:text-green-700 font-semibold bg-green-50 hover:bg-green-100 px-4 py-2 rounded-xl transition">
+                        <PackagePlus className="h-4 w-4" />
+                        Registrar entrada de mercancía
+                    </Link>
                     <Link href="/inventory/adjustments"
                         className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-800 font-medium">
                         <TrendingDown className="h-4 w-4" />
-                        Ir a Ajuste de Stock →
+                        Ajuste manual de stock →
                     </Link>
                 </div>
             </div>

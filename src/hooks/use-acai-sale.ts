@@ -1,42 +1,23 @@
 /**
- * HOOK PARA MANEJO DE VENTAS ACAI
- * 
- * Gestiona el carrito de compra para el POS de Acai:
- * - Base (bowl/copa) opcional precio fijo
- * - Toppings por peso
- * - Extras fijos (bebidas, extras)
- * - Cálculo de totales
- * - Integración con offline sync
+ * HOOK PARA VENTAS AÇAÍ
+ *
+ * Soporta:
+ * - Sabor único o MIXTO (múltiples sabores en el mismo bowl)
+ * - Venta de extras/bebidas SOLAS sin bowl (sin balanza)
+ * - Toppings como registro (no pesan individualmente)
+ * - Precio del bowl = peso total × precio/kg promedio de los sabores
  */
 
 'use client';
 
 import { useState, useCallback } from 'react';
-import { useSyncQueue } from '@/hooks/use-sync-queue';
-import { useNetworkStatus } from '@/hooks/use-network-status';
 
-// Tipos de productos
 export interface Product {
     id: string;
     name: string;
-    type: 'ACAI_BASE' | 'ACAI_TOPPING' | 'BEVERAGE';
-    price?: number;      // Precio fijo
-    pricePerKg?: number; // Precio por kg para toppings
-}
-
-// Items en el carrito
-export interface BaseItem {
-    id: string;
-    product: Product;
-    price: number;
-}
-
-export interface ToppingItem {
-    id: string;
-    product: Product;
-    weight: number;       // kg
-    pricePerKg: number;
-    subtotal: number;     // weight × pricePerKg
+    type: string;
+    price?: number;
+    pricePerKg?: number;
 }
 
 export interface ExtraItem {
@@ -44,296 +25,172 @@ export interface ExtraItem {
     product: Product;
     quantity: number;
     unitPrice: number;
-    subtotal: number;     // quantity × unitPrice
+    subtotal: number;
 }
 
-// Estado del carrito
 export interface AcaiCart {
-    base: BaseItem | null;
-    toppings: ToppingItem[];
+    /** ¿Modo mixto activado? */
+    isMixto: boolean;
+    /** Sabores seleccionados (1 en normal, N en mixto) */
+    flavors: { product: Product; pricePerKg: number }[];
+    /** Toppings marcados (solo registro) */
+    selectedToppings: Product[];
+    /** Extras/bebidas */
     extras: ExtraItem[];
+    /** Peso total del bowl desde la balanza (en kg) */
+    totalWeight: number;
+    /** ¿Peso confirmado por el cajero? */
+    weightConfirmed: boolean;
+    /** Precio/kg efectivo (único o promedio en mixto) */
+    effectivePricePerKg: number;
+    /** Subtotal del bowl: totalWeight × effectivePricePerKg */
+    bowlSubtotal: number;
+    /** Subtotal de extras */
+    extrasSubtotal: number;
+    /** Total de la venta */
     total: number;
 }
 
-// Método de pago
-export type PaymentMethod = 'CASH' | 'CARD' | 'TRANSFER' | 'MIXED';
+const EMPTY_CART: AcaiCart = {
+    isMixto: false,
+    flavors: [],
+    selectedToppings: [],
+    extras: [],
+    totalWeight: 0,
+    weightConfirmed: false,
+    effectivePricePerKg: 0,
+    bowlSubtotal: 0,
+    extrasSubtotal: 0,
+    total: 0,
+};
 
-/**
- * Hook para gestionar ventas de Acai
- */
-export function useAcaiSale(branchId: string, userId: string) {
-    // Estado del carrito
-    const [cart, setCart] = useState<AcaiCart>({
-        base: null,
-        toppings: [],
-        extras: [],
-        total: 0
-    });
+function recalc(cart: AcaiCart): AcaiCart {
+    // Precio efectivo: promedio de los sabores seleccionados
+    const effectivePricePerKg =
+        cart.flavors.length > 0
+            ? Math.round(
+                  (cart.flavors.reduce((s, f) => s + f.pricePerKg, 0) / cart.flavors.length) * 100
+              ) / 100
+            : 0;
 
-    // Hooks de sincronización
-    const { addToQueue } = useSyncQueue();
-    const isOnline = useNetworkStatus();
+    const bowlSubtotal =
+        cart.weightConfirmed && cart.flavors.length > 0
+            ? Math.round(cart.totalWeight * effectivePricePerKg * 100) / 100
+            : 0;
 
-    /**
-     * Calcular total del carrito
-     */
-    const calculateTotal = useCallback((currentCart: AcaiCart): number => {
-        let total = 0;
+    const extrasSubtotal =
+        Math.round(cart.extras.reduce((s, e) => s + e.subtotal, 0) * 100) / 100;
 
-        // Base
-        if (currentCart.base) {
-            total += currentCart.base.price;
-        }
+    return { ...cart, effectivePricePerKg, bowlSubtotal, extrasSubtotal, total: bowlSubtotal + extrasSubtotal };
+}
 
-        // Toppings
-        total += currentCart.toppings.reduce((sum, item) => sum + item.subtotal, 0);
+export function useAcaiSale(_branchId: string, _userId: string) {
+    const [cart, setCart] = useState<AcaiCart>(EMPTY_CART);
 
-        // Extras
-        total += currentCart.extras.reduce((sum, item) => sum + item.subtotal, 0);
-
-        return total;
+    /** Cambiar entre modo normal y mixto */
+    const setMixtoMode = useCallback((mixto: boolean) => {
+        setCart(prev => recalc({ ...prev, isMixto: mixto, flavors: [], totalWeight: 0, weightConfirmed: false }));
     }, []);
 
-    /**
-     * Establecer base del bowl/copa
-     */
-    const setBase = useCallback((product: Product) => {
-        if (product.type !== 'ACAI_BASE') {
-            throw new Error('El producto no es una base de Acai');
-        }
-
-        // Precio 0 está permitido (puede no estar configurado aún)
-        if (product.price === undefined || product.price === null) {
-            console.warn('[useAcaiSale] Producto base sin precio, usando 0');
-        }
-
-        const baseItem: BaseItem = {
-            id: crypto.randomUUID(),
-            product,
-            price: product.price ?? 0,
-        };
-
-        setCart(prev => {
-            const updated = { ...prev, base: baseItem };
-            return { ...updated, total: calculateTotal(updated) };
-        });
-    }, [calculateTotal]);
-
-    /**
-     * Agregar topping por peso
-     */
-    const addTopping = useCallback((
-        product: Product,
-        weight: number,
-        pricePerKg: number
-    ) => {
-        if (product.type !== 'ACAI_TOPPING') {
-            throw new Error('El producto no es un topping de Acai');
-        }
-
-        if (weight <= 0) {
-            throw new Error('El peso debe ser mayor a 0');
-        }
-
-        if (pricePerKg <= 0) {
-            throw new Error('El precio por kg debe ser mayor a 0');
-        }
-
-        const toppingItem: ToppingItem = {
-            id: crypto.randomUUID(),
-            product,
-            weight,
-            pricePerKg,
-            subtotal: weight * pricePerKg
-        };
-
-        setCart(prev => {
-            const updated = {
+    /** Seleccionar sabor único (modo normal): reemplaza el anterior */
+    const setFlavor = useCallback((product: Product, pricePerKg: number) => {
+        setCart(prev =>
+            recalc({
                 ...prev,
-                toppings: [...prev.toppings, toppingItem]
-            };
-            return { ...updated, total: calculateTotal(updated) };
-        });
-    }, [calculateTotal]);
+                isMixto: false,
+                flavors: [{ product, pricePerKg }],
+                totalWeight: 0,
+                weightConfirmed: false,
+            })
+        );
+    }, []);
 
-    /**
-     * Agregar extra (bebida u otro producto fijo)
-     */
-    const addExtra = useCallback((product: Product, quantity: number = 1) => {
-        if (!product.price || product.price <= 0) {
-            throw new Error('El producto extra debe tener un precio válido');
-        }
-
-        if (quantity <= 0) {
-            throw new Error('La cantidad debe ser mayor a 0');
-        }
-
-        // Buscar si ya existe el mismo producto
-        const existingIndex = cart.extras.findIndex(e => e.product.id === product.id);
-
+    /** Alternar sabor en modo mixto */
+    const toggleFlavor = useCallback((product: Product, pricePerKg: number) => {
         setCart(prev => {
-            let updatedExtras: ExtraItem[];
-
-            if (existingIndex >= 0) {
-                // Incrementar cantidad si ya existe
-                updatedExtras = prev.extras.map((item, idx) => {
-                    if (idx === existingIndex) {
-                        const newQuantity = item.quantity + quantity;
-                        return {
-                            ...item,
-                            quantity: newQuantity,
-                            subtotal: newQuantity * item.unitPrice
-                        };
-                    }
-                    return item;
-                });
-            } else {
-                // Agregar nuevo
-                const extraItem: ExtraItem = {
-                    id: crypto.randomUUID(),
-                    product,
-                    quantity,
-                    unitPrice: product.price!,
-                    subtotal: quantity * product.price!
-                };
-                updatedExtras = [...prev.extras, extraItem];
-            }
-
-            const updated = { ...prev, extras: updatedExtras };
-            return { ...updated, total: calculateTotal(updated) };
-        });
-    }, [cart.extras, calculateTotal]);
-
-    /**
-     * Eliminar item del carrito
-     */
-    const removeItem = useCallback((itemId: string, itemType: 'base' | 'topping' | 'extra') => {
-        setCart(prev => {
-            let updated = { ...prev };
-
-            switch (itemType) {
-                case 'base':
-                    updated.base = null;
-                    break;
-                case 'topping':
-                    updated.toppings = prev.toppings.filter(t => t.id !== itemId);
-                    break;
-                case 'extra':
-                    updated.extras = prev.extras.filter(e => e.id !== itemId);
-                    break;
-            }
-
-            return { ...updated, total: calculateTotal(updated) };
-        });
-    }, [calculateTotal]);
-
-    /**
-     * Limpiar carrito
-     */
-    const clearCart = useCallback(() => {
-        setCart({
-            base: null,
-            toppings: [],
-            extras: [],
-            total: 0
+            const exists = prev.flavors.some(f => f.product.id === product.id);
+            const flavors = exists
+                ? prev.flavors.filter(f => f.product.id !== product.id)
+                : [...prev.flavors, { product, pricePerKg }];
+            return recalc({ ...prev, flavors, totalWeight: 0, weightConfirmed: false });
         });
     }, []);
 
-    /**
-     * Procesar venta
-     */
-    const processSale = useCallback(async (paymentMethod: PaymentMethod) => {
-        // Validar que hay items en el carrito
-        if (cart.total <= 0) {
-            throw new Error('El carrito está vacío');
-        }
+    /** Alternar topping */
+    const toggleTopping = useCallback((product: Product) => {
+        setCart(prev => ({
+            ...prev,
+            selectedToppings: prev.selectedToppings.some(t => t.id === product.id)
+                ? prev.selectedToppings.filter(t => t.id !== product.id)
+                : [...prev.selectedToppings, product],
+        }));
+    }, []);
 
-        // Crear payload de venta
-        const salePayload = {
-            branchId,
-            userId,
-            totalAmount: cart.total,
-            paymentMethod,
-            items: [
-                // Base
-                ...(cart.base ? [{
-                    productId: cart.base.product.id,
-                    quantity: 1,
-                    unitPrice: cart.base.price,
-                    subtotal: cart.base.price,
-                    discount: 0
-                }] : []),
+    /** Confirmar peso de la balanza */
+    const confirmWeight = useCallback((weight: number) => {
+        setCart(prev => recalc({ ...prev, totalWeight: weight, weightConfirmed: true }));
+    }, []);
 
-                // Toppings
-                ...cart.toppings.map(t => ({
-                    productId: t.product.id,
-                    quantity: t.weight,  // Guardar peso como quantity
-                    unitPrice: t.pricePerKg,
-                    subtotal: t.subtotal,
-                    discount: 0
-                })),
+    /** Resetear peso */
+    const resetWeight = useCallback(() => {
+        setCart(prev => recalc({ ...prev, totalWeight: 0, weightConfirmed: false }));
+    }, []);
 
-                // Extras
-                ...cart.extras.map(e => ({
-                    productId: e.product.id,
-                    quantity: e.quantity,
-                    unitPrice: e.unitPrice,
-                    subtotal: e.subtotal,
-                    discount: 0
-                }))
-            ],
-            createdAt: new Date().toISOString()
-        };
+    /** Agregar extra (acumula si ya existe) */
+    const addExtra = useCallback((product: Product, quantity: number = 1) => {
+        if (!product.price || product.price <= 0) return;
+        setCart(prev => {
+            const idx = prev.extras.findIndex(e => e.product.id === product.id);
+            const extras =
+                idx >= 0
+                    ? prev.extras.map((e, i) =>
+                          i === idx
+                              ? { ...e, quantity: e.quantity + quantity, subtotal: (e.quantity + quantity) * e.unitPrice }
+                              : e
+                      )
+                    : [
+                          ...prev.extras,
+                          {
+                              id: crypto.randomUUID(),
+                              product,
+                              quantity,
+                              unitPrice: product.price!,
+                              subtotal: quantity * product.price!,
+                          },
+                      ];
+            return recalc({ ...prev, extras });
+        });
+    }, []);
 
-        try {
-            if (isOnline) {
-                // TODO: Implementar llamada a API cuando esté disponible
-                // const response = await fetch('/api/sales', {
-                //   method: 'POST',
-                //   headers: { 'Content-Type': 'application/json' },
-                //   body: JSON.stringify(salePayload)
-                // });
-                // const sale = await response.json();
+    /** Decrementar extra */
+    const decrementExtra = useCallback((id: string) => {
+        setCart(prev => {
+            const extras = prev.extras
+                .map(e => e.id === id ? { ...e, quantity: e.quantity - 1, subtotal: (e.quantity - 1) * e.unitPrice } : e)
+                .filter(e => e.quantity > 0);
+            return recalc({ ...prev, extras });
+        });
+    }, []);
 
-                console.log('Venta procesada (API pendiente):', salePayload);
+    /** Eliminar extra */
+    const removeExtra = useCallback((id: string) => {
+        setCart(prev => recalc({ ...prev, extras: prev.extras.filter(e => e.id !== id) }));
+    }, []);
 
-            } else {
-                // Modo offline: agregar a cola de sincronización
-                await addToQueue({
-                    id: crypto.randomUUID(),
-                    type: 'SALE',
-                    payload: salePayload,
-                    priority: 1 // Alta prioridad para ventas
-                });
-
-                console.log('Venta guardada offline:', salePayload);
-            }
-
-            // Limpiar carrito después de procesar
-            clearCart();
-
-            return {
-                success: true,
-                offline: !isOnline,
-                saleNumber: `ACAI-${branchId}-${Date.now()}` // Temporal
-            };
-
-        } catch (error) {
-            console.error('Error al procesar venta:', error);
-            throw error;
-        }
-    }, [cart, branchId, userId, isOnline, addToQueue, clearCart]);
+    /** Limpiar todo */
+    const clearCart = useCallback(() => setCart(EMPTY_CART), []);
 
     return {
-        // Estado
         cart,
-
-        // Acciones
-        setBase,
-        addTopping,
+        setMixtoMode,
+        setFlavor,
+        toggleFlavor,
+        toggleTopping,
+        confirmWeight,
+        resetWeight,
         addExtra,
-        removeItem,
+        decrementExtra,
+        removeExtra,
         clearCart,
-        processSale
     };
 }

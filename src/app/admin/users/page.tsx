@@ -38,7 +38,20 @@ const roleColors: Record<string, string> = {
     WAREHOUSE: 'bg-gray-100 text-gray-700',
 };
 
-const ROLES = ['ADMIN', 'MANAGER', 'CASHIER', 'WAREHOUSE'];
+const ROLES: { value: string; label: string; desc?: string }[] = [
+    { value: 'ADMIN',    label: 'Administrador', desc: 'Acceso total a todas las sucursales. No requiere sucursal.' },
+    { value: 'MANAGER',  label: 'Gerente',        desc: 'Administra una sucursal específica.' },
+    { value: 'CASHIER',  label: 'Cajero',          desc: 'Opera el POS de su sucursal.' },
+    { value: 'WAREHOUSE', label: 'Almacén / Fábrica', desc: 'Gestiona inventario y producción.' },
+];
+
+const ROLE_LABELS: Record<string, string> = {
+    ADMIN: 'Administrador', MANAGER: 'Gerente',
+    CASHIER: 'Cajero', WAREHOUSE: 'Almacén / Fábrica', FACTORY_OPERATOR: 'Operador Fábrica',
+};
+
+/** Roles que NO deben tener sucursal asignada */
+const ROLES_WITHOUT_BRANCH = ['ADMIN'];
 
 export default function UsersPage() {
     const [users, setUsers] = useState<User[]>([]);
@@ -223,7 +236,7 @@ export default function UsersPage() {
                                         <td className="px-6 py-4 text-gray-600">{u.email}</td>
                                         <td className="px-6 py-4">
                                             <span className={`flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium w-fit ${roleColors[u.role] || 'bg-gray-100 text-gray-600'}`}>
-                                                <Shield className="h-3 w-3" /> {u.role}
+                                                <Shield className="h-3 w-3" /> {ROLE_LABELS[u.role] || u.role}
                                             </span>
                                         </td>
                                         <td className="px-6 py-4 text-gray-500 text-xs">
@@ -294,19 +307,46 @@ export default function UsersPage() {
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Rol *</label>
-                                    <select required value={form.role} onChange={e => setForm(f => ({ ...f, role: e.target.value }))}
+                                    <select required value={form.role}
+                                        onChange={e => {
+                                            const newRole = e.target.value;
+                                            setForm(f => ({
+                                                ...f,
+                                                role: newRole,
+                                                // Limpiar sucursal si el rol no necesita una
+                                                branchId: ROLES_WITHOUT_BRANCH.includes(newRole) ? '' : f.branchId,
+                                            }));
+                                        }}
                                         className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                        {ROLES.map(r => <option key={r}>{r}</option>)}
+                                        {ROLES.map(r => (
+                                            <option key={r.value} value={r.value}>{r.label}</option>
+                                        ))}
                                     </select>
+                                    {ROLES.find(r => r.value === form.role)?.desc && (
+                                        <p className="text-xs text-gray-400 mt-1">
+                                            {ROLES.find(r => r.value === form.role)?.desc}
+                                        </p>
+                                    )}
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sucursal</label>
-                                    <select value={form.branchId} onChange={e => setForm(f => ({ ...f, branchId: e.target.value }))}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                        <option value="">Sin asignar</option>
-                                        {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                                    </select>
-                                </div>
+                                {/* Selector de sucursal — oculto para Admin/Gerente */}
+                                {!ROLES_WITHOUT_BRANCH.includes(form.role) ? (
+                                    <div>
+                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sucursal *</label>
+                                        <select required value={form.branchId}
+                                            onChange={e => setForm(f => ({ ...f, branchId: e.target.value }))}
+                                            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                            <option value="">Seleccioná una sucursal…</option>
+                                            {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                        </select>
+                                    </div>
+                                ) : (
+                                    <div className="flex items-end pb-1">
+                                        <div className="w-full bg-slate-50 border border-slate-100 rounded-xl px-3 py-2.5 text-sm text-slate-400 flex items-center gap-2">
+                                            <Shield className="h-4 w-4 text-slate-400" />
+                                            Acceso global, sin sucursal
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">

@@ -12,11 +12,8 @@ interface Branch { id: string; name: string; type: string; }
 interface StockItem {
     id: string;
     productId: string;
-    productName: string;
-    sku: string;
-    type: string;
-    unit: string;
-    category: string | null;
+    product: { id?: string; name: string; sku: string; type: string; unit: string; category: string | null };
+    branch?: { id: string; name: string };
     currentStock: number;
     minStock: number;
     maxStock: number | null;
@@ -89,11 +86,11 @@ function StockRow({
 
     return (
         <tr className={`border-b border-gray-100 hover:bg-gray-50 ${rowBg}`}>
-            <td className="px-5 py-3 font-medium text-gray-900 text-sm">{item.productName}</td>
-            <td className="px-5 py-3 font-mono text-xs text-gray-400">{item.sku}</td>
+            <td className="px-5 py-3 font-medium text-gray-900 text-sm">{item.product.name}</td>
+            <td className="px-5 py-3 font-mono text-xs text-gray-400">{item.product.sku}</td>
             <td className="px-5 py-3">
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[item.type] || 'bg-gray-100 text-gray-600'}`}>
-                    {item.type}
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[item.product.type] || 'bg-gray-100 text-gray-600'}`}>
+                    {TYPE_LABELS[item.product.type] || item.product.type}
                 </span>
             </td>
 
@@ -110,10 +107,10 @@ function StockRow({
                         <button onClick={() => setNewStock(s => s + 1)} className="p-1 rounded bg-gray-100 hover:bg-gray-200">
                             <Plus className="h-3 w-3" />
                         </button>
-                        <span className="text-xs text-gray-400 ml-1">{item.unit}</span>
+                        <span className="text-xs text-gray-400 ml-1">{item.product.unit}</span>
                     </div>
                 ) : (
-                    <>{item.currentStock} <span className="text-xs font-normal text-gray-400">{item.unit}</span></>
+                    <>{item.currentStock} <span className="text-xs font-normal text-gray-400">{item.product.unit}</span></>
                 )}
             </td>
 
@@ -237,7 +234,9 @@ export default function StockPage() {
 
     const filtered = stock.filter(item => {
         const q = search.toLowerCase();
-        const matchSearch = item.productName.toLowerCase().includes(q) || item.sku.toLowerCase().includes(q);
+        const matchSearch =
+            (item.product?.name ?? '').toLowerCase().includes(q) ||
+            (item.product?.sku ?? '').toLowerCase().includes(q);
         const matchFilter =
             filter === 'ALL' ? true :
                 filter === 'CRITICAL' ? item.isCritical :

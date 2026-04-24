@@ -1,6 +1,6 @@
 /**
  * Configuración de Conexión a Base de Datos
- * Optimizado para Neon Postgres con PgBouncer + Vercel Serverless
+ * Optimizado para Neon Postgres (local: directo, producción: pgBouncer + Vercel)
  */
 
 import { PrismaClient } from '@prisma/client';
@@ -11,13 +11,14 @@ declare global {
   var prisma: PrismaClient | undefined;
 }
 
-// Configuración de conexión para Neon + Vercel serverless
 const prismaClientSingleton = () => {
   return new PrismaClient({
-    log: process.env.NODE_ENV === 'development' ? ['query', 'error', 'warn'] : ['error'],
+    // Sin log de queries — las rutas API ya logean sus propios errores.
+    // Prisma imprime logs muy verbosos que no aportan en producción/dev.
+    log: [],
     datasources: {
       db: {
-        url: process.env.DATABASE_URL, // Conexión Pooled (PgBouncer)
+        url: process.env.DATABASE_URL,
       },
     },
   });
@@ -33,19 +34,38 @@ if (process.env.NODE_ENV !== 'production') {
 export { prisma };
 
 /**
- * Notas de Configuración del Pool de Conexiones:
- * 
- * DATABASE_URL debe incluir:
- * - ?pgbouncer=true (habilita modo PgBouncer)
- * - &connection_limit=10 (recomendado para serverless)
- * - &pool_timeout=20 (segundos)
- * 
- * Ejemplo:
- * postgresql://usuario:pass@host.neon.tech:5432/db?pgbouncer=true&connection_limit=10&pool_timeout=20
- * 
- * DIRECT_URL se usa solo para migraciones (sin pooling):
- * postgresql://usuario:pass@host.neon.tech:5432/db
+ * Ejecuta una query Prisma con reintentos automáticos.
+ * Útil para manejar el cold start de Neon (primer request tras inactividad).
+ *
+ * @param fn    Función async que ejecuta la query
+ * @param opts  { retries, delayMs } — por defecto 2 reintentos con 1500ms de espera
  */
+export async function withRetry<T>(
+  fn: () => Promise<T>,
+  opts: { retries?: number; baseDelayMs?: number } = {}
+): Promise<T> {
+  const { retries = 3, baseDelayMs = 1000 } = opts;
+  let lastError: unknown;
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    try {
+      return await fn();
+    } catch (err: any) {
+      lastError = err;
+      const isColdStart =
+        err?.message?.includes("Can't reach database") ||
+        err?.message?.includes('connection pool') ||
+        err?.message?.includes('ECONNREFUSED') ||
+        err?.message?.includes('Timed out');
+      if (!isColdStart || attempt >= retries) break;
+      const delay = baseDelayMs * Math.pow(2, attempt); // 1s, 2s, 4s...
+      console.warn(
+        `[DB] Neon cold start, reintentando en ${delay}ms... (${attempt + 1}/${retries})`
+      );
+      await new Promise((r) => setTimeout(r, delay));
+    }
+  }
+  throw lastError;
+}
 
 // Función auxiliar para probar conexión a base de datos
 export async function testConnection(): Promise<boolean> {
@@ -64,7 +84,7 @@ export async function disconnectDatabase(): Promise<void> {
   await prisma.$disconnect();
 }
 
-// Opcional: Estadísticas del pool de conexiones (para monitoreo)
+// Estadísticas del pool de conexiones (para monitoreo admin)
 export async function getPoolStats() {
   try {
     const result = await prisma.$queryRaw<Array<{ state: string; count: number }>>`
@@ -74,8 +94,7 @@ export async function getPoolStats() {
       GROUP BY state;
     `;
     return result;
-  } catch (error) {
-    console.error('Error obteniendo estadísticas del pool:', error);
+  } catch {
     return [];
   }
 }

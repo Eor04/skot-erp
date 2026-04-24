@@ -15,14 +15,14 @@ const ALL_MODULES = [
         description: 'Punto de venta con balanza Prix 4. Venta por peso, toppings y pagos.',
         gradient: 'linear-gradient(135deg,#9333ea,#ec4899)', badge: 'Balanza Prix 4', glow: 'rgba(147,51,234,0.35)',
         showWhen: (role: string, types: string[]) =>
-            ['ADMIN', 'MANAGER'].includes(role) || (role === 'CASHIER' && (types.length === 0 || types.includes('ACAI'))),
+            ['ADMIN', 'MANAGER'].includes(role) || (role === 'CASHIER' && types.includes('ACAI')),
     },
     {
         href: '/burgers', emoji: '🍔', logo: '/logo-burger.png', title: 'POS Burgers',
         description: 'Punto de venta táctil con modificadores, combos y gestión de carrito.',
         gradient: 'linear-gradient(135deg,#f97316,#eab308)', badge: 'Táctil', glow: 'rgba(249,115,22,0.35)',
         showWhen: (role: string, types: string[]) =>
-            ['ADMIN', 'MANAGER'].includes(role) || (role === 'CASHIER' && (types.length === 0 || types.includes('HAMBURGUESAS'))),
+            ['ADMIN', 'MANAGER'].includes(role) || (role === 'CASHIER' && types.includes('HAMBURGUESAS')),
     },
     {
         href: '/cash-close', emoji: '💰', logo: '', title: 'Cierre de Caja',

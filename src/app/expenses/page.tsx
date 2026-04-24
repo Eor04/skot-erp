@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -52,10 +52,11 @@ function fmt(n: number) {
 }
 
 export default function ExpensesPage() {
-    const { user } = useSession();
+    const { user, loading: sessionLoading } = useSession();
 
     const [branchId, setBranchId] = useState('');
     const [branches, setBranches] = useState<{ id: string; name: string; type: string }[]>([]);
+    const [branchesLoading, setBranchesLoading] = useState(false);
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [summary, setSummary] = useState<Summary>({ total: 0, sumAmount: 0 });
     const [loading, setLoading] = useState(false);
@@ -67,19 +68,27 @@ export default function ExpensesPage() {
 
     const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
 
-    /* ── Cargar sucursales y pre-seleccionar la del usuario ── */
+    /* ── Para cajeros: branchId directo de la sesión (sin esperar fetch) ── */
     useEffect(() => {
+        if (sessionLoading || !user || isAdmin) return;
+        if (user.branchIds?.[0]) setBranchId(user.branchIds[0]);
+    }, [user, isAdmin, sessionLoading]);
+
+    /* ── Admins: cargar lista de sucursales para el selector ── */
+    useEffect(() => {
+        if (sessionLoading || !user || !isAdmin) return;
+        setBranchesLoading(true);
         fetch('/api/admin/branches')
             .then(r => r.json())
             .then(d => {
                 if (d.success) {
                     setBranches(d.data);
-                    if (!isAdmin && user?.branchIds?.[0]) {
-                        setBranchId(user.branchIds[0]);
-                    }
+                    if (d.data.length === 1) setBranchId(d.data[0].id);
                 }
-            });
-    }, [user, isAdmin]);
+            })
+            .catch(() => {})
+            .finally(() => setBranchesLoading(false));
+    }, [user, isAdmin, sessionLoading]);
 
     /* ── Cargar gastos cuando cambia la sucursal o filtro ── */
     const loadExpenses = useCallback(async (bid: string, cat: string) => {
@@ -218,10 +227,15 @@ export default function ExpensesPage() {
                 )}
 
                 {/* Lista de gastos */}
-                {!branchId ? (
+                {sessionLoading || branchesLoading ? (
+                    <div className="flex flex-col items-center justify-center py-20 text-gray-400 gap-3">
+                        <Loader2 className="h-10 w-10 animate-spin text-rose-400" />
+                        <p className="text-sm">Cargando...</p>
+                    </div>
+                ) : !branchId ? (
                     <div className="text-center py-20 text-gray-400">
                         <DollarSign className="h-14 w-14 mx-auto mb-4 opacity-20" />
-                        <p>{isAdmin ? 'Seleccioná una sucursal para ver sus gastos' : 'Cargando…'}</p>
+                        <p>{isAdmin ? 'Seleccioná una sucursal para ver sus gastos' : 'No tenés sucursal asignada. Contactá al administrador.'}</p>
                     </div>
                 ) : loading ? (
                     <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-rose-500" /></div>

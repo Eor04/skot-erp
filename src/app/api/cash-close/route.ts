@@ -2,14 +2,15 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
 /**
- * POST /api/cash-close — Registrar cierre de caja (cierra sesión activa o crea nuevo registro)
+ * POST /api/cash-close — Registrar cierre de caja
+ * Calcula automáticamente los gastos del turno para descontarlos del efectivo esperado.
  */
 export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { branchId: bodyBranchId, userId, openingAmount, actualCash, notes, sessionId } = body;
 
-        // Si viene sessionId, usar ese; si no, buscar la sesión activa de la sucursal
+        // Resolver sesión activa
         let activeSession: any = null;
         let branchId = bodyBranchId;
 
@@ -29,14 +30,13 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Obtener las ventas del día de la sucursal
+        // Rango del turno: desde apertura de sesión (o inicio del día si no hay sesión)
         const today = new Date();
         const startOfDay = new Date(today); startOfDay.setHours(0, 0, 0, 0);
         const endOfDay = new Date(today); endOfDay.setHours(23, 59, 59, 999);
-
-        // Si hay sesión abierta, contar ventas desde que se abrió
         const salesFrom = activeSession?.openedAt ?? startOfDay;
 
+        // ── 1. Ventas del turno ──────────────────────────────────────────────────
         const sales = await prisma.sale.findMany({
             where: { branchId, deletedAt: null, createdAt: { gte: salesFrom, lte: endOfDay } },
             select: { totalAmount: true, paymentMethod: true, cashAmount: true, cardAmount: true, transferAmount: true },
@@ -55,67 +55,94 @@ export async function POST(request: NextRequest) {
             }
         }
 
+        // ── 2. Gastos del turno ──────────────────────────────────────────────────
+        // Separamos gastos pagados en EFECTIVO (afectan el conteo físico)
+        // de los pagados con tarjeta/transferencia (no afectan el efectivo en caja)
+        const expenseWhere = {
+            branchId,
+            expenseDate: { gte: salesFrom, lte: endOfDay },
+        };
+
+        const [allExpAgg, cashExpAgg] = await Promise.all([
+            prisma.expense.aggregate({ where: expenseWhere, _sum: { amount: true } }),
+            prisma.expense.aggregate({
+                where: { ...expenseWhere, paymentMethod: 'CASH' },
+                _sum: { amount: true },
+            }),
+        ]);
+        const totalExpenses = allExpAgg._sum.amount ?? 0;
+        const cashExpenses  = cashExpAgg._sum.amount ?? 0;
+
+        // ── 3. Cálculos del cierre ───────────────────────────────────────────────
         const opening = parseFloat(openingAmount) || activeSession?.openingAmount || 0;
-        const actual = parseFloat(actualCash) || 0;
-        const expectedCash = opening + cashSales;
-        const difference = actual - expectedCash;
+        const actual  = parseFloat(actualCash) || 0;
+
+        // Efectivo esperado = fondo apertura + ventas cobradas en efectivo - gastos pagados en efectivo
+        const expectedCash = opening + cashSales - cashExpenses;
+        const difference   = actual - expectedCash;
+
+        // Ingreso neto total (independiente del método de pago)
+        const netCash  = totalSales - totalExpenses;
         const closedAt = new Date();
+
+        const commonData = {
+            user: { connect: { id: userId } },
+            openingAmount: opening,
+            expectedCash,
+            actualCash: actual,
+            difference,
+            totalSales,
+            cashSales,
+            cardSales,
+            transferSales,
+            totalExpenses,
+            netCash,
+            notes: notes || null,
+            closedAt,
+            sessionStatus: 'CLOSED',
+        };
+
+        const include = {
+            branch: { select: { name: true } },
+            user: { select: { name: true } },
+        };
 
         let cashClose;
         if (activeSession) {
-            // Actualizar la sesión abierta
             cashClose = await prisma.cashRegisterClose.update({
                 where: { id: activeSession.id },
-                data: {
-                    userId,
-                    openingAmount: opening,
-                    expectedCash,
-                    actualCash: actual,
-                    difference,
-                    totalSales,
-                    cashSales,
-                    cardSales,
-                    transferSales,
-                    notes: notes || null,
-                    closedAt,
-                    sessionStatus: 'CLOSED',
-                },
-                include: {
-                    branch: { select: { name: true } },
-                    user: { select: { name: true } },
-                },
+                data: commonData,
+                include,
             });
         } else {
-            // No había sesión abierta: crear nuevo registro
             cashClose = await prisma.cashRegisterClose.create({
                 data: {
-                    branchId, userId,
-                    openingAmount: opening,
-                    expectedCash,
-                    actualCash: actual,
-                    difference,
-                    totalSales, cashSales, cardSales, transferSales,
-                    notes: notes || null,
-                    closedAt,
-                    sessionStatus: 'CLOSED',
+                    branch: { connect: { id: branchId } },
+                    ...commonData,
                 },
-                include: {
-                    branch: { select: { name: true } },
-                    user: { select: { name: true } },
-                },
+                include,
             });
         }
 
-        return NextResponse.json({ success: true, data: cashClose }, { status: 201 });
+        // Devolver también el detalle de gastos para mostrarlo en el reporte
+        const expensesDetail = await prisma.expense.findMany({
+            where: {
+                branchId,
+                expenseDate: { gte: salesFrom, lte: endOfDay },
+            },
+            select: { id: true, description: true, amount: true, category: true, paymentMethod: true },
+            orderBy: { expenseDate: 'asc' },
+        });
+
+        return NextResponse.json({ success: true, data: cashClose, expenses: expensesDetail }, { status: 201 });
     } catch (error) {
         console.error('Error POST /api/cash-close:', error);
         return NextResponse.json({ success: false, error: 'Error al registrar cierre de caja' }, { status: 500 });
     }
 }
 
-
 /**
- * GET /api/cash-close?branchId=xxx — Obtener cierres de caja
+ * GET /api/cash-close?branchId=xxx&limit=30 — Obtener cierres de caja
  */
 export async function GET(request: NextRequest) {
     try {

@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Factory, FileText, PlayCircle, Package2, Package, Clock, CheckCircle2, RefreshCw, Plus, ChevronRight } from 'lucide-react';
+import { Factory, FileText, PlayCircle, Package2, Package, PackagePlus, Clock, CheckCircle2, RefreshCw, Plus, ChevronRight } from 'lucide-react';
 
 type Order = {
     id: string; orderNumber: string; recipeName: string; branchName: string;
@@ -126,6 +126,7 @@ export default function FactoryDashboardPage() {
                     <div className="space-y-3">
                         <h2 className="text-lg font-bold text-gray-900 mb-4">Accesos rápidos</h2>
                         {[
+                            { href: '/factory/receiving', icon: <PackagePlus className="h-6 w-6 text-green-600" />, title: 'Recepción de Mercancía', desc: 'Registrar ingreso de productos de proveedores', color: 'border-green-500' },
                             { href: '/factory/production', icon: <PlayCircle className="h-6 w-6 text-green-600" />, title: 'Órdenes de Producción', desc: 'Ver, crear y gestionar órdenes', color: 'border-green-500' },
                             { href: '/factory/production/new', icon: <Plus className="h-6 w-6 text-blue-600" />, title: 'Nueva Orden', desc: 'Crear nueva orden de producción', color: 'border-blue-500' },
                             { href: '/factory/recipes', icon: <FileText className="h-6 w-6 text-purple-600" />, title: 'Gestión de Recetas', desc: 'Ver y editar recetas (BOM)', color: 'border-purple-500' },

@@ -60,16 +60,29 @@ export default function InternalOrdersPage() {
     });
 
     useEffect(() => {
+        const branchId = !isAdmin ? user?.branchIds?.[0] : null;
+        const ordersUrl = branchId
+            ? `/api/inventory/internal-orders?branchId=${branchId}`
+            : '/api/inventory/internal-orders';
+
         Promise.all([
-            fetch('/api/inventory/internal-orders').then(r => r.json()),
+            fetch(ordersUrl).then(r => r.json()),
             fetch('/api/admin/branches').then(r => r.json()),
             fetch('/api/admin/products').then(r => r.json()),
         ]).then(([ordersData, branchesData, productsData]) => {
             if (ordersData.success) setOrders(ordersData.data);
             if (branchesData.success) setBranches(branchesData.data);
             if (productsData.success) setProducts(productsData.data);
+            // Pre-rellenar formulario para cajeros
+            if (!isAdmin && branchId) {
+                setForm(f => ({
+                    ...f,
+                    fromBranchId: branchId,
+                    requestedBy: user?.name || '',
+                }));
+            }
         }).finally(() => setLoading(false));
-    }, []);
+    }, [isAdmin, user]);
 
     function showToast(type: 'success' | 'error', msg: string) {
         setToast({ type, msg });
@@ -329,11 +342,17 @@ export default function InternalOrdersPage() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sucursal solicitante *</label>
-                                    <select required value={form.fromBranchId} onChange={e => setForm(f => ({ ...f, fromBranchId: e.target.value }))}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                        <option value="">Seleccionar...</option>
-                                        {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
-                                    </select>
+                                    {isAdmin ? (
+                                        <select required value={form.fromBranchId} onChange={e => setForm(f => ({ ...f, fromBranchId: e.target.value }))}
+                                            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                            <option value="">Seleccionar...</option>
+                                            {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                        </select>
+                                    ) : (
+                                        <div className="w-full border border-gray-100 bg-gray-50 rounded-xl px-3 py-2.5 text-sm text-gray-700 font-medium">
+                                            {branches.find(b => b.id === form.fromBranchId)?.name || 'Mi sucursal'}
+                                        </div>
+                                    )}
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sucursal receptora (fábrica) *</label>

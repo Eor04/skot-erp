@@ -25,6 +25,7 @@ export async function POST(request: NextRequest) {
             transferAmount,
             items,
             discount,
+            extrasTotal = 0,   // monto de extras (modificadores sueltos sin productId real)
         } = body;
 
         // Validaciones
@@ -34,7 +35,6 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
-
         if (!items || !Array.isArray(items) || items.length === 0) {
             return NextResponse.json(
                 { success: false, error: 'Se requiere al menos un item' },
@@ -42,123 +42,159 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Calcular total
-        let totalAmount = items.reduce((sum: number, item: any) => sum + (item.subtotal || 0), 0);
-
-        // Aplicar descuento
+        // Calcular total (incluye extras sueltos)
+        let totalAmount = items.reduce((sum: number, item: any) => sum + (item.subtotal || 0), 0)
+                        + (parseFloat(extrasTotal) || 0);
         let discountAmount = 0;
         if (discount) {
-            if (discount.type === 'PERCENTAGE') {
-                discountAmount = totalAmount * (discount.value / 100);
-            } else {
-                discountAmount = discount.value;
-            }
+            discountAmount = discount.type === 'PERCENTAGE'
+                ? totalAmount * (discount.value / 100)
+                : discount.value;
             totalAmount -= discountAmount;
         }
 
-        // Generar número de venta secuencial
+        // Ítems que descuentan stock — pre-calculados una sola vez
+        const stockItems = items.filter((item: any) => item.unitPrice > 0 || item.subtotal > 0);
+        const uniqueProductIds = [...new Set(stockItems.map((item: any) => item.productId as string))];
+
+        // Pre-cargar inventario una sola vez fuera del loop de reintentos
+        const inventoryRecords = uniqueProductIds.length > 0
+            ? await prisma.inventory.findMany({
+                where: { branchId, productId: { in: uniqueProductIds } },
+                select: { id: true, productId: true, currentStock: true },
+            })
+            : [];
+        const invMap = new Map(inventoryRecords.map(inv => [inv.productId, inv]));
+
         const today = new Date();
         const datePrefix = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
 
-        const lastSale = await prisma.sale.findFirst({
-            where: { saleNumber: { startsWith: `V-${datePrefix}` } },
-            orderBy: { saleNumber: 'desc' },
-        });
+        // ── CREAR VENTA CON REINTENTOS (saleNumber único) ──────────────────
+        // Hasta 5 intentos: si hay conflicto de saleNumber (P2002) por concurrencia,
+        // re-consulta el último número y vuelve a intentar.
+        let sale: any = null;
 
-        const seq = lastSale
-            ? parseInt(lastSale.saleNumber.split('-').pop() || '0') + 1
-            : 1;
-        const saleNumber = `V-${datePrefix}-${String(seq).padStart(4, '0')}`;
-
-        // Crear venta en una transacción atómica
-        const sale = await prisma.$transaction(async (tx) => {
-            // 1. Crear la venta
-            const newSale = await tx.sale.create({
-                data: {
-                    branchId,
-                    userId,
-                    saleNumber,
-                    totalAmount,
-                    paymentMethod: paymentMethod as any,
-                    salesChannel: salesChannel as any,
-                    cashAmount: cashAmount ?? null,
-                    cardAmount: cardAmount ?? null,
-                    transferAmount: transferAmount ?? null,
-                    items: {
-                        create: items.map((item: any) => ({
-                            productId: item.productId,
-                            quantity: item.quantity,
-                            unitPrice: item.unitPrice,
-                            subtotal: item.subtotal,
-                            discount: 0,
-                            modifiers: item.modifiers?.length
-                                ? {
-                                    create: item.modifiers.map((mod: any) => ({
-                                        modifierId: mod.modifierId,
-                                        quantity: mod.quantity || 1,
-                                        price: mod.price,
-                                    })),
-                                }
-                                : undefined,
-                        })),
-                    },
-                },
-                include: {
-                    items: { include: { modifiers: true } },
-                },
-            });
-
-            // 2. Registrar descuento si aplica
-            if (discount && discountAmount > 0) {
-                await tx.discount.create({
-                    data: {
-                        saleId: newSale.id,
-                        type: discount.type,
-                        value: discount.value,
-                        authorizedBy: discount.authorizedBy ?? null,
-                    },
+        for (let attempt = 0; attempt < 5; attempt++) {
+            try {
+                // Generar número de venta fresco en cada intento
+                const lastSale = await prisma.sale.findFirst({
+                    where: { saleNumber: { startsWith: `V-${datePrefix}` } },
+                    orderBy: { saleNumber: 'desc' },
+                    select: { saleNumber: true },
                 });
-            }
+                const seq = lastSale
+                    ? parseInt(lastSale.saleNumber.split('-').pop() || '0') + 1
+                    : 1;
+                const saleNumber = `V-${datePrefix}-${String(seq).padStart(4, '0')}`;
 
-            // 3. Descontar stock de cada producto
-            for (const item of items) {
-                await tx.inventory.updateMany({
-                    where: {
-                        branchId,
-                        productId: item.productId,
-                    },
-                    data: {
-                        currentStock: { decrement: item.quantity },
-                        lastUpdated: new Date(),
-                    },
-                });
-
-                // Registrar movimiento de stock (kardex)
-                const inv = await tx.inventory.findFirst({
-                    where: { branchId, productId: item.productId },
-                });
-
-                if (inv) {
-                    await tx.stockMovement.create({
+                sale = await prisma.$transaction(async (tx) => {
+                    // 1. Crear la venta con ítems y modificadores
+                    const newSale = await tx.sale.create({
                         data: {
-                            branchId,
-                            productId: item.productId,
-                            type: 'SALIDA',
-                            quantity: -item.quantity,
-                            previousStock: inv.currentStock + item.quantity,
-                            newStock: inv.currentStock,
-                            reference: saleNumber,
-                            saleId: newSale.id,
-                            inventoryId: inv.id,
-                            createdBy: userId,
-                            notes: `Venta ${saleNumber}`,
+                            branchId, userId, saleNumber, totalAmount,
+                            paymentMethod: paymentMethod as any,
+                            salesChannel: salesChannel as any,
+                            cashAmount: cashAmount ?? null,
+                            cardAmount: cardAmount ?? null,
+                            transferAmount: transferAmount ?? null,
+                            items: {
+                                create: items.map((item: any) => ({
+                                    productId: item.productId,
+                                    quantity:  item.quantity,
+                                    unitPrice: item.unitPrice,
+                                    subtotal:  item.subtotal,
+                                    discount:  0,
+                                    modifiers: item.modifiers?.length
+                                        ? { create: item.modifiers.map((mod: any) => ({
+                                            modifierId: mod.modifierId,
+                                            quantity:   mod.quantity || 1,
+                                            price:      mod.price,
+                                        })) }
+                                        : undefined,
+                                })),
+                            },
                         },
+                        select: { id: true, saleNumber: true, totalAmount: true, paymentMethod: true },
                     });
-                }
-            }
 
-            return newSale;
-        });
+                    // 2. Descuento
+                    if (discount && discountAmount > 0) {
+                        await tx.discount.create({
+                            data: {
+                                saleId: newSale.id,
+                                type:   discount.type,
+                                value:  discount.value,
+                                authorizedBy: discount.authorizedBy ?? null,
+                            },
+                        });
+                    }
+
+                    // 3. Descontar stock en paralelo
+                    if (uniqueProductIds.length > 0) {
+                        await Promise.all(
+                            uniqueProductIds.map(productId => {
+                                const qty = stockItems
+                                    .filter((i: any) => i.productId === productId)
+                                    .reduce((s: number, i: any) => s + i.quantity, 0);
+                                return tx.inventory.updateMany({
+                                    where: { branchId, productId },
+                                    data: { currentStock: { decrement: qty }, lastUpdated: new Date() },
+                                });
+                            })
+                        );
+                    }
+
+                    return newSale;
+                }, { timeout: 15000, maxWait: 5000 });
+
+                break; // ← Éxito, salir del loop
+
+            } catch (err: any) {
+                // P2002 en saleNumber → conflicto de concurrencia, reintentar
+                const isSaleNumberConflict =
+                    err.code === 'P2002' &&
+                    Array.isArray(err.meta?.target) &&
+                    err.meta.target.includes('saleNumber');
+
+                if (isSaleNumberConflict && attempt < 4) {
+                    console.warn(`[sale] Conflicto de saleNumber, reintentando (intento ${attempt + 2}/5)…`);
+                    await new Promise(r => setTimeout(r, 40 * (attempt + 1)));
+                    continue;
+                }
+                throw err; // Otro error o se agotaron los reintentos
+            }
+        }
+
+        if (!sale) throw new Error('No se pudo generar número de venta tras 5 intentos');
+        // ── FIN LOOP DE REINTENTOS ──────────────────────────────────────────
+
+
+        // Kardex: se registra DESPUÉS de confirmar la venta exitosamente
+        // No bloquea la respuesta (pero sí se ejecuta antes de responder al cliente)
+        if (stockItems.length > 0) {
+            const movements = stockItems.flatMap((item: any) => {
+                const inv = invMap.get(item.productId);
+                if (!inv) return [];
+                return [{
+                    branchId,
+                    productId: item.productId,
+                    type: 'SALIDA' as const,
+                    quantity: -item.quantity,
+                    previousStock: inv.currentStock,
+                    newStock: inv.currentStock - item.quantity,
+                    reference: sale.saleNumber,
+                    saleId: sale.id,
+                    inventoryId: inv.id,
+                    createdBy: userId,
+                    notes: `Venta ${sale.saleNumber}`,
+                }];
+            });
+            if (movements.length > 0) {
+                // Fire-and-forget: no esperamos para responder al cliente más rápido
+                prisma.stockMovement.createMany({ data: movements, skipDuplicates: true })
+                    .catch(err => console.error('[kardex] Error registrando movimientos:', err));
+            }
+        }
 
         return NextResponse.json({
             success: true,
@@ -167,9 +203,9 @@ export async function POST(request: NextRequest) {
                 saleNumber: sale.saleNumber,
                 totalAmount: sale.totalAmount,
                 paymentMethod: sale.paymentMethod,
-                items: sale.items,
             },
         }, { status: 201 });
+
     } catch (error: any) {
         console.error('Error POST /api/pos/sale:', error);
         return NextResponse.json(
@@ -178,6 +214,7 @@ export async function POST(request: NextRequest) {
         );
     }
 }
+
 
 /**
  * GET /api/pos/sale?branchId=xxx&date=YYYY-MM-DD

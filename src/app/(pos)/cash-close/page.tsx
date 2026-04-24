@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -25,6 +25,8 @@ interface CashSession {
     cashSales: number;
     cardSales: number;
     transferSales: number;
+    totalExpenses: number;
+    netCash: number;
     notes?: string;
     user: { name: string };
     branch: { name: string };
@@ -40,6 +42,9 @@ interface ShiftSummary {
     avgTicket: number;
     byMethod: Record<string, number>;
     recentSales: { saleNumber: string; totalAmount: number; paymentMethod: string; createdAt: string }[];
+    // Gastos del turno (cargados por separado)
+    totalExpenses?: number;
+    expensesDetail?: { id: string; description: string; amount: number; category: string; paymentMethod: string }[];
 }
 
 function fmt(n: number) { return 'Bs. ' + n.toFixed(2); }
@@ -87,8 +92,26 @@ export default function CashClosePage() {
     const loadShiftSummary = useCallback(async (branchId: string, openedAt?: string) => {
         const params = new URLSearchParams({ branchId });
         if (openedAt) params.set('from', openedAt);
-        const res = await fetch(`/api/cash-close/shift-summary?${params}`).then(r => r.json());
-        if (res.success) setShiftSummary(res.data);
+
+        // Para gastos: filtrar desde la apertura exacta del turno (no desde medianoche)
+        const today = new Date().toISOString().split('T')[0];
+        const expParams = new URLSearchParams({ branchId, endDate: today });
+        if (openedAt) {
+            // Pasar datetime completo como startDate para filtrar por hora de apertura
+            expParams.set('startDate', openedAt);
+        } else {
+            expParams.set('startDate', today);
+        }
+
+        const [summaryRes, expensesRes] = await Promise.all([
+            fetch(`/api/cash-close/shift-summary?${params}`).then(r => r.json()),
+            fetch(`/api/expenses?${expParams}`).then(r => r.json()),
+        ]);
+        if (summaryRes.success) {
+            const expD = expensesRes.success ? expensesRes.data : [];
+            const expTotal = expensesRes.success ? (expensesRes.summary?.sumAmount ?? 0) : 0;
+            setShiftSummary({ ...summaryRes.data, totalExpenses: expTotal, expensesDetail: expD });
+        }
     }, []);
 
     async function loadData(branchId?: string) {
@@ -283,6 +306,36 @@ export default function CashClosePage() {
                             ))}
                         </div>
 
+                        {/* Gastos del turno */}
+                        {shiftSummary.totalExpenses !== undefined && (
+                            <div className="mb-5">
+                                <div className="flex items-center justify-between mb-2">
+                                    <p className="text-xs font-semibold text-gray-500 flex items-center gap-1">
+                                        <AlertCircle className="h-3.5 w-3.5 text-red-400" /> Gastos del turno
+                                    </p>
+                                    <span className="text-sm font-black text-red-600">{fmt(shiftSummary.totalExpenses)}</span>
+                                </div>
+                                {(shiftSummary.expensesDetail ?? []).length > 0 ? (
+                                    <div className="divide-y divide-gray-50 rounded-xl border border-red-100 overflow-hidden">
+                                        {(shiftSummary.expensesDetail ?? []).map(exp => (
+                                            <div key={exp.id} className="flex items-center px-3 py-2 bg-red-50/40 gap-2 text-xs">
+                                                <span className="flex-1 text-gray-700">{exp.description}</span>
+                                                <span className="text-gray-400">{exp.category}</span>
+                                                <span className="font-bold text-red-600 w-20 text-right">{fmt(exp.amount)}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                ) : (
+                                    <p className="text-xs text-gray-400 italic">Sin gastos registrados en este turno.</p>
+                                )}
+                                {/* Ingreso neto estimado */}
+                                <div className="mt-3 flex items-center justify-between bg-slate-800 text-white rounded-xl px-4 py-2.5">
+                                    <span className="text-sm font-semibold">Ingreso Neto Estimado</span>
+                                    <span className="text-lg font-black">{fmt(shiftSummary.totalRevenue - shiftSummary.totalExpenses)}</span>
+                                </div>
+                            </div>
+                        )}
+
                         {/* Últimas ventas del turno */}
                         {shiftSummary.recentSales.length > 0 && (
                             <div>
@@ -392,11 +445,12 @@ export default function CashClosePage() {
                                     </div>
                                     {/* Preview de diferencia */}
                                     {form.actualCash && shiftSummary && (
-                                        <div className={`rounded-xl p-3 text-sm font-semibold flex items-center justify-between ${parseFloat(form.actualCash) - (shiftSummary.cashTotal + (activeSession?.openingAmount || 0)) >= 0
+                                        <div className={`rounded-xl p-3 text-sm font-semibold flex items-center justify-between ${
+                                            parseFloat(form.actualCash) - (shiftSummary.cashTotal - (shiftSummary.totalExpenses ?? 0) + (activeSession?.openingAmount || 0)) >= 0
                                                 ? 'bg-blue-50 text-blue-800' : 'bg-red-50 text-red-700'
-                                            }`}>
+                                        }`}>
                                             <span>Diferencia estimada:</span>
-                                            <span>{fmt(parseFloat(form.actualCash) - shiftSummary.cashTotal - (activeSession?.openingAmount || 0))}</span>
+                                            <span>{fmt(parseFloat(form.actualCash) - shiftSummary.cashTotal + (shiftSummary.totalExpenses ?? 0) - (activeSession?.openingAmount || 0))}</span>
                                         </div>
                                     )}
                                     <div>
@@ -461,15 +515,15 @@ export default function CashClosePage() {
                                             <div className="grid grid-cols-3 gap-2 text-xs text-gray-500">
                                                 <div className="flex items-center gap-1">
                                                     <TrendingUp className="h-3 w-3" />
-                                                    Total: <span className="font-semibold text-gray-700">{fmt(c.totalSales)}</span>
+                                                    Ventas: <span className="font-semibold text-gray-700">{fmt(c.totalSales)}</span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
-                                                    <DollarSign className="h-3 w-3" />
-                                                    Efect: <span className="font-semibold text-gray-700">{fmt(c.cashSales)}</span>
+                                                    <AlertCircle className="h-3 w-3 text-red-400" />
+                                                    Gastos: <span className="font-semibold text-red-600">{fmt(c.totalExpenses ?? 0)}</span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
-                                                    <CreditCard className="h-3 w-3" />
-                                                    Tarj: <span className="font-semibold text-gray-700">{fmt(c.cardSales)}</span>
+                                                    <DollarSign className="h-3 w-3 text-green-600" />
+                                                    Neto: <span className="font-semibold text-green-700">{fmt(c.netCash ?? c.totalSales)}</span>
                                                 </div>
                                             </div>
                                             {c.notes && <p className="text-xs text-gray-400 mt-2 italic">"{c.notes}"</p>}
