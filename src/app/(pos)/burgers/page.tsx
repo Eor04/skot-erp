@@ -78,9 +78,9 @@ export default function BurgersPOSPage() {
         }
     }, [saleResult]);
 
-    const loadInitialData = async () => {
+    const loadInitialData = async (silent = false) => {
         try {
-            setIsLoading(true);
+            if (!silent) setIsLoading(true);
             const [productsRes, modifiersRes, combosRes] = await Promise.all([
                 fetch(`/api/pos/products?branchId=${branchId}&type=BURGER`),
                 fetch('/api/pos/modifiers?category=BURGER'),
@@ -95,7 +95,7 @@ export default function BurgersPOSPage() {
         } catch (error) {
             console.error('Error cargando datos:', error);
         } finally {
-            setIsLoading(false);
+            if (!silent) setIsLoading(false);
         }
     };
 
@@ -237,6 +237,7 @@ export default function BurgersPOSPage() {
                 clearCart();
                 setShowPaymentModal(false);
                 setSaleResult({ type: 'success', message: `¡Venta ${data.data.saleNumber}${paymentData.customerName ? ` — ${paymentData.customerName}` : ''} registrada!`, saleNumber: data.data.saleNumber });
+                loadInitialData(true);
             } else {
                 setSaleResult({ type: 'error', message: data.error || 'Error al procesar la venta' });
             }

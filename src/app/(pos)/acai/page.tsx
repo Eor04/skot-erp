@@ -80,21 +80,27 @@ export default function AcaiPOSPage() {
     const [notification, setNotification]       = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [processing, setProcessing]           = useState(false);
 
+    const loadProducts = useCallback(async (silent = false) => {
+        if (!branchId) return;
+        if (!silent) setIsLoading(true);
+        try {
+            const r = await fetch(`/api/pos/products?branchId=${branchId}&type=ACAI`);
+            const d = await r.json();
+            if (d.success) {
+                setFlavors(d.data.filter((p: ApiProduct) => p.type === 'ACAI_BASE'));
+                setBeverages(d.data.filter((p: ApiProduct) => p.type === 'BEVERAGE'));
+            }
+        } catch (e) {
+            console.error(e);
+        } finally {
+            if (!silent) setIsLoading(false);
+        }
+    }, [branchId]);
+
     // Cargar productos
     useEffect(() => {
-        if (!branchId) return;
-        setIsLoading(true);
-        fetch(`/api/pos/products?branchId=${branchId}&type=ACAI`)
-            .then(r => r.json())
-            .then(d => {
-                if (d.success) {
-                    setFlavors(d.data.filter((p: ApiProduct) => p.type === 'ACAI_BASE'));
-                    setBeverages(d.data.filter((p: ApiProduct) => p.type === 'BEVERAGE'));
-                }
-            })
-            .catch(console.error)
-            .finally(() => setIsLoading(false));
-    }, [branchId]);
+        loadProducts();
+    }, [loadProducts]);
 
     // Auto-dismiss notificaciones
     useEffect(() => {
@@ -187,6 +193,7 @@ export default function AcaiPOSPage() {
                 setCashGiven('');
                 setCardGiven('');
                 setTransferGiven('');
+                loadProducts(true);
                 notify('success', `✅ Venta ${data.data.saleNumber} — Bs. ${data.data.totalAmount.toFixed(2)}`);
             } else {
                 notify('error', data.error || 'Error al registrar la venta');
