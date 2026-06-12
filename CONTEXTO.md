@@ -1,7 +1,7 @@
 # CONTEXTO.md — Skot ERP
 
 > Documento de referencia completo del proyecto. Actualizar en cada sesión importante.
-> **Última actualización: 2026-03-17**
+> **Última actualización: 2026-06-12**
 
 ---
 
@@ -553,5 +553,22 @@ Filtros por tipo, sucursal, fechas. El estado `movements` se extrae de `data.dat
 - API: `GET/POST /api/admin/scale-config` con upsert por `branchId`
 - Schema Prisma: modelo `ScaleConfig` con `@@map("scale_configs")` y relación 1-1 con `Branch`
 - **Pendiente**: ejecutar `npx prisma db push` para crear la tabla en la DB
+
+---
+
+## 15. Correcciones y Optimizaciones Recientes (2026-06-12)
+
+### 🍔 POS Burgers: Cálculos y UI
+- **Precisión en cálculos de combos:** Corregido un bug donde el redondeo de punto flotante generaba inconsistencias al distribuir el precio total de un combo entre sus ítems. Se implementó una corrección donde el último ítem absorbe cualquier residuo matemático.
+- **Scroll en Modales de Pago:** Se añadió soporte para scroll (`max-h-[95vh] overflow-y-auto`) en los modales de cobro para evitar que se desborden en pantallas pequeñas cuando hay pagos mixtos.
+- **Métodos de pago:** El método de pago "Transferencia" fue renombrado a **"QR"** en toda la interfaz de los POS (Açaí y Burgers) para mayor claridad del usuario.
+
+### 🔔 Notificaciones Inteligentes y Pedidos Internos
+- **Campana de Alertas Inteligente:** Se implementó `NotificationBell` para los encargados de Fábrica/Almacén. Esta campana detecta la sucursal asignada (`user.branchIds`) y **filtra automáticamente** las alertas de stock y pedidos internos para mostrar solo lo que compete a esa sucursal.
+- **Filtro Seguro de Alertas (`/admin/alerts`):** La pantalla de alertas ahora fuerza y bloquea la vista a la sucursal del usuario activo si no tiene rol `ADMIN`. Los administradores generales pueden seguir viendo todas.
+- **Permisos Estrictos de Recepción:** Se corrigió un problema de permisos en `/inventory/internal-orders` donde los Gerentes (`MANAGER`) heredaban permisos de Administrador para recibir pedidos que ellos mismos despachaban.
+  - La Fábrica/Almacén ahora **solo** puede despachar, pero no "recibir" su propio envío.
+  - La Sucursal solicitante es la **única** habilitada para confirmar la recepción.
+  - Esto garantiza que el Kardex se registre de forma verídica y atómica en ambas sucursales (salida de fábrica e ingreso a sucursal).
 
 ---
