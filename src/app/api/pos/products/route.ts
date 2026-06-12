@@ -32,6 +32,7 @@ export async function GET(request: NextRequest) {
             where: {
                 active: true,
                 deletedAt: null,
+                branchProducts: { some: { branchId, active: true } },
                 ...(typeFilter.length > 0 ? { type: { in: typeFilter as any } } : {}),
             },
             include: {
