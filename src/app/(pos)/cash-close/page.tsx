@@ -426,9 +426,9 @@ export default function CashClosePage() {
                                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">
                                             <span className="flex items-center gap-1"><DollarSign className="h-3.5 w-3.5" /> Efectivo inicial (Bs.)</span>
                                         </label>
-                                        <input type="number" min="0" step="0.01" value={form.openingAmount}
+                                        <input type="number" min="0" step="0.01" value={form.openingAmount === 0 ? '' : form.openingAmount}
                                             onChange={e => setForm(f => ({ ...f, openingAmount: e.target.value }))}
-                                            placeholder="0.00"
+                                            placeholder=""
                                             className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                                     </div>
                                     <button type="submit" disabled={submitting}
@@ -478,9 +478,9 @@ export default function CashClosePage() {
                                         </div>
                                         <div>
                                             <label className="block text-sm font-semibold text-gray-700 mb-1.5">Efectivo real (Bs.) *</label>
-                                            <input required type="number" min="0" step="0.01" value={form.actualCash}
+                                            <input required type="number" min="0" step="0.01" value={form.actualCash === 0 ? '' : form.actualCash}
                                                 onChange={e => setForm(f => ({ ...f, actualCash: e.target.value }))}
-                                                placeholder="0.00"
+                                                placeholder=""
                                                 className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
                                         </div>
                                     </div>
@@ -545,7 +545,7 @@ export default function CashClosePage() {
                                                                             <div key={t.id} className="flex flex-col gap-2 bg-gray-50/50 px-3 py-2.5 rounded-lg border border-gray-100 transition-colors hover:bg-purple-50/30 hover:border-purple-100">
                                                                                 <span className="text-xs font-semibold text-gray-700 leading-tight" title={t.name}>{t.name}</span>
                                                                                 <div className="flex items-center justify-end gap-1.5 w-full">
-                                                                                    <input type="number" min="0" step="0.01" placeholder="0"
+                                                                                    <input type="number" min="0" step="0.01" placeholder=""
                                                                                         value={orderRequests[t.id] || ''}
                                                                                         onChange={e => setOrderRequests(prev => ({ ...prev, [t.id]: parseFloat(e.target.value) || 0 }))}
                                                                                         className={`w-20 border rounded-md px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-purple-300 text-right transition-colors ${orderRequests[t.id] > 0 ? 'bg-green-50 border-green-200 text-green-800 font-semibold shadow-sm' : 'bg-white border-gray-200'}`} />

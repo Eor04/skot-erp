@@ -1,4 +1,4 @@
-Ôªø'use client';
+'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
@@ -29,13 +29,13 @@ function periodRange(period: string): { from: string; to: string; label: string 
         return { from: to, to, label: 'Hoy' };
     }
     if (period === '7d') {
-        return { from: toISO(new Date(Date.now() - 6 * 86400000)), to, label: '√öltimos 7 d√≠as' };
+        return { from: toISO(new Date(Date.now() - 6 * 86400000)), to, label: '⁄ltimos 7 dÌas' };
     }
     if (period === '14d') {
-        return { from: toISO(new Date(Date.now() - 13 * 86400000)), to, label: '√öltimos 14 d√≠as' };
+        return { from: toISO(new Date(Date.now() - 13 * 86400000)), to, label: '⁄ltimos 14 dÌas' };
     }
     if (period === '30d') {
-        return { from: toISO(new Date(Date.now() - 29 * 86400000)), to, label: '√öltimos 30 d√≠as' };
+        return { from: toISO(new Date(Date.now() - 29 * 86400000)), to, label: '⁄ltimos 30 dÌas' };
     }
     if (period === 'month') {
         const from = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -44,27 +44,27 @@ function periodRange(period: string): { from: string; to: string; label: string 
     if (period === 'year') {
         return { from: `${now.getFullYear()}-01-01`, to, label: String(now.getFullYear()) };
     }
-    return { from: toISO(new Date(Date.now() - 29 * 86400000)), to, label: '30 d√≠as' };
+    return { from: toISO(new Date(Date.now() - 29 * 86400000)), to, label: '30 dÌas' };
 }
 
-// Formato de etiqueta del eje (compacto para a√±o)
+// Formato de etiqueta del eje (compacto para aÒo)
 function dayLabel(dateStr: string, period: string) {
     const d = new Date(dateStr + 'T12:00:00');
     if (period === 'year') return d.toLocaleDateString('es-PE', { month: 'short' });
     return d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
 }
 
-// Agrupaci√≥n: por d√≠a normalmente, por mes cuando period='year'
+// AgrupaciÛn: por dÌa normalmente, por mes cuando period='year'
 function groupKey(dateStr: string, period: string) {
     return period === 'year' ? dateStr.slice(0, 7) : dateStr.split('T')[0];
 }
 
 const BRANCH_TYPE_LABELS: Record<string, string> = {
-    ACAI: 'ü•§ A√ßa√≠',
-    HAMBURGUESAS: 'üçî Hamburguesas',
-    FABRICA: 'üè≠ F√°brica',
-    FACTORY: 'üè≠ F√°brica',
-    WAREHOUSE: 'üì¶ Almac√©n',
+    ACAI: '?? AÁaÌ',
+    HAMBURGUESAS: '?? Hamburguesas',
+    FABRICA: '?? F·brica',
+    FACTORY: '?? F·brica',
+    WAREHOUSE: '?? AlmacÈn',
 };
 
 const PERIOD_OPTIONS = [
@@ -73,7 +73,7 @@ const PERIOD_OPTIONS = [
     { key: '14d', label: '14d' },
     { key: '30d', label: '30d' },
     { key: 'month', label: 'Mes' },
-    { key: 'year', label: 'A√±o' },
+    { key: 'year', label: 'AÒo' },
 ];
 
 export default function AnalyticsPage() {
@@ -121,7 +121,7 @@ export default function AnalyticsPage() {
                 todayRevenue,
             });
 
-            // Agrupaci√≥n (d√≠a o mes)
+            // AgrupaciÛn (dÌa o mes)
             const byKey: Record<string, { total: number; count: number; cashTotal: number; cardTotal: number }> = {};
             for (const s of sales) {
                 const key = groupKey(s.createdAt ?? '', period);
@@ -155,7 +155,7 @@ export default function AnalyticsPage() {
             }
             setTopProducts(Object.values(productMap).sort((a, b) => b.revenue - a.revenue).slice(0, 6));
 
-            // Distribuci√≥n m√©todo de pago
+            // DistribuciÛn mÈtodo de pago
             const payMap: Record<string, number> = {};
             for (const s of sales) payMap[s.paymentMethod] = (payMap[s.paymentMethod] || 0) + (s.totalAmount ?? 0);
             const labelMap: Record<string, string> = { CASH: 'Efectivo', CARD: 'Tarjeta', TRANSFER: 'Transferencia', MIXED: 'Mixto' };
@@ -169,9 +169,9 @@ export default function AnalyticsPage() {
 
     const { label: periodLabel } = periodRange(period);
     const selectedBranch = branches.find(b => b.id === branchId);
-    const reportTitle = `Analytics${selectedBranch ? ' ‚Äî ' + selectedBranch.name : ''} ‚Äî ${periodLabel}`;
+    const reportTitle = `Analytics${selectedBranch ? ' ó ' + selectedBranch.name : ''} ó ${periodLabel}`;
 
-    // Filtros r√°pidos por tipo de sucursal
+    // Filtros r·pidos por tipo de sucursal
     const branchTypeGroups: Record<string, Branch[]> = {};
     for (const b of branches) {
         const key = b.type;
@@ -183,7 +183,7 @@ export default function AnalyticsPage() {
         <div className="min-h-screen bg-gray-50 p-6">
             <div className="max-w-7xl mx-auto">
 
-                {/* ‚îÄ‚îÄ Header ‚îÄ‚îÄ */}
+                {/* -- Header -- */}
                 <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
                     <div>
                         <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-1">
@@ -194,7 +194,7 @@ export default function AnalyticsPage() {
                         </h1>
                         {(selectedBranch || period !== '30d') && (
                             <p className="text-sm text-gray-500 mt-0.5">
-                                {selectedBranch ? `üìç ${selectedBranch.name}` : 'üìç Todas las sucursales'} ¬∑ {periodLabel}
+                                {selectedBranch ? `?? ${selectedBranch.name}` : '?? Todas las sucursales'} ∑ {periodLabel}
                             </p>
                         )}
                     </div>
@@ -204,7 +204,7 @@ export default function AnalyticsPage() {
                         <button
                             onClick={() => downloadCSV(dailySales.map(d => ({
                                 'Fecha': d.date, 'Total (S/)': d.total.toFixed(2),
-                                'N¬∞ Ventas': d.count, 'Efectivo (S/)': d.cashTotal.toFixed(2), 'Tarjeta (S/)': d.cardTotal.toFixed(2),
+                                'N∞ Ventas': d.count, 'Efectivo (S/)': d.cashTotal.toFixed(2), 'Tarjeta (S/)': d.cardTotal.toFixed(2),
                             })), `analytics_${period}`)}
                             disabled={dailySales.length === 0}
                             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-green-300 text-green-700 bg-green-50 hover:bg-green-100 text-sm font-semibold disabled:opacity-40 transition">
@@ -221,7 +221,7 @@ export default function AnalyticsPage() {
                                         columns: [
                                             { header: 'Fecha', dataKey: 'date' },
                                             { header: 'Total (S/)', dataKey: 'total' },
-                                            { header: 'N¬∞ Ventas', dataKey: 'count' },
+                                            { header: 'N∞ Ventas', dataKey: 'count' },
                                             { header: 'Efectivo (S/)', dataKey: 'cashTotal' },
                                             { header: 'Tarjeta (S/)', dataKey: 'cardTotal' },
                                         ],
@@ -231,16 +231,16 @@ export default function AnalyticsPage() {
                             }}
                             disabled={dailySales.length === 0 || exporting}
                             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 text-sm font-semibold disabled:opacity-40 transition">
-                            {exporting ? <><Loader2 className="h-4 w-4 animate-spin" /> PDF‚Ä¶</> : <><FileText className="h-4 w-4" /> PDF</>}
+                            {exporting ? <><Loader2 className="h-4 w-4 animate-spin" /> PDFÖ</> : <><FileText className="h-4 w-4" /> PDF</>}
                         </button>
                     </div>
                 </div>
 
-                {/* ‚îÄ‚îÄ Barra de filtros ‚îÄ‚îÄ */}
+                {/* -- Barra de filtros -- */}
                 <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-4 items-center">
-                    {/* Filtro per√≠odo */}
+                    {/* Filtro perÌodo */}
                     <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold text-gray-500 mr-1">Per√≠odo:</span>
+                        <span className="text-xs font-semibold text-gray-500 mr-1">PerÌodo:</span>
                         {PERIOD_OPTIONS.map(p => (
                             <button key={p.key} onClick={() => setPeriod(p.key)}
                                 className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${period === p.key ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
@@ -251,7 +251,7 @@ export default function AnalyticsPage() {
 
                     <div className="w-px h-5 bg-gray-200" />
 
-                    {/* Filtro sucursal ‚Äî Todas */}
+                    {/* Filtro sucursal ó Todas */}
                     <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-xs font-semibold text-gray-500 mr-1">
                             <Store className="h-3.5 w-3.5 inline mr-0.5" /> Sucursal:
@@ -264,13 +264,13 @@ export default function AnalyticsPage() {
                         {/* Botones agrupados por tipo */}
                         {Object.entries(branchTypeGroups).map(([type, bs]) => (
                             bs.length === 1 ? (
-                                // Una sola sucursal de ese tipo ‚Üí bot√≥n directo
+                                // Una sola sucursal de ese tipo ? botÛn directo
                                 <button key={bs[0].id} onClick={() => setBranchId(bs[0].id)}
                                     className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${branchId === bs[0].id ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
                                     {BRANCH_TYPE_LABELS[type] || type}{' '}{bs[0].name}
                                 </button>
                             ) : (
-                                // M√∫ltiples ‚Üí select mini
+                                // M˙ltiples ? select mini
                                 <select key={type}
                                     value={bs.some(b => b.id === branchId) ? branchId : ''}
                                     onChange={e => setBranchId(e.target.value)}
@@ -283,7 +283,7 @@ export default function AnalyticsPage() {
                     </div>
                 </div>
 
-                {/* ‚îÄ‚îÄ Contenido ‚îÄ‚îÄ */}
+                {/* -- Contenido -- */}
                 {loading ? (
                     <div className="flex items-center justify-center py-24">
                         <Loader2 className="h-10 w-10 animate-spin text-purple-600" />
@@ -311,12 +311,12 @@ export default function AnalyticsPage() {
                             })}
                         </div>
 
-                        {/* Gr√°ficos principales */}
+                        {/* Gr·ficos principales */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                            {/* Ingresos por per√≠odo */}
+                            {/* Ingresos por perÌodo */}
                             <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
                                 <h2 className="text-sm font-bold text-gray-800 mb-4">
-                                    Ingresos (S/) ‚Äî {periodLabel}
+                                    Ingresos (S/) ó {periodLabel}
                                     {selectedBranch && <span className="ml-2 text-xs text-gray-400 font-normal">{selectedBranch.name}</span>}
                                 </h2>
                                 {dailySales.length > 0 ? (
@@ -330,13 +330,13 @@ export default function AnalyticsPage() {
                                         </BarChart>
                                     </ResponsiveContainer>
                                 ) : (
-                                    <div className="flex items-center justify-center h-56 text-gray-400">Sin datos para este per√≠odo</div>
+                                    <div className="flex items-center justify-center h-56 text-gray-400">Sin datos para este perÌodo</div>
                                 )}
                             </div>
 
-                            {/* M√©todos de pago */}
+                            {/* MÈtodos de pago */}
                             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                                <h2 className="text-sm font-bold text-gray-800 mb-4">M√©todos de Pago</h2>
+                                <h2 className="text-sm font-bold text-gray-800 mb-4">MÈtodos de Pago</h2>
                                 {paymentDist.length > 0 ? (
                                     <ResponsiveContainer width="100%" height={260}>
                                         <PieChart>
@@ -374,7 +374,7 @@ export default function AnalyticsPage() {
                         {/* Tendencia cantidad de ventas */}
                         {dailySales.length > 1 && (
                             <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                                <h2 className="text-sm font-bold text-gray-800 mb-4">Cantidad de Ventas ‚Äî {periodLabel}</h2>
+                                <h2 className="text-sm font-bold text-gray-800 mb-4">Cantidad de Ventas ó {periodLabel}</h2>
                                 <ResponsiveContainer width="100%" height={200}>
                                     <LineChart data={dailySales}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

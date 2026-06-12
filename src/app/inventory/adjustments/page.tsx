@@ -231,7 +231,7 @@ export default function StockAdjustmentsPage() {
                                     <label className="text-xs font-semibold text-gray-600 mb-1.5 block">
                                         {adjType === 'AJUSTE' ? 'Stock correcto (cantidad exacta)' : 'Cantidad'} *
                                     </label>
-                                    <input type="number" step="0.01" min="0" required value={quantity}
+                                    <input type="number" step="0.01" min="0" required value={quantity === 0 ? '' : quantity}
                                         onChange={e => setQuantity(e.target.value)}
                                         placeholder={adjType === 'AJUSTE' ? 'Ej: 25 (stock real contado)' : 'Ej: 10'}
                                         className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />

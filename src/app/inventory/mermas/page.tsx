@@ -237,7 +237,7 @@ export default function MermasPage() {
                                     <label className="text-xs font-semibold text-gray-600 block mb-1.5">
                                         Cantidad a dar de baja *{selectedItem && <span className="font-normal text-gray-400 ml-1">({selectedItem.product.unit})</span>}
                                     </label>
-                                    <input type="number" min="0.01" step="0.01" value={quantity}
+                                    <input type="number" min="0.01" step="0.01" value={quantity === 0 ? '' : quantity}
                                         onChange={e => setQuantity(e.target.value)}
                                         className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
                                 </div>

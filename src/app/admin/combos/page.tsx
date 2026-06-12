@@ -281,7 +281,7 @@ export default function CombosPage() {
                                     </div>
                                     <div>
                                         <label className="block text-sm font-semibold text-gray-700 mb-1.5">Precio (Bs.) *</label>
-                                        <input required type="number" min="0" step="0.5" value={form.price}
+                                        <input required type="number" min="0" step="0.5" value={form.price === 0 ? '' : form.price}
                                             onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
                                             className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
                                     </div>

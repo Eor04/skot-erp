@@ -407,15 +407,15 @@ export default function PurchaseOrdersPage() {
                                             <div className="grid grid-cols-3 gap-2">
                                                 <div>
                                                     <label className="text-xs text-gray-500">Cantidad *</label>
-                                                    <input type="number" min="0.01" step="0.01" value={item.quantity}
+                                                    <input type="number" min="0.01" step="0.01" value={item.quantity === 0 ? '' : item.quantity}
                                                         onChange={e => updateItem(i, 'quantity', e.target.value)}
                                                         className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300" />
                                                 </div>
                                                 <div>
                                                     <label className="text-xs text-gray-500">Costo unit. (Bs.)</label>
-                                                    <input type="number" min="0" step="0.01" value={item.unitCost}
+                                                    <input type="number" min="0" step="0.01" value={item.unitCost === 0 ? '' : item.unitCost}
                                                         onChange={e => updateItem(i, 'unitCost', e.target.value)}
-                                                        placeholder="0.00"
+                                                        placeholder=""
                                                         className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300" />
                                                 </div>
                                                 <div className="flex items-end gap-2">

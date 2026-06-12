@@ -304,13 +304,13 @@ export default function ProductsPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Precio venta (Bs.)</label>
-                                    <input type="number" min="0" step="0.01" value={form.price}
+                                    <input type="number" min="0" step="0.01" value={form.price === 0 ? '' : form.price}
                                         onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
                                         className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Costo (Bs.)</label>
-                                    <input type="number" min="0" step="0.01" value={form.costPrice}
+                                    <input type="number" min="0" step="0.01" value={form.costPrice === 0 ? '' : form.costPrice}
                                         onChange={e => setForm(f => ({ ...f, costPrice: parseFloat(e.target.value) || 0 }))}
                                         className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
                                 </div>

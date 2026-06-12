@@ -100,7 +100,7 @@ export default function CashGate({ branchId, userId, theme = 'burger', children 
                                     type="number"
                                     step="0.01"
                                     min="0"
-                                    placeholder="0.00"
+                                    placeholder=""
                                     value={amount}
                                     onChange={e => setAmount(e.target.value)}
                                     onKeyDown={e => e.key === 'Enter' && handleOpen()}

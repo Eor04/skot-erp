@@ -101,7 +101,7 @@ function StockRow({
                         <button onClick={() => setNewStock(s => Math.max(0, s - 1))} className="p-1 rounded bg-gray-100 hover:bg-gray-200">
                             <Minus className="h-3 w-3" />
                         </button>
-                        <input type="number" min="0" step="0.01" value={newStock}
+                        <input type="number" min="0" step="0.01" value={newStock === 0 ? '' : newStock}
                             onChange={e => setNewStock(parseFloat(e.target.value) || 0)}
                             className="w-20 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
                         <button onClick={() => setNewStock(s => s + 1)} className="p-1 rounded bg-gray-100 hover:bg-gray-200">
@@ -117,7 +117,7 @@ function StockRow({
             {/* Mín */}
             <td className="px-5 py-3 text-right text-sm text-gray-500">
                 {editing ? (
-                    <input type="number" min="0" step="0.01" value={newMin}
+                    <input type="number" min="0" step="0.01" value={newMin === 0 ? '' : newMin}
                         onChange={e => setNewMin(parseFloat(e.target.value) || 0)}
                         className="w-16 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
                 ) : item.minStock}

@@ -276,7 +276,7 @@ export default function BranchProductsPage() {
                                                         type="number" min="0" step="0.5"
                                                         value={getRowValue(row, 'customPrice') ?? ''}
                                                         onChange={e => handleFieldChange(row.productId, 'customPrice', e.target.value === '' ? null : parseFloat(e.target.value))}
-                                                        placeholder="0.00"
+                                                        placeholder=""
                                                         className="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-green-300 text-right"
                                                     />
                                                 </td>
@@ -286,7 +286,7 @@ export default function BranchProductsPage() {
                                                             type="number" min="0" step="0.5"
                                                             value={getRowValue(row, 'pricePerKg') ?? ''}
                                                             onChange={e => handleFieldChange(row.productId, 'pricePerKg', e.target.value === '' ? null : parseFloat(e.target.value))}
-                                                            placeholder="0.00"
+                                                            placeholder=""
                                                             className="w-24 border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-green-300 text-right"
                                                         />
                                                     ) : (

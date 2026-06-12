@@ -763,7 +763,7 @@ export default function AcaiPOSPage() {
                             {(selectedPayment === 'CASH' || selectedPayment === 'MIXED') && (
                                 <div className="bg-white/5 rounded-xl p-4 space-y-2">
                                     <label className="block text-sm font-medium text-white/70">💵 Efectivo</label>
-                                    <input type="number" step="0.01" value={cashGiven}
+                                    <input type="number" step="0.01" value={cashGiven === 0 ? '' : cashGiven}
                                         onChange={e => setCashGiven(e.target.value)}
                                         placeholder={cart.total.toFixed(2)}
                                         className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-white/20" />
@@ -773,9 +773,9 @@ export default function AcaiPOSPage() {
                             {(selectedPayment === 'CARD' || selectedPayment === 'MIXED') && (
                                 <div className="bg-white/5 rounded-xl p-4 space-y-2">
                                     <label className="block text-sm font-medium text-white/70">💳 Tarjeta</label>
-                                    <input type="number" step="0.01" value={cardGiven}
+                                    <input type="number" step="0.01" value={cardGiven === 0 ? '' : cardGiven}
                                         onChange={e => setCardGiven(e.target.value)}
-                                        placeholder="0.00"
+                                        placeholder=""
                                         className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-white/20" />
                                 </div>
                             )}
@@ -783,9 +783,9 @@ export default function AcaiPOSPage() {
                             {(selectedPayment === 'TRANSFER' || selectedPayment === 'MIXED') && (
                                 <div className="bg-white/5 rounded-xl p-4 space-y-2">
                                     <label className="block text-sm font-medium text-white/70">📲 QR</label>
-                                    <input type="number" step="0.01" value={transferGiven}
+                                    <input type="number" step="0.01" value={transferGiven === 0 ? '' : transferGiven}
                                         onChange={e => setTransferGiven(e.target.value)}
-                                        placeholder="0.00"
+                                        placeholder=""
                                         className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-white/20" />
                                 </div>
                             )}

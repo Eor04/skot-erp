@@ -1,4 +1,4 @@
-ï»¿'use client';
+'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -98,10 +98,10 @@ export default function SalesPage() {
 
     const handleExportCSV = () => {
         const rows = filtered.map(s => ({
-            'NÂ° Venta': s.saleNumber,
+            'N° Venta': s.saleNumber,
             'Sucursal': s.branch.name,
             'Vendedor': s.user.name,
-            'MÃ©todo': fmt.paymentMethod(s.paymentMethod),
+            'Método': fmt.paymentMethod(s.paymentMethod),
             'Total (S/)': Number(s.totalAmount).toFixed(2),
             'Fecha': fmt.date(s.createdAt),
         }));
@@ -113,14 +113,14 @@ export default function SalesPage() {
         try {
             await downloadPDF({
                 title: 'Historial de Ventas',
-                subtitle: `PerÃ­odo: ${fmt.dateShort(filters.from + 'T12:00:00')} â€” ${fmt.dateShort(filters.to + 'T12:00:00')}`,
+                subtitle: `Período: ${fmt.dateShort(filters.from + 'T12:00:00')} — ${fmt.dateShort(filters.to + 'T12:00:00')}`,
                 filename: `ventas_${filters.from}_${filters.to}`,
                 orientation: 'landscape',
                 columns: [
-                    { header: 'NÂ° Venta', dataKey: 'saleNumber' },
+                    { header: 'N° Venta', dataKey: 'saleNumber' },
                     { header: 'Sucursal', dataKey: 'branch' },
                     { header: 'Vendedor', dataKey: 'user' },
-                    { header: 'MÃ©todo', dataKey: 'method' },
+                    { header: 'Método', dataKey: 'method' },
                     { header: 'Total (S/)', dataKey: 'total' },
                     { header: 'Fecha', dataKey: 'date' },
                 ],
@@ -151,7 +151,7 @@ export default function SalesPage() {
                             <TrendingUp className="h-8 w-8 text-indigo-600" /> Historial de Ventas
                         </h1>
                     </div>
-                    {/* Botones de exportaciÃ³n */}
+                    {/* Botones de exportación */}
                     <div className="flex gap-2">
                         <button
                             onClick={handleExportCSV}
@@ -166,7 +166,7 @@ export default function SalesPage() {
                             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 text-sm font-semibold disabled:opacity-40 transition"
                         >
                             {exporting
-                                ? <><Loader2 className="h-4 w-4 animate-spin" /> Generandoâ€¦</>
+                                ? <><Loader2 className="h-4 w-4 animate-spin" /> Generando…</>
                                 : <><FileText className="h-4 w-4" /> PDF</>
                             }
                         </button>
@@ -202,7 +202,7 @@ export default function SalesPage() {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 mb-1">MÃ©todo de pago</label>
+                            <label className="block text-xs font-semibold text-gray-500 mb-1">Método de pago</label>
                             <select
                                 value={filters.paymentMethod}
                                 onChange={e => setFilters(f => ({ ...f, paymentMethod: e.target.value }))}
@@ -248,7 +248,7 @@ export default function SalesPage() {
                 <div className="relative mb-4">
                     <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
                     <input
-                        type="text" placeholder="Buscar por nÃºmero de venta, sucursal o vendedorâ€¦"
+                        type="text" placeholder="Buscar por número de venta, sucursal o vendedor…"
                         value={search} onChange={e => setSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                     />
@@ -264,10 +264,10 @@ export default function SalesPage() {
                         <table className="w-full text-sm">
                             <thead className="bg-gray-50 border-b border-gray-200">
                                 <tr>
-                                    <th className="text-left px-6 py-4 font-semibold text-gray-600">NÂ° Venta</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-gray-600">N° Venta</th>
                                     <th className="text-left px-6 py-4 font-semibold text-gray-600">Sucursal</th>
                                     <th className="text-left px-6 py-4 font-semibold text-gray-600">Vendedor</th>
-                                    <th className="text-left px-6 py-4 font-semibold text-gray-600">MÃ©todo</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-gray-600">Método</th>
                                     <th className="text-right px-6 py-4 font-semibold text-gray-600">Total</th>
                                     <th className="text-left px-6 py-4 font-semibold text-gray-600">Fecha</th>
                                 </tr>
@@ -299,7 +299,7 @@ export default function SalesPage() {
                                                     <div className="space-y-1">
                                                         {sale.items.map((item, i) => (
                                                             <div key={i} className="flex justify-between text-xs text-gray-700">
-                                                                <span>{item.product.name} Ã— {item.quantity}</span>
+                                                                <span>{item.product.name} × {item.quantity}</span>
                                                                 <span className="font-medium">Bs. {item.subtotal.toFixed(2)}</span>
                                                             </div>
                                                         ))}

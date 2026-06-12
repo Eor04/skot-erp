@@ -443,7 +443,7 @@ export default function InternalOrdersPage() {
                                             <option value="">Producto...</option>
                                             {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
                                         </select>
-                                        <input type="number" min="0.01" step="0.01" value={item.requestedQty}
+                                        <input type="number" min="0.01" step="0.01" value={item.requestedQty === 0 ? '' : item.requestedQty}
                                             onChange={e => updateItem(idx, 'requestedQty', parseFloat(e.target.value))}
                                             className="w-20 border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300" />
                                         <select value={item.unit} onChange={e => updateItem(idx, 'unit', e.target.value)}

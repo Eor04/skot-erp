@@ -256,7 +256,7 @@ export default function MermaPage() {
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cantidad *</label>
-                                    <input required type="number" min="0.01" step="0.01" value={form.quantity}
+                                    <input required type="number" min="0.01" step="0.01" value={form.quantity === 0 ? '' : form.quantity}
                                         onChange={e => setForm(f => ({ ...f, quantity: parseFloat(e.target.value) || 0 }))}
                                         className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
                                 </div>

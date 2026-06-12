@@ -272,7 +272,7 @@ export default function ModifiersPage() {
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-gray-700 mb-1.5">Precio extra (Bs.)</label>
-                                    <input required type="number" min="0" step="0.5" value={form.price}
+                                    <input required type="number" min="0" step="0.5" value={form.price === 0 ? '' : form.price}
                                         onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
                                         className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300" />
                                     <p className="text-xs text-gray-400 mt-1">0 = gratis</p>

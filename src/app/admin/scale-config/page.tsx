@@ -205,7 +205,7 @@ export default function ScaleConfigPage() {
                                         Tara (kg) — Peso del recipiente (ej: bowl)
                                     </label>
                                     <div className="flex gap-3 items-center">
-                                        <input type="number" min="0" step="0.01" value={form.tara}
+                                        <input type="number" min="0" step="0.01" value={form.tara === 0 ? '' : form.tara}
                                             onChange={e => setForm(f => ({ ...f, tara: parseFloat(e.target.value) || 0 }))}
                                             className="w-32 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 text-right" />
                                         <span className="text-sm text-gray-400">kg = {(form.tara * 1000).toFixed(0)} gr</span>

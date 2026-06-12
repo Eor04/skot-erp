@@ -188,7 +188,7 @@ export default function ProductionPage() {
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cantidad a producir *</label>
-                                <input type="number" min="1" step="0.01" required value={form.plannedYield}
+                                <input type="number" min="1" step="0.01" required value={form.plannedYield === 0 ? '' : form.plannedYield}
                                     onChange={e => setForm(f => ({ ...f, plannedYield: parseFloat(e.target.value) }))}
                                     className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                             </div>
