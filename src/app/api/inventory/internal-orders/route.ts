@@ -27,7 +27,25 @@ export async function GET(request: NextRequest) {
             orderBy: { createdAt: 'desc' },
         });
 
-        return NextResponse.json({ success: true, data: orders });
+        const toBranchIds = [...new Set(orders.map((o: any) => o.toBranchId))];
+        const productIds = [...new Set(orders.flatMap((o: any) => o.items.map((i: any) => i.product.id)))];
+
+        const inventories = await prisma.inventory.findMany({
+            where: { branchId: { in: toBranchIds }, productId: { in: productIds } },
+        });
+
+        const data = orders.map((order: any) => ({
+            ...order,
+            items: order.items.map((item: any) => {
+                const inv = inventories.find(i => i.branchId === order.toBranchId && i.productId === item.product.id);
+                return {
+                    ...item,
+                    currentFactoryStock: inv?.currentStock || 0,
+                };
+            }),
+        }));
+
+        return NextResponse.json({ success: true, data });
     } catch (error) {
         console.error('Error listando pedidos internos:', error);
         return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 });

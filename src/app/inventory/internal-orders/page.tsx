@@ -23,6 +23,7 @@ type InternalOrder = {
         dispatchedQty: number | null;
         receivedQty: number | null;
         unit: string;
+        currentFactoryStock: number;
         product: { id: string; name: string; sku: string; unit: string };
     }>;
 };
@@ -121,7 +122,7 @@ export default function InternalOrdersPage() {
                         dispatchedBy: user?.userId ?? 'admin',
                         items: order.items.map(i => ({
                             itemId: i.id,
-                            dispatchedQty: i.approvedQty ?? i.requestedQty,
+                            dispatchedQty: editedQuantities[`${orderId}_${i.id}`] ?? i.approvedQty ?? i.requestedQty,
                         })),
                     }),
                 });
@@ -343,9 +344,10 @@ export default function InternalOrdersPage() {
                                                                 <th className="pb-2">SKU</th>
                                                                 <th className="pb-2">Solicitado</th>
                                                                 <th className="pb-2">Aprobado</th>
-                                                        <th className="pb-2">Despachado</th>
-                                                        <th className="pb-2">Recibido</th>
-                                                    </tr>
+                                                                <th className="pb-2">Despachado</th>
+                                                                <th className="pb-2">Recibido</th>
+                                                                <th className="pb-2 text-right">Stock Fábrica</th>
+                                                            </tr>
                                                 </thead>
                                                 <tbody>
                                                     {order.items.map(item => (
@@ -360,7 +362,7 @@ export default function InternalOrdersPage() {
                                                                             min="0" 
                                                                             step="0.01"
                                                                             className="w-20 border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
-                                                                            value={editedQuantities[`${order.id}_${item.id}`] ?? item.requestedQty}
+                                                                            value={(editedQuantities[`${order.id}_${item.id}`] ?? item.requestedQty) === 0 ? '' : (editedQuantities[`${order.id}_${item.id}`] ?? item.requestedQty)}
                                                                             onChange={e => setEditedQuantities(prev => ({ ...prev, [`${order.id}_${item.id}`]: parseFloat(e.target.value) || 0 }))}
                                                                             onClick={e => e.stopPropagation()}
                                                                         />
@@ -368,9 +370,28 @@ export default function InternalOrdersPage() {
                                                                         item.approvedQty ?? '—'
                                                                     )}
                                                                 </td>
-                                                                <td className="py-2 text-gray-700">{item.dispatchedQty ?? '—'}</td>
-                                                            <td className="py-2 text-gray-700">{item.receivedQty ?? '—'}</td>
-                                                        </tr>
+                                                                <td className="py-2 text-gray-700">
+                                                                    {canApproveOrDispatch && order.status === 'APPROVED' ? (
+                                                                        <input 
+                                                                            type="number" 
+                                                                            min="0" 
+                                                                            step="0.01"
+                                                                            className="w-20 border border-purple-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                                                                            value={(editedQuantities[`${order.id}_${item.id}`] ?? item.approvedQty ?? item.requestedQty) === 0 ? '' : (editedQuantities[`${order.id}_${item.id}`] ?? item.approvedQty ?? item.requestedQty)}
+                                                                            onChange={e => setEditedQuantities(prev => ({ ...prev, [`${order.id}_${item.id}`]: parseFloat(e.target.value) || 0 }))}
+                                                                            onClick={e => e.stopPropagation()}
+                                                                        />
+                                                                    ) : (
+                                                                        item.dispatchedQty ?? '—'
+                                                                    )}
+                                                                </td>
+                                                                <td className="py-2 text-gray-700">{item.receivedQty ?? '—'}</td>
+                                                                <td className="py-2 text-right">
+                                                                    <span className={`text-xs font-semibold px-2 py-1 rounded-md ${item.currentFactoryStock < (item.approvedQty ?? item.requestedQty) ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
+                                                                        {item.currentFactoryStock} {item.unit}
+                                                                    </span>
+                                                                </td>
+                                                            </tr>
                                                     ))}
                                                 </tbody>
                                             </table>
