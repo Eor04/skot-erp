@@ -789,7 +789,7 @@ export default function AcaiPOSPage() {
                                     {([
                                         { method: 'CASH'     as const, label: 'Efectivo',       icon: Banknote       },
                                         { method: 'CARD'     as const, label: 'Tarjeta',         icon: CreditCard     },
-                                        { method: 'TRANSFER' as const, label: 'Transferencia',   icon: ArrowRightLeft  },
+                                        { method: 'TRANSFER' as const, label: 'QR',              icon: ArrowRightLeft  },
                                         { method: 'MIXED'    as const, label: 'Mixto',           icon: ShoppingCart   },
                                     ]).map(({ method, label, icon: Icon }) => (
                                         <button key={method} onClick={() => setSelectedPayment(method)}

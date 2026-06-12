@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
+import { useSession } from '@/lib/session-context';
 import {
     ArrowLeft, Bell, AlertTriangle, XCircle, Clock,
-    RefreshCw, Store, ChevronDown
+    RefreshCw, Store, ChevronDown, PackageOpen
 } from 'lucide-react';
 
 type AlertItem = {
@@ -30,6 +31,20 @@ type ExpiringItem = {
     branch: { id: string; name: string };
 };
 
+type PendingOrder = {
+    id: string;
+    orderNumber: string;
+    fromBranch: { name: string };
+    toBranch: { name: string };
+};
+
+type PendingTransfer = {
+    id: string;
+    transferNumber: string;
+    fromBranch: { name: string };
+    toBranch: { name: string };
+};
+
 type Branch = { id: string; name: string; type: string };
 
 const SEVERITY_CONFIG = {
@@ -39,12 +54,26 @@ const SEVERITY_CONFIG = {
 };
 
 export default function AlertsPage() {
+    const { user } = useSession();
     const [branches, setBranches] = useState<Branch[]>([]);
-    const [selectedBranch, setSelectedBranch] = useState('');
+    
+    // Si no es ADMIN y tiene sucursales, forzar esa sucursal
+    const initialBranch = user?.role !== 'ADMIN' && user?.branchIds?.length ? user.branchIds[0] : '';
+    const [selectedBranch, setSelectedBranch] = useState(initialBranch);
+    
+    // Sincronizar si el usuario carga después
+    useEffect(() => {
+        if (user?.role !== 'ADMIN' && user?.branchIds?.length) {
+            setSelectedBranch(user.branchIds[0]);
+        }
+    }, [user]);
+
     const [data, setData] = useState<{
         lowStock: AlertItem[];
         expiringSoon: ExpiringItem[];
-        summary: { totalLowStock: number; totalExpiring: number; critical: number };
+        pendingOrders: PendingOrder[];
+        pendingTransfers: PendingTransfer[];
+        summary: { totalLowStock: number; totalExpiring: number; critical: number; totalPendingOrders: number; totalPendingTransfers: number };
     } | null>(null);
     const [loading, setLoading] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
@@ -71,7 +100,7 @@ export default function AlertsPage() {
 
     useEffect(() => { loadAlerts(); }, [loadAlerts]);
 
-    const totalAlerts = (data?.summary.totalLowStock ?? 0) + (data?.summary.totalExpiring ?? 0);
+    const totalAlerts = (data?.summary.totalLowStock ?? 0) + (data?.summary.totalExpiring ?? 0) + (data?.summary.totalPendingOrders ?? 0) + (data?.summary.totalPendingTransfers ?? 0);
 
     function daysLabel(days: number | null | undefined) {
         if (days === null || days === undefined) return '—';
@@ -118,7 +147,8 @@ export default function AlertsPage() {
                     </div>
                 </div>
 
-                {/* Filtro de sucursal */}
+                {/* Filtro de sucursal (Solo ADMIN) */}
+                {user?.role === 'ADMIN' && (
                 <div className="bg-white rounded-2xl shadow p-4 mb-6 flex gap-2 flex-wrap items-center">
                     <Store className="h-4 w-4 text-gray-400" />
                     <button
@@ -137,6 +167,7 @@ export default function AlertsPage() {
                         </button>
                     ))}
                 </div>
+                )}
 
                 {loading ? (
                     <div className="text-center py-20 text-gray-400">
@@ -147,7 +178,7 @@ export default function AlertsPage() {
                     <>
                         {/* KPIs */}
                         {data && (
-                            <div className="grid grid-cols-3 gap-4 mb-6">
+                            <div className="grid grid-cols-4 gap-4 mb-6">
                                 <div className="bg-red-50 border border-red-200 rounded-2xl p-5">
                                     <p className="text-xs font-semibold text-red-500 uppercase tracking-wide">Sin Stock</p>
                                     <p className="text-3xl font-bold text-red-700 mt-1">{data.summary.critical}</p>
@@ -160,8 +191,56 @@ export default function AlertsPage() {
                                     <p className="text-xs font-semibold text-orange-500 uppercase tracking-wide">Por Vencer</p>
                                     <p className="text-3xl font-bold text-orange-700 mt-1">{data.summary.totalExpiring}</p>
                                 </div>
+                                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
+                                    <p className="text-xs font-semibold text-blue-500 uppercase tracking-wide">Pedidos Ptes</p>
+                                    <p className="text-3xl font-bold text-blue-700 mt-1">{data.summary.totalPendingOrders}</p>
+                                </div>
+                                <div className="bg-purple-50 border border-purple-200 rounded-2xl p-5">
+                                    <p className="text-xs font-semibold text-purple-500 uppercase tracking-wide">Transf. Ptes</p>
+                                    <p className="text-3xl font-bold text-purple-700 mt-1">{data.summary.totalPendingTransfers}</p>
+                                </div>
                             </div>
                         )}
+
+                        {/* Pedidos Pendientes */}
+                        <Section title="📦 Pedidos Internos Pendientes" count={data?.summary.totalPendingOrders ?? 0} defaultOpen={data?.summary.totalPendingOrders ? true : false}>
+                            {data?.pendingOrders?.length === 0 ? (
+                                <Empty text="No tienes pedidos internos pendientes" />
+                            ) : data?.pendingOrders?.map(order => (
+                                <div key={order.id} className="flex items-center justify-between p-4 border-l-4 border-l-blue-400 bg-white rounded-r-xl shadow-sm mb-2">
+                                    <div className="flex items-start gap-3">
+                                        <PackageOpen className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
+                                        <div>
+                                            <p className="font-semibold text-gray-900">Pedido #{order.orderNumber}</p>
+                                            <p className="text-xs text-gray-500">De: {order.fromBranch.name} → Para: {order.toBranch.name}</p>
+                                        </div>
+                                    </div>
+                                    <Link href="/inventory/internal-orders" className="text-sm px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition">
+                                        Revisar
+                                    </Link>
+                                </div>
+                            ))}
+                        </Section>
+
+                        {/* Transferencias Pendientes */}
+                        <Section title="🚚 Transferencias Pendientes" count={data?.summary.totalPendingTransfers ?? 0} defaultOpen={data?.summary.totalPendingTransfers ? true : false}>
+                            {data?.pendingTransfers?.length === 0 ? (
+                                <Empty text="No tienes transferencias pendientes por aprobar" />
+                            ) : data?.pendingTransfers?.map(transfer => (
+                                <div key={transfer.id} className="flex items-center justify-between p-4 border-l-4 border-l-purple-400 bg-white rounded-r-xl shadow-sm mb-2">
+                                    <div className="flex items-start gap-3">
+                                        <PackageOpen className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
+                                        <div>
+                                            <p className="font-semibold text-gray-900">Transferencia #{transfer.transferNumber}</p>
+                                            <p className="text-xs text-gray-500">Origen: {transfer.fromBranch.name} → Destino: {transfer.toBranch.name}</p>
+                                        </div>
+                                    </div>
+                                    <Link href="/inventory/transfers" className="text-sm px-4 py-2 bg-purple-50 text-purple-600 rounded-lg font-medium hover:bg-purple-100 transition">
+                                        Revisar
+                                    </Link>
+                                </div>
+                            ))}
+                        </Section>
 
                         {/* Stock bajo */}
                         <Section title="🚨 Stock Bajo / Sin Stock" count={data?.summary.totalLowStock ?? 0} defaultOpen>

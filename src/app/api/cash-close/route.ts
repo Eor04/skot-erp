@@ -103,7 +103,7 @@ export async function POST(request: NextRequest) {
         };
 
         const include = {
-            branch: { select: { name: true } },
+            branch: { select: { name: true, type: true } },
             user: { select: { name: true } },
         };
 
@@ -153,7 +153,7 @@ export async function GET(request: NextRequest) {
         const cashCloses = await prisma.cashRegisterClose.findMany({
             where: branchId ? { branchId } : {},
             include: {
-                branch: { select: { name: true } },
+                branch: { select: { name: true, type: true } },
                 user: { select: { name: true } },
             },
             orderBy: { createdAt: 'desc' },

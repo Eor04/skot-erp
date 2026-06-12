@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Factory, FileText, PlayCircle, Package2, Package, PackagePlus, Clock, CheckCircle2, RefreshCw, Plus, ChevronRight } from 'lucide-react';
+import { Factory, FileText, PlayCircle, Package2, Package, PackagePlus, Clock, CheckCircle2, RefreshCw, Plus, ChevronRight, Truck } from 'lucide-react';
+import { NotificationBell } from '@/components/notification-bell';
 
 type Order = {
     id: string; orderNumber: string; recipeName: string; branchName: string;
@@ -85,7 +86,8 @@ export default function FactoryDashboardPage() {
                             {lastUpdate && <span className="ml-2 text-gray-400">· Actualizado {lastUpdate.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}</span>}
                         </p>
                     </div>
-                    <div className="flex gap-2">
+                    <div className="flex gap-2 items-center">
+                        <NotificationBell enabled={true} />
                         <button onClick={loadData} disabled={loading}
                             className="flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 bg-white border border-gray-200 px-3 py-2 rounded-xl hover:bg-gray-50 transition disabled:opacity-40">
                             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
@@ -128,6 +130,7 @@ export default function FactoryDashboardPage() {
                         {[
                             { href: '/factory/receiving', icon: <PackagePlus className="h-6 w-6 text-green-600" />, title: 'Recepción de Mercancía', desc: 'Registrar ingreso de productos de proveedores', color: 'border-green-500' },
                             { href: '/factory/production', icon: <PlayCircle className="h-6 w-6 text-green-600" />, title: 'Órdenes de Producción', desc: 'Ver, crear y gestionar órdenes', color: 'border-green-500' },
+                            { href: '/inventory/internal-orders', icon: <Truck className="h-6 w-6 text-orange-600" />, title: 'Pedidos de Sucursales', desc: 'Despachar pedidos solicitados', color: 'border-orange-500' },
                             { href: '/factory/production/new', icon: <Plus className="h-6 w-6 text-blue-600" />, title: 'Nueva Orden', desc: 'Crear nueva orden de producción', color: 'border-blue-500' },
                             { href: '/factory/recipes', icon: <FileText className="h-6 w-6 text-purple-600" />, title: 'Gestión de Recetas', desc: 'Ver y editar recetas (BOM)', color: 'border-purple-500' },
                             { href: '/factory/materials', icon: <Package className="h-6 w-6 text-cyan-600" />, title: 'Inventario de Materia Prima', desc: 'Stock de ingredientes y materiales', color: 'border-cyan-500' },

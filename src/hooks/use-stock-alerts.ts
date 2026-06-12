@@ -12,12 +12,14 @@ export interface AlertSummary {
     critical: number;       // Sin stock (=0)
     low: number;            // Por debajo de stock mínimo
     expiringSoon: number;   // Por vencer en 30d
+    pendingOrders: number;  // Pedidos pendientes
+    pendingTransfers: number; // Transferencias pendientes
     total: number;
 }
 
 const POLL_INTERVAL_MS = 60_000; // 1 minuto
 
-export function useStockAlerts(enabled = true): {
+export function useStockAlerts(enabled = true, branchId?: string): {
     alerts: AlertSummary | null;
     loading: boolean;
     refresh: () => void;
@@ -29,7 +31,8 @@ export function useStockAlerts(enabled = true): {
         if (!enabled) return;
         setLoading(true);
         try {
-            const res = await fetch('/api/inventory/alerts');
+            const query = branchId ? `?branchId=${branchId}` : '';
+            const res = await fetch(`/api/inventory/alerts${query}`);
             const d = await res.json();
             if (d.success) {
                 const s = d.data?.summary ?? {};
@@ -37,12 +40,14 @@ export function useStockAlerts(enabled = true): {
                     critical: s.critical ?? 0,
                     low: s.totalLowStock ?? 0,
                     expiringSoon: s.totalExpiring ?? 0,
-                    total: (s.critical ?? 0) + (s.totalLowStock ?? 0),
+                    pendingOrders: s.totalPendingOrders ?? 0,
+                    pendingTransfers: s.totalPendingTransfers ?? 0,
+                    total: (s.critical ?? 0) + (s.totalLowStock ?? 0) + (s.totalPendingOrders ?? 0) + (s.totalPendingTransfers ?? 0),
                 });
             }
         } catch { /* silencioso */ }
         finally { setLoading(false); }
-    }, [enabled]);
+    }, [enabled, branchId]);
 
     // Carga inicial
     useEffect(() => { refresh(); }, [refresh]);

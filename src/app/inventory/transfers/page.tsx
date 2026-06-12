@@ -27,7 +27,7 @@ const STATUS_CFG: Record<string, { label: string; color: string; Icon: React.Ele
 };
 
 export default function TransfersPage() {
-    const { user } = useSession();
+    const { user, loading: sessionLoading } = useSession();
     const [transfers, setTransfers] = useState<Transfer[]>([]);
     const [loading, setLoading] = useState(true);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
@@ -36,16 +36,19 @@ export default function TransfersPage() {
 
     const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
 
-    useEffect(() => { fetchTransfers(); }, [statusFilter]);
+    useEffect(() => { 
+        if (!sessionLoading) {
+            fetchTransfers(); 
+        }
+    }, [statusFilter, sessionLoading]);
 
     async function fetchTransfers() {
         setLoading(true);
         try {
             const params = new URLSearchParams();
             if (statusFilter) params.set('status', statusFilter);
-            // Cajeros: solo ven transferencias de su sucursal
             if (!isAdmin && user?.branchIds?.[0]) {
-                params.set('fromBranchId', user.branchIds[0]);
+                params.set('branchId', user.branchIds[0]);
             }
             const res = await fetch(`/api/inventory/transfers?${params}`);
             const d = await res.json();

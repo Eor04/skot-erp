@@ -40,7 +40,10 @@ const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: R
 
 export default function InternalOrdersPage() {
     const { user } = useSession();
-    const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+    const isSystemAdmin = user?.role === 'ADMIN';
+    const isManager = user?.role === 'MANAGER';
+    // Para cosas de lectura general
+    const isAdmin = isSystemAdmin || isManager;
     const [orders, setOrders] = useState<InternalOrder[]>([]);
     const [branches, setBranches] = useState<Branch[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
@@ -50,6 +53,7 @@ export default function InternalOrdersPage() {
     const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
+    const [editedQuantities, setEditedQuantities] = useState<Record<string, number>>({});
 
     const [form, setForm] = useState({
         fromBranchId: '',
@@ -67,8 +71,8 @@ export default function InternalOrdersPage() {
 
         Promise.all([
             fetch(ordersUrl).then(r => r.json()),
-            fetch('/api/admin/branches').then(r => r.json()),
-            fetch('/api/admin/products').then(r => r.json()),
+            fetch('/api/branches').then(r => r.json()),
+            fetch('/api/products').then(r => r.json()),
         ]).then(([ordersData, branchesData, productsData]) => {
             if (ordersData.success) setOrders(ordersData.data);
             if (branchesData.success) setBranches(branchesData.data);
@@ -129,6 +133,10 @@ export default function InternalOrdersPage() {
                     body: JSON.stringify({
                         approvedBy: user?.userId ?? 'admin',
                         status: action === 'cancel' ? 'CANCELLED' : 'APPROVED',
+                        items: action === 'approve' ? orders.find(o => o.id === orderId)?.items.map(i => ({
+                            itemId: i.id,
+                            approvedQty: editedQuantities[`${orderId}_${i.id}`] ?? i.requestedQty,
+                        })) : undefined,
                     }),
                 });
             }
@@ -153,6 +161,24 @@ export default function InternalOrdersPage() {
         }
     }
 
+    async function changeOrderFactory(orderId: string, newFactoryId: string) {
+        try {
+            const res = await fetch(`/api/inventory/internal-orders/${orderId}`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ toBranchId: newFactoryId }),
+            });
+            const data = await res.json();
+            if (data.success) {
+                showToast('success', 'Fábrica reasignada correctamente');
+                setOrders(orders.map(o => o.id === orderId ? { ...o, toBranch: data.data.toBranch } : o));
+            } else {
+                showToast('error', data.error || 'Error al reasignar');
+            }
+        } catch {
+            showToast('error', 'Error de conexión');
+        }
+    }
 
     function addItem() {
         setForm(f => ({ ...f, items: [...f.items, { productId: '', requestedQty: 1, unit: 'unit' }] }));
@@ -235,6 +261,8 @@ export default function InternalOrdersPage() {
                         {orders.map(order => {
                             const config = STATUS_CONFIG[order.status];
                             const isExpanded = expanded === order.id;
+                            const canApproveOrDispatch = isSystemAdmin || user?.branchIds?.includes(order.toBranch.id);
+                            const canReceive = isSystemAdmin || user?.branchIds?.includes(order.fromBranch.id);
                             return (
                                 <div key={order.id} className="bg-white rounded-2xl shadow-sm border border-gray-100">
                                     <div
@@ -259,7 +287,7 @@ export default function InternalOrdersPage() {
                                             </span>
                                             <span className="text-xs text-gray-400">{order.items.length} ítem{order.items.length !== 1 ? 's' : ''}</span>
                                             {/* Botones de acción según estado */}
-                                            {isAdmin && order.status === 'PENDING' && (
+                                            {canApproveOrDispatch && order.status === 'PENDING' && (
                                                 <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
                                                     <button onClick={() => handleOrderAction(order.id, 'approve')} disabled={!!actionLoading}
                                                         className="flex items-center gap-1 px-2.5 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50">
@@ -273,14 +301,14 @@ export default function InternalOrdersPage() {
                                                     </button>
                                                 </div>
                                             )}
-                                            {order.status === 'APPROVED' && (
+                                            {order.status === 'APPROVED' && canApproveOrDispatch && (
                                                 <button onClick={e => { e.stopPropagation(); handleOrderAction(order.id, 'dispatch'); }} disabled={!!actionLoading}
                                                     className="flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50">
                                                     <Truck className="h-3 w-3" />
                                                     {actionLoading === order.id + 'dispatch' ? '...' : 'Despachar'}
                                                 </button>
                                             )}
-                                            {order.status === 'DISPATCHED' && (
+                                            {order.status === 'DISPATCHED' && canReceive && (
                                                 <button onClick={e => { e.stopPropagation(); handleOrderAction(order.id, 'receive'); }} disabled={!!actionLoading}
                                                     className="flex items-center gap-1 px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50">
                                                     <PackageCheck className="h-3 w-3" />
@@ -290,15 +318,31 @@ export default function InternalOrdersPage() {
                                             {isExpanded ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
                                         </div>
                                     </div>
-                                    {isExpanded && (
-                                        <div className="border-t border-gray-100 p-5">
-                                            <table className="w-full text-sm">
-                                                <thead>
-                                                    <tr className="text-left text-xs text-gray-500 font-semibold">
-                                                        <th className="pb-2">Producto</th>
-                                                        <th className="pb-2">SKU</th>
-                                                        <th className="pb-2">Solicitado</th>
-                                                        <th className="pb-2">Aprobado</th>
+                                            {isExpanded && (
+                                                <div className="border-t border-gray-100 p-5">
+                                                    {canApproveOrDispatch && order.status === 'PENDING' && (
+                                                        <div className="mb-4 flex items-center gap-2 bg-blue-50 p-3 rounded-xl border border-blue-100">
+                                                            <Truck className="h-4 w-4 text-blue-600" />
+                                                            <span className="text-sm font-semibold text-blue-900">Reasignar Fábrica:</span>
+                                                            <select 
+                                                                value={order.toBranch.id}
+                                                                onChange={e => changeOrderFactory(order.id, e.target.value)}
+                                                                onClick={e => e.stopPropagation()}
+                                                                className="text-xs border border-blue-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white"
+                                                            >
+                                                                {branches.filter(b => b.type === 'FABRICA').map(b => (
+                                                                    <option key={b.id} value={b.id}>{b.name}</option>
+                                                                ))}
+                                                            </select>
+                                                        </div>
+                                                    )}
+                                                    <table className="w-full text-sm">
+                                                        <thead>
+                                                            <tr className="text-left text-xs text-gray-500 font-semibold">
+                                                                <th className="pb-2">Producto</th>
+                                                                <th className="pb-2">SKU</th>
+                                                                <th className="pb-2">Solicitado</th>
+                                                                <th className="pb-2">Aprobado</th>
                                                         <th className="pb-2">Despachado</th>
                                                         <th className="pb-2">Recibido</th>
                                                     </tr>
@@ -308,9 +352,23 @@ export default function InternalOrdersPage() {
                                                         <tr key={item.id} className="border-t border-gray-50">
                                                             <td className="py-2 font-medium text-gray-900">{item.product.name}</td>
                                                             <td className="py-2 font-mono text-xs text-gray-500">{item.product.sku}</td>
-                                                            <td className="py-2 text-gray-700">{item.requestedQty} {item.unit}</td>
-                                                            <td className="py-2 text-gray-700">{item.approvedQty ?? '—'}</td>
-                                                            <td className="py-2 text-gray-700">{item.dispatchedQty ?? '—'}</td>
+                                                                <td className="py-2 text-gray-700">{item.requestedQty} {item.unit}</td>
+                                                                <td className="py-2 text-gray-700">
+                                                                    {canApproveOrDispatch && order.status === 'PENDING' ? (
+                                                                        <input 
+                                                                            type="number" 
+                                                                            min="0" 
+                                                                            step="0.01"
+                                                                            className="w-20 border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                                            value={editedQuantities[`${order.id}_${item.id}`] ?? item.requestedQty}
+                                                                            onChange={e => setEditedQuantities(prev => ({ ...prev, [`${order.id}_${item.id}`]: parseFloat(e.target.value) || 0 }))}
+                                                                            onClick={e => e.stopPropagation()}
+                                                                        />
+                                                                    ) : (
+                                                                        item.approvedQty ?? '—'
+                                                                    )}
+                                                                </td>
+                                                                <td className="py-2 text-gray-700">{item.dispatchedQty ?? '—'}</td>
                                                             <td className="py-2 text-gray-700">{item.receivedQty ?? '—'}</td>
                                                         </tr>
                                                     ))}

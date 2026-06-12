@@ -32,7 +32,7 @@ export default function TransferRequestPage() {
     }, [user]);
 
     const loadBranches = async () => {
-        const res = await fetch('/api/admin/branches');
+        const res = await fetch('/api/branches');
         const d = await res.json();
         if (d.success) {
             setBranches(d.data);
@@ -50,9 +50,9 @@ export default function TransferRequestPage() {
         if (d.success) {
             setProducts(d.data.map((s: any) => ({
                 id: s.productId,
-                name: s.productName,
-                sku: s.sku,
-                unit: s.unit,
+                name: s.product.name,
+                sku: s.product.sku,
+                unit: s.product.unit,
                 currentStock: s.currentStock,
             })));
         }
@@ -150,8 +150,8 @@ export default function TransferRequestPage() {
             <div className="max-w-3xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <Link href="/inventory/stock" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
-                        <ArrowLeft className="h-4 w-4" /> Stock
+                    <Link href="/inventory/transfers" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+                        <ArrowLeft className="h-4 w-4" /> Transferencias
                     </Link>
                     <h1 className="text-3xl font-bold text-gray-900">📦 Solicitar Transferencia</h1>
                     <p className="text-gray-500 mt-1">Solicitá productos de otra sucursal o de la fábrica</p>

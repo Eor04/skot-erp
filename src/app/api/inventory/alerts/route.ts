@@ -82,15 +82,43 @@ export async function GET(request: NextRequest) {
             },
         });
 
+        // 5. Pedidos internos pendientes
+        const pendingOrders = await prisma.internalOrder.findMany({
+            where: {
+                status: 'PENDING',
+                ...(branchId && { toBranchId: branchId }),
+            },
+            include: {
+                fromBranch: { select: { name: true } },
+                toBranch: { select: { name: true } },
+            },
+        });
+
+        // 6. Transferencias pendientes entre sucursales
+        const pendingTransfers = await prisma.stockTransfer.findMany({
+            where: {
+                status: 'PENDING',
+                ...(branchId && { fromBranchId: branchId }),
+            },
+            include: {
+                fromBranch: { select: { name: true } },
+                toBranch: { select: { name: true } },
+            },
+        });
+
         return NextResponse.json({
             success: true,
             data: {
                 lowStock: alertsWithPrediction,
                 expiringSoon: expiringItems,
+                pendingOrders: pendingOrders,
+                pendingTransfers: pendingTransfers,
                 summary: {
                     totalLowStock: lowStockItems.length,
                     totalExpiring: expiringItems.length,
                     critical: alertsWithPrediction.filter((a) => a.severity === 'CRITICO').length,
+                    totalPendingOrders: pendingOrders.length,
+                    totalPendingTransfers: pendingTransfers.length,
                 },
             },
         });

@@ -20,7 +20,7 @@ interface PaymentModalProps {
 const METHOD_CONFIG: { method: PaymentMethod; label: string; Icon: any }[] = [
     { method: PaymentMethod.CASH,     label: 'Efectivo',       Icon: Banknote      },
     { method: PaymentMethod.CARD,     label: 'Tarjeta',        Icon: CreditCard    },
-    { method: PaymentMethod.TRANSFER, label: 'Transferencia',  Icon: ArrowRightLeft },
+    { method: PaymentMethod.TRANSFER, label: 'QR',             Icon: ArrowRightLeft },
     { method: PaymentMethod.MIXED,    label: 'Mixto',          Icon: Shuffle       },
 ];
 
@@ -73,11 +73,11 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto overflow-hidden max-h-[95vh] flex flex-col">
 
                 {/* Header — rojo con letras blancas */}
-                <div className="bg-red-600 px-6 py-5 text-white flex items-start justify-between">
+                <div className="bg-red-600 px-6 py-5 text-white flex items-start justify-between shrink-0">
                     <div>
                         <h2 className="text-xl font-bold">Procesar Pago</h2>
                         <p className="text-white/80 mt-0.5 text-sm">
@@ -94,8 +94,9 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                     </button>
                 </div>
 
-                {/* Campo nombre del cliente / número de ticket */}
-                <div className="px-6 pt-4 pb-0">
+                <div className="flex-1 overflow-y-auto">
+                    {/* Campo nombre del cliente / número de ticket */}
+                    <div className="px-6 pt-4 pb-0">
                     <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Cliente / Ticket</p>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
@@ -154,7 +155,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                     )}
                     {(selectedMethod === PaymentMethod.TRANSFER || selectedMethod === PaymentMethod.MIXED) && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-1">📲 Transferencia</label>
+                            <label className="block text-sm font-medium text-gray-600 mb-1">📲 QR</label>
                             <input type="number" step="0.01" value={transferAmount}
                                 onChange={e => setTransferAmount(e.target.value)}
                                 className={inputClass} placeholder="0.00" />
@@ -163,7 +164,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                 </div>
 
                 {/* Resumen */}
-                <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 space-y-2 text-sm">
+                <div className="px-6 py-4 bg-gray-50 border-t border-gray-100 space-y-2 text-sm shrink-0">
                     <div className="flex justify-between text-gray-600">
                         <span>Total a pagar:</span>
                         <span className="font-bold text-gray-800">Bs. {total.toFixed(2)}</span>
@@ -181,9 +182,10 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                         </div>
                     )}
                 </div>
+                </div>
 
                 {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 flex gap-3">
+                <div className="px-6 py-4 border-t border-gray-200 flex gap-3 shrink-0">
                     <button onClick={handleClose}
                         className="flex-1 px-4 py-3 border-2 border-gray-200 rounded-xl font-semibold text-gray-700 hover:bg-gray-50 transition">
                         Cancelar

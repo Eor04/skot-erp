@@ -78,6 +78,10 @@ export default function CashClosePage() {
     const [mode, setMode] = useState<'open' | 'close'>('open');
     const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
+    const [toppings, setToppings] = useState<{ id: string, name: string, unit: string }[]>([]);
+    const [toppingRequests, setToppingRequests] = useState<Record<string, number>>({});
+    const [selectedFactoryId, setSelectedFactoryId] = useState<string>('');
+
     const [form, setForm] = useState({
         branchId: '', openingAmount: '', actualCash: '', notes: '',
     });
@@ -116,11 +120,23 @@ export default function CashClosePage() {
 
     async function loadData(branchId?: string) {
         const bid = branchId || form.branchId;
-        const [branchRes, histRes] = await Promise.all([
-            fetch('/api/admin/branches').then(r => r.json()),
+        const productsPromise = bid 
+            ? fetch(`/api/pos/products?branchId=${bid}&type=ACAI_TOPPING`).then(r => r.json())
+            : Promise.resolve({ success: true, data: [] });
+
+        const [branchRes, histRes, productsRes] = await Promise.all([
+            fetch('/api/branches').then(r => r.json()),
             fetch(`/api/cash-close?limit=15${bid ? '&branchId=' + bid : ''}`).then(r => r.json()),
+            productsPromise,
         ]);
-        if (branchRes.success) setBranches(branchRes.data);
+        if (branchRes.success) {
+            setBranches(branchRes.data);
+            const factories = branchRes.data.filter((b: any) => b.type === 'FABRICA');
+            if (factories.length > 0) setSelectedFactoryId(factories[0].id);
+        }
+        if (productsRes.success) {
+            setToppings(productsRes.data);
+        }
         if (histRes.success) {
             const sessions: CashSession[] = histRes.data;
             setHistory(sessions);
@@ -137,10 +153,12 @@ export default function CashClosePage() {
     }
 
     useEffect(() => {
+        let initialBid = form.branchId;
         if (!isAdmin && user?.branchIds?.[0]) {
-            setForm(f => ({ ...f, branchId: user!.branchIds![0] }));
+            initialBid = user.branchIds[0];
+            setForm(f => ({ ...f, branchId: initialBid }));
         }
-        loadData();
+        loadData(initialBid);
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [user]);
 
@@ -196,11 +214,33 @@ export default function CashClosePage() {
             });
             const d = await res.json();
             if (d.success) {
+                // --- Toppings request logic ---
+                const requests = Object.entries(toppingRequests).filter(([_, qty]) => qty > 0);
+                const currentBranchId = (activeSession as any)?.branchId || form.branchId;
+                if (requests.length > 0 && selectedFactoryId && currentBranchId) {
+                    const orderPayload = {
+                        fromBranchId: currentBranchId,
+                        toBranchId: selectedFactoryId,
+                        requestedBy: user?.name || 'Cajero',
+                        notes: 'Reposición solicitada automáticamente en el cierre de caja',
+                        items: requests.map(([productId, requestedQty]) => {
+                            const product = toppings.find(t => t.id === productId);
+                            return { productId, requestedQty, unit: product?.unit || 'unit' };
+                        }),
+                    };
+                    await fetch('/api/inventory/internal-orders', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify(orderPayload),
+                    });
+                }
+
                 showToast('success', '🔴 Caja cerrada correctamente');
                 setActiveSession(null);
                 setShiftSummary(null);
                 setMode('open');
                 setForm(f => ({ ...f, actualCash: '', notes: '' }));
+                setToppingRequests({});
                 loadData(form.branchId);
             } else { showToast('error', d.error || 'Error al cerrar caja'); }
         } catch { showToast('error', 'Error de conexión'); }
@@ -451,6 +491,41 @@ export default function CashClosePage() {
                                         }`}>
                                             <span>Diferencia estimada:</span>
                                             <span>{fmt(parseFloat(form.actualCash) - shiftSummary.cashTotal + (shiftSummary.totalExpenses ?? 0) - (activeSession?.openingAmount || 0))}</span>
+                                        </div>
+                                    )}
+                                    {/* Solicitud de Toppings (solo si es Açaí) */}
+                                    {((activeSession as any)?.branch?.type === 'ACAI' || branches.find(b => b.id === ((activeSession as any)?.branchId || form.branchId))?.type === 'ACAI') && toppings.length > 0 && (
+                                        <div className="border border-purple-200 bg-purple-50 rounded-xl p-4 my-4">
+                                            <div className="mb-3 flex items-center justify-between">
+                                                <div>
+                                                    <h3 className="text-sm font-bold text-purple-900 flex items-center gap-2">
+                                                        <Package className="h-4 w-4" /> Solicitar Reposición de Toppings
+                                                    </h3>
+                                                    <p className="text-xs text-purple-700 mt-0.5">Opcional. Las cantidades mayores a 0 generarán un pedido interno.</p>
+                                                </div>
+                                                <div>
+                                                    <select value={selectedFactoryId} onChange={e => setSelectedFactoryId(e.target.value)}
+                                                        className="text-xs border border-purple-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400 bg-white text-purple-900 font-semibold">
+                                                        {branches.filter(b => b.type === 'FABRICA').map(b => (
+                                                            <option key={b.id} value={b.id}>{b.name}</option>
+                                                        ))}
+                                                    </select>
+                                                </div>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-3">
+                                                {toppings.map(t => (
+                                                    <div key={t.id} className="flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-purple-100">
+                                                        <span className="text-xs font-semibold text-gray-700">{t.name}</span>
+                                                        <div className="flex items-center gap-1.5">
+                                                            <input type="number" min="0" step="0.01" placeholder="0"
+                                                                value={toppingRequests[t.id] || ''}
+                                                                onChange={e => setToppingRequests(prev => ({ ...prev, [t.id]: parseFloat(e.target.value) || 0 }))}
+                                                                className="w-16 border border-gray-200 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-300 text-right" />
+                                                            <span className="text-xs text-gray-400 w-8">{t.unit}</span>
+                                                        </div>
+                                                    </div>
+                                                ))}
+                                            </div>
                                         </div>
                                     )}
                                     <div>

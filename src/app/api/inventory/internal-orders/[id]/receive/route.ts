@@ -77,6 +77,20 @@ export async function POST(
                             minStock: 0,
                         },
                     });
+
+                    await tx.stockMovement.create({
+                        data: {
+                            branchId: order.fromBranchId,
+                            productId: orderItem.productId,
+                            type: 'TRANSFERENCIA',
+                            quantity: qty,
+                            previousStock: 0,
+                            newStock: qty,
+                            reference: order.orderNumber,
+                            notes: `Recepción pedido interno ← Fábrica (Inicial)`,
+                            createdBy: receivedBy,
+                        },
+                    });
                 }
 
                 // Si hay diferencia respecto a lo despachado → crear merma en fábrica

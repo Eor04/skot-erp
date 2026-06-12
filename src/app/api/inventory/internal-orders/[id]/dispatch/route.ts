@@ -72,6 +72,8 @@ export async function POST(
                             createdBy: dispatchedBy,
                         },
                     });
+                } else {
+                    throw new Error(`Stock insuficiente para el producto: ${orderItem.product.name}. Stock actual: ${inventory?.currentStock || 0}`);
                 }
 
                 // Actualizar ítem con qty despachada
@@ -92,8 +94,8 @@ export async function POST(
         });
 
         return NextResponse.json({ success: true, data: result, message: 'Pedido despachado correctamente' });
-    } catch (error) {
+    } catch (error: any) {
         console.error('Error despachando pedido:', error);
-        return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 });
+        return NextResponse.json({ success: false, error: error.message || 'Error interno' }, { status: 400 });
     }
 }

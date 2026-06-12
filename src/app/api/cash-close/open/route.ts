@@ -43,40 +43,39 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        // Verificar que no haya ya una caja abierta para esa sucursal
-        const existing = await prisma.cashRegisterClose.findFirst({
-            where: { branchId, sessionStatus: 'OPEN' },
-        });
-        if (existing) {
-            return NextResponse.json(
-                { success: false, error: 'Ya hay una caja abierta para esta sucursal' },
-                { status: 409 }
-            );
-        }
+        const session = await prisma.$transaction(async (tx) => {
+            // Verificar que no haya ya una caja abierta para esa sucursal (bloqueo transaccional)
+            const existing = await tx.cashRegisterClose.findFirst({
+                where: { branchId, sessionStatus: 'OPEN' },
+            });
+            if (existing) {
+                throw new Error('Ya hay una caja abierta para esta sucursal');
+            }
 
-        const session = await prisma.cashRegisterClose.create({
-            data: {
-                branchId,
-                userId,
-                openingAmount: parseFloat(openingAmount) || 0,
-                openedAt: new Date(),
-                openedBy: openedBy || null,
-                sessionStatus: 'OPEN',
-                // Campos requeridos que se completarán al cerrar
-                expectedCash: 0,
-                actualCash: 0,
-                difference: 0,
-                totalSales: 0,
-                cashSales: 0,
-                cardSales: 0,
-                transferSales: 0,
-            },
-            select: { id: true, openingAmount: true, openedAt: true, openedBy: true },
-        });
+            return tx.cashRegisterClose.create({
+                data: {
+                    branchId,
+                    userId,
+                    openingAmount: parseFloat(openingAmount) || 0,
+                    openedAt: new Date(),
+                    openedBy: openedBy || null,
+                    sessionStatus: 'OPEN',
+                    // Campos requeridos que se completarán al cerrar
+                    expectedCash: 0,
+                    actualCash: 0,
+                    difference: 0,
+                    totalSales: 0,
+                    cashSales: 0,
+                    cardSales: 0,
+                    transferSales: 0,
+                },
+                select: { id: true, openingAmount: true, openedAt: true, openedBy: true },
+            });
+        }, { isolationLevel: 'Serializable' });
 
         return NextResponse.json({ success: true, data: session }, { status: 201 });
-    } catch (error) {
+    } catch (error: any) {
         console.error('POST /api/cash-close/open:', error);
-        return NextResponse.json({ success: false, error: 'Error al abrir caja' }, { status: 500 });
+        return NextResponse.json({ success: false, error: error.message || 'Error al abrir caja' }, { status: 400 });
     }
 }

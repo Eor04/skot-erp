@@ -57,14 +57,16 @@ export async function POST(request: NextRequest) {
         const stockItems = items.filter((item: any) => item.unitPrice > 0 || item.subtotal > 0);
         const uniqueProductIds = [...new Set(stockItems.map((item: any) => item.productId as string))];
 
-        // Pre-cargar inventario una sola vez fuera del loop de reintentos
-        const inventoryRecords = uniqueProductIds.length > 0
-            ? await prisma.inventory.findMany({
-                where: { branchId, productId: { in: uniqueProductIds } },
-                select: { id: true, productId: true, currentStock: true },
-            })
-            : [];
-        const invMap = new Map(inventoryRecords.map(inv => [inv.productId, inv]));
+        // Validación para MIXED
+        if (paymentMethod === 'MIXED') {
+            const sumParts = (parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0) + (parseFloat(transferAmount) || 0);
+            if (Math.abs(sumParts - totalAmount) > 0.01) {
+                return NextResponse.json(
+                    { success: false, error: 'La suma de los montos mixtos no coincide con el total de la venta.' },
+                    { status: 400 }
+                );
+            }
+        }
 
         const today = new Date();
         const datePrefix = `${today.getFullYear()}${String(today.getMonth() + 1).padStart(2, '0')}${String(today.getDate()).padStart(2, '0')}`;
@@ -129,17 +131,40 @@ export async function POST(request: NextRequest) {
                         });
                     }
 
-                    // 3. Descontar stock en paralelo
+                    // 3. Descontar stock y generar Kardex
                     if (uniqueProductIds.length > 0) {
                         await Promise.all(
-                            uniqueProductIds.map(productId => {
+                            uniqueProductIds.map(async (productId) => {
                                 const qty = stockItems
                                     .filter((i: any) => i.productId === productId)
                                     .reduce((s: number, i: any) => s + i.quantity, 0);
-                                return tx.inventory.updateMany({
-                                    where: { branchId, productId },
-                                    data: { currentStock: { decrement: qty }, lastUpdated: new Date() },
+
+                                const inv = await tx.inventory.findUnique({
+                                    where: { branchId_productId: { branchId, productId } }
                                 });
+
+                                if (inv) {
+                                    const updated = await tx.inventory.update({
+                                        where: { branchId_productId: { branchId, productId } },
+                                        data: { currentStock: { decrement: qty }, lastUpdated: new Date() },
+                                    });
+
+                                    await tx.stockMovement.create({
+                                        data: {
+                                            branchId,
+                                            productId,
+                                            type: 'SALIDA',
+                                            quantity: -qty,
+                                            previousStock: inv.currentStock,
+                                            newStock: updated.currentStock,
+                                            reference: saleNumber,
+                                            saleId: newSale.id,
+                                            inventoryId: inv.id,
+                                            createdBy: userId,
+                                            notes: `Venta ${saleNumber}`,
+                                        }
+                                    });
+                                }
                             })
                         );
                     }
@@ -169,32 +194,7 @@ export async function POST(request: NextRequest) {
         // ── FIN LOOP DE REINTENTOS ──────────────────────────────────────────
 
 
-        // Kardex: se registra DESPUÉS de confirmar la venta exitosamente
-        // No bloquea la respuesta (pero sí se ejecuta antes de responder al cliente)
-        if (stockItems.length > 0) {
-            const movements = stockItems.flatMap((item: any) => {
-                const inv = invMap.get(item.productId);
-                if (!inv) return [];
-                return [{
-                    branchId,
-                    productId: item.productId,
-                    type: 'SALIDA' as const,
-                    quantity: -item.quantity,
-                    previousStock: inv.currentStock,
-                    newStock: inv.currentStock - item.quantity,
-                    reference: sale.saleNumber,
-                    saleId: sale.id,
-                    inventoryId: inv.id,
-                    createdBy: userId,
-                    notes: `Venta ${sale.saleNumber}`,
-                }];
-            });
-            if (movements.length > 0) {
-                // Fire-and-forget: no esperamos para responder al cliente más rápido
-                prisma.stockMovement.createMany({ data: movements, skipDuplicates: true })
-                    .catch(err => console.error('[kardex] Error registrando movimientos:', err));
-            }
-        }
+
 
         return NextResponse.json({
             success: true,

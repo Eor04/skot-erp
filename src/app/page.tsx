@@ -139,6 +139,8 @@ export default function HomePage() {
 
     const roleInfo = user ? ROLE_LABELS[user.role] : null;
     const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+    const isWarehouse = user?.role === 'WAREHOUSE';
+    const showBell = isAdmin || isWarehouse;
     const hasCritical = (alertStats?.critical ?? 0) > 0;
 
     return (
@@ -198,7 +200,7 @@ export default function HomePage() {
                                 </div>
                             )}
 
-                            {isAdmin && <NotificationBell enabled={true} />}
+                            {showBell && <NotificationBell enabled={true} />}
 
                             <button onClick={logout}
                                 className="flex items-center gap-1.5 text-sm transition-colors px-3 py-1.5 rounded-lg"
@@ -214,7 +216,7 @@ export default function HomePage() {
             )}
 
             {/* Banner alerta crítica */}
-            {isAdmin && hasCritical && (
+            {showBell && hasCritical && (
                 <div className="relative z-10 px-6 py-2.5"
                     style={{ background: 'rgba(220,38,38,0.85)', borderBottom: '1px solid rgba(220,38,38,0.5)' }}>
                     <div className="max-w-5xl mx-auto flex items-center justify-between">

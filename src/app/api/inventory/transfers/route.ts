@@ -7,12 +7,19 @@ export async function GET(request: NextRequest) {
         const { searchParams } = new URL(request.url);
         const fromBranchId = searchParams.get('fromBranchId');
         const toBranchId = searchParams.get('toBranchId');
+        const branchId = searchParams.get('branchId');
         const status = searchParams.get('status');
 
         const transfers = await prisma.stockTransfer.findMany({
             where: {
                 ...(fromBranchId && { fromBranchId }),
                 ...(toBranchId && { toBranchId }),
+                ...(branchId && {
+                    OR: [
+                        { fromBranchId: branchId },
+                        { toBranchId: branchId },
+                    ],
+                }),
                 ...(status && { status: status as any }),
             },
             include: {

@@ -42,7 +42,7 @@ interface TurnSale {
 }
 
 const METHOD_LABEL: Record<string, string> = {
-    CASH: '💵 Efectivo', CARD: '💳 Tarjeta', TRANSFER: '📲 Transferencia', MIXED: '🔀 Mixto'
+    CASH: '💵 Efectivo', CARD: '💳 Tarjeta', TRANSFER: '📲 QR', MIXED: '🔀 Mixto'
 };
 
 export default function BurgersPOSPage() {
@@ -159,16 +159,28 @@ export default function BurgersPOSPage() {
 
                 const comboRef = (item.product as any)._comboRef as Combo | undefined;
                 if (comboRef) {
-                    // Es un combo: distribuir el precio entre sus items proporcionalmente
+                    // Es un combo: distribuir el precio entre sus items proporcionalmente ajustando céntimos
                     const totalQtyInCombo = comboRef.items.reduce((s, ci) => s + ci.quantity, 0);
-                    comboRef.items.forEach(ci => {
+                    const comboExpectedSubtotal = comboRef.price * item.quantity;
+                    let comboTotalSubtotalAccumulated = 0;
+
+                    comboRef.items.forEach((ci, index) => {
                         const proportion = ci.quantity / totalQtyInCombo;
                         const itemUnitPrice = parseFloat((comboRef.price * proportion).toFixed(2));
+                        let subtotal = parseFloat((itemUnitPrice * ci.quantity * item.quantity).toFixed(2));
+
+                        // El último ítem absorbe la diferencia de redondeo para que sume exacto
+                        if (index === comboRef.items.length - 1) {
+                            subtotal = parseFloat((comboExpectedSubtotal - comboTotalSubtotalAccumulated).toFixed(2));
+                        } else {
+                            comboTotalSubtotalAccumulated += subtotal;
+                        }
+
                         expandedItems.push({
                             productId: ci.product.id,
                             quantity: ci.quantity * item.quantity,
                             unitPrice: itemUnitPrice,
-                            subtotal: parseFloat((itemUnitPrice * ci.quantity * item.quantity).toFixed(2)),
+                            subtotal: subtotal,
                             modifiers: [],
                         });
                     });

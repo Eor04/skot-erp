@@ -8,6 +8,7 @@
 import Link from 'next/link';
 import { Bell } from 'lucide-react';
 import { useStockAlerts } from '@/hooks/use-stock-alerts';
+import { useSession } from '@/lib/session-context';
 
 interface Props {
     /** Si es false, no hace polling (p.ej. para usuarios sin rol ADMIN/MANAGER) */
@@ -15,7 +16,10 @@ interface Props {
 }
 
 export function NotificationBell({ enabled = true }: Props) {
-    const { alerts } = useStockAlerts(enabled);
+    const { user } = useSession();
+    // Obtener la sucursal del usuario si no es ADMIN, para ver solo las notificaciones de su sucursal.
+    const branchId = user?.role !== 'ADMIN' && user?.branchIds?.length ? user.branchIds[0] : undefined;
+    const { alerts } = useStockAlerts(enabled, branchId);
 
     const total = alerts?.total ?? 0;
     const critical = alerts?.critical ?? 0;

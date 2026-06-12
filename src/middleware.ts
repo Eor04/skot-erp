@@ -31,6 +31,7 @@ const PUBLIC_PATHS = ['/login', '/api/auth/login', '/api/auth/logout'];
 // Si la ruta empieza con el prefix, solo los roles listados pueden acceder.
 // Si no está listada aquí, cualquier usuario autenticado puede acceder.
 const PAGE_RULES: { prefix: string; roles: Role[] }[] = [
+    { prefix: '/admin/alerts', roles: ['ADMIN', 'MANAGER', 'WAREHOUSE'] },
     { prefix: '/admin', roles: ['ADMIN', 'MANAGER'] },
     { prefix: '/factory', roles: ['ADMIN', 'MANAGER', 'WAREHOUSE'] },
 ];
@@ -38,7 +39,7 @@ const PAGE_RULES: { prefix: string; roles: Role[] }[] = [
 // ─── Reglas de acceso por rol para APIs ───
 const API_RULES: { prefix: string; roles: Role[] }[] = [
     { prefix: '/api/admin/users', roles: ['ADMIN'] },
-    { prefix: '/api/admin/branches', roles: ['ADMIN'] },
+    { prefix: '/api/admin/branches', roles: ['ADMIN', 'MANAGER', 'WAREHOUSE'] },
     { prefix: '/api/admin/products', roles: ['ADMIN', 'MANAGER'] },
     { prefix: '/api/admin/sales', roles: ['ADMIN', 'MANAGER'] },
     { prefix: '/api/admin', roles: ['ADMIN', 'MANAGER'] },
