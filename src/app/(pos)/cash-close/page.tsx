@@ -542,14 +542,14 @@ export default function CashClosePage() {
                                                                 {isExpanded && (
                                                                     <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-3 bg-white">
                                                                         {catProducts.map(t => (
-                                                                            <div key={t.id} className="flex items-center justify-between bg-gray-50/50 px-3 py-2.5 rounded-lg border border-gray-100 transition-colors hover:bg-purple-50/30 hover:border-purple-100">
-                                                                                <span className="text-xs font-semibold text-gray-700 truncate mr-2" title={t.name}>{t.name}</span>
-                                                                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                                            <div key={t.id} className="flex flex-col gap-2 bg-gray-50/50 px-3 py-2.5 rounded-lg border border-gray-100 transition-colors hover:bg-purple-50/30 hover:border-purple-100">
+                                                                                <span className="text-xs font-semibold text-gray-700 leading-tight" title={t.name}>{t.name}</span>
+                                                                                <div className="flex items-center justify-end gap-1.5 w-full">
                                                                                     <input type="number" min="0" step="0.01" placeholder="0"
                                                                                         value={orderRequests[t.id] || ''}
                                                                                         onChange={e => setOrderRequests(prev => ({ ...prev, [t.id]: parseFloat(e.target.value) || 0 }))}
-                                                                                        className={`w-16 border rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-300 text-right transition-colors ${orderRequests[t.id] > 0 ? 'bg-green-50 border-green-200 text-green-800 font-semibold' : 'bg-white border-gray-200'}`} />
-                                                                                    <span className="text-xs text-gray-400 w-10 truncate" title={t.unit}>{t.unit}</span>
+                                                                                        className={`w-20 border rounded-md px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-purple-300 text-right transition-colors ${orderRequests[t.id] > 0 ? 'bg-green-50 border-green-200 text-green-800 font-semibold shadow-sm' : 'bg-white border-gray-200'}`} />
+                                                                                    <span className="text-xs text-gray-500 w-12 truncate" title={t.unit}>{t.unit}</span>
                                                                                 </div>
                                                                             </div>
                                                                         ))}
