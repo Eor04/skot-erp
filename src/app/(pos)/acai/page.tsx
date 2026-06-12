@@ -160,15 +160,22 @@ export default function AcaiPOSPage() {
                 })),
             ];
 
+            // En Mixto y Cash, descontamos el vuelto de lo entregado en efectivo para que cuadre exacto con el total
+            const cashVal = parseFloat(cashGiven) || 0;
+            const cardVal = parseFloat(cardGiven) || 0;
+            const transferVal = parseFloat(transferGiven) || 0;
+            const changeVal = Math.max(0, cashVal + cardVal + transferVal - cart.total);
+            const actualCash = Math.max(0, cashVal - changeVal);
+
             const res = await fetch('/api/pos/sale', {
                 method:  'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
                     branchId, userId,
                     paymentMethod: selectedPayment,
-                    cashAmount: selectedPayment === 'CASH' || selectedPayment === 'MIXED' ? parseFloat(cashGiven) || (selectedPayment === 'CASH' ? cart.total : 0) : undefined,
-                    cardAmount: selectedPayment === 'CARD' || selectedPayment === 'MIXED' ? parseFloat(cardGiven) || (selectedPayment === 'CARD' ? cart.total : 0) : undefined,
-                    transferAmount: selectedPayment === 'TRANSFER' || selectedPayment === 'MIXED' ? parseFloat(transferGiven) || (selectedPayment === 'TRANSFER' ? cart.total : 0) : undefined,
+                    cashAmount: selectedPayment === 'CASH' || selectedPayment === 'MIXED' ? actualCash || (selectedPayment === 'CASH' ? cart.total : 0) : undefined,
+                    cardAmount: selectedPayment === 'CARD' || selectedPayment === 'MIXED' ? cardVal || (selectedPayment === 'CARD' ? cart.total : 0) : undefined,
+                    transferAmount: selectedPayment === 'TRANSFER' || selectedPayment === 'MIXED' ? transferVal || (selectedPayment === 'TRANSFER' ? cart.total : 0) : undefined,
                     items,
                 }),
             });
@@ -199,7 +206,7 @@ export default function AcaiPOSPage() {
         if (method === 'CASH')     { setCashGiven(cart.total.toFixed(2)); setCardGiven('0.00'); setTransferGiven('0.00'); }
         if (method === 'CARD')     { setCashGiven('0.00'); setCardGiven(cart.total.toFixed(2)); setTransferGiven('0.00'); }
         if (method === 'TRANSFER') { setCashGiven('0.00'); setCardGiven('0.00'); setTransferGiven(cart.total.toFixed(2)); }
-        if (method === 'MIXED')    { const h = (cart.total / 2).toFixed(2); setCashGiven(h); setCardGiven(h); setTransferGiven('0.00'); }
+        if (method === 'MIXED')    { const h = (cart.total / 2).toFixed(2); setCashGiven(h); setCardGiven('0.00'); setTransferGiven(h); }
     };
 
     const stepIndex = STEPS.findIndex(s => s.key === step);
@@ -790,7 +797,7 @@ export default function AcaiPOSPage() {
                                 </div>
                             )}
 
-                            {selectedPayment === 'CASH' && change > 0 && (
+                            {(selectedPayment === 'CASH' || selectedPayment === 'MIXED') && change > 0 && (
                                 <div className="flex justify-between items-center px-2 py-1">
                                     <span className="text-white/60 text-sm">Vuelto</span>
                                     <span className="text-green-400 font-black text-2xl">Bs. {change.toFixed(2)}</span>

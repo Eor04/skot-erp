@@ -39,7 +39,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
         if (method === PaymentMethod.CASH)     { setCashAmount(total.toFixed(2)); setCardAmount('0.00'); setTransferAmount('0.00'); }
         if (method === PaymentMethod.CARD)     { setCashAmount('0.00'); setCardAmount(total.toFixed(2)); setTransferAmount('0.00'); }
         if (method === PaymentMethod.TRANSFER) { setCashAmount('0.00'); setCardAmount('0.00'); setTransferAmount(total.toFixed(2)); }
-        if (method === PaymentMethod.MIXED)    { const h = (total / 2).toFixed(2); setCashAmount(h); setCardAmount(h); setTransferAmount('0.00'); }
+        if (method === PaymentMethod.MIXED)    { const h = (total / 2).toFixed(2); setCashAmount(h); setCardAmount('0.00'); setTransferAmount(h); }
     };
 
     const paid   = parseFloat(cashAmount || '0') + parseFloat(cardAmount || '0') + parseFloat(transferAmount || '0');
@@ -51,13 +51,17 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
         const cash     = parseFloat(cashAmount     || '0');
         const card     = parseFloat(cardAmount     || '0');
         const transfer = parseFloat(transferAmount || '0');
+        
+        // El cambio siempre se devuelve de la parte en efectivo.
+        const actualCash = Math.max(0, cash - change);
+
         setIsProcessing(true);
         try {
             await onConfirm({
                 method: selectedMethod,
-                cashAmount:     cash     > 0 ? cash     : undefined,
-                cardAmount:     card     > 0 ? card     : undefined,
-                transferAmount: transfer > 0 ? transfer : undefined,
+                cashAmount:     actualCash > 0 ? actualCash : undefined,
+                cardAmount:     card       > 0 ? card       : undefined,
+                transferAmount: transfer   > 0 ? transfer   : undefined,
                 customerName:   customerName.trim() || undefined,
             });
         } finally {
@@ -175,7 +179,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                             Bs. {paid.toFixed(2)}
                         </span>
                     </div>
-                    {selectedMethod === PaymentMethod.CASH && change > 0 && (
+                    {(selectedMethod === PaymentMethod.CASH || selectedMethod === PaymentMethod.MIXED) && change > 0 && (
                         <div className="flex justify-between font-black text-green-600 border-t border-green-100 pt-2">
                             <span>Cambio:</span>
                             <span>Bs. {change.toFixed(2)}</span>
