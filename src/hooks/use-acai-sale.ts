@@ -4,7 +4,6 @@
  * Soporta:
  * - Sabor único o MIXTO (múltiples sabores en el mismo bowl)
  * - Venta de extras/bebidas SOLAS sin bowl (sin balanza)
- * - Toppings como registro (no pesan individualmente)
  * - Precio del bowl = peso total × precio/kg promedio de los sabores
  */
 
@@ -33,8 +32,6 @@ export interface AcaiCart {
     isMixto: boolean;
     /** Sabores seleccionados (1 en normal, N en mixto) */
     flavors: { product: Product; pricePerKg: number }[];
-    /** Toppings marcados (solo registro) */
-    selectedToppings: Product[];
     /** Extras/bebidas */
     extras: ExtraItem[];
     /** Peso total del bowl desde la balanza (en kg) */
@@ -54,7 +51,6 @@ export interface AcaiCart {
 const EMPTY_CART: AcaiCart = {
     isMixto: false,
     flavors: [],
-    selectedToppings: [],
     extras: [],
     totalWeight: 0,
     weightConfirmed: false,
@@ -116,16 +112,6 @@ export function useAcaiSale(_branchId: string, _userId: string) {
         });
     }, []);
 
-    /** Alternar topping */
-    const toggleTopping = useCallback((product: Product) => {
-        setCart(prev => ({
-            ...prev,
-            selectedToppings: prev.selectedToppings.some(t => t.id === product.id)
-                ? prev.selectedToppings.filter(t => t.id !== product.id)
-                : [...prev.selectedToppings, product],
-        }));
-    }, []);
-
     /** Confirmar peso de la balanza */
     const confirmWeight = useCallback((weight: number) => {
         setCart(prev => recalc({ ...prev, totalWeight: weight, weightConfirmed: true }));
@@ -185,7 +171,6 @@ export function useAcaiSale(_branchId: string, _userId: string) {
         setMixtoMode,
         setFlavor,
         toggleFlavor,
-        toggleTopping,
         confirmWeight,
         resetWeight,
         addExtra,

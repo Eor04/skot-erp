@@ -571,4 +571,10 @@ Filtros por tipo, sucursal, fechas. El estado `movements` se extrae de `data.dat
   - La Sucursal solicitante es la **única** habilitada para confirmar la recepción.
   - Esto garantiza que el Kardex se registre de forma verídica y atómica en ambas sucursales (salida de fábrica e ingreso a sucursal).
 
+### 🥤 POS Açaí y Gestión de Insumos
+- **Optimización del Flujo de Venta:** Se eliminó por completo la selección individual de toppings (Paso 2) del POS de Açaí para agilizar el proceso en caja.
+- **Reposición Inteligente en Cierre de Caja:** El control de inventario de insumos (Helados, Toppings, Empaques, Cereales, Frutas, Moussen) se trasladó exclusivamente al momento del Cierre de Caja.
+- **UI Acordeón Categorizada:** En el Cierre de Caja, los cajeros ahora ven una lista categorizada (acordeón expandible) de todos los insumos disponibles (`inventoryProducts`). Al introducir cantidades mayores a 0, el sistema genera automáticamente un **Pedido Interno** (Internal Order) hacia la Fábrica Central para su posterior despacho.
+- **Seed de Productos Actualizado:** Se normalizó la lista completa de productos del Açaí asignándoles unidades de medida consistentes (`caja`, `bote`, `kg`, `envase`, `bolsa`, `unidad`) y tipificación `RAW_MATERIAL` en base al modelo Prisma.
+
 ---

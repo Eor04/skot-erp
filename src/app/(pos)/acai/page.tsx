@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 import CashGate from '@/components/pos/cash-gate';
 
-type Step = 'sabor' | 'toppings' | 'balanza' | 'extras';
+type Step = 'sabor' | 'balanza' | 'extras';
 type PaymentMethodType = 'CASH' | 'CARD' | 'TRANSFER' | 'MIXED';
 
 interface ApiProduct {
@@ -27,7 +27,6 @@ interface ApiProduct {
 
 const STEPS: { key: Step; emoji: string; label: string }[] = [
     { key: 'sabor',    emoji: '🍨', label: 'Sabor'    },
-    { key: 'toppings', emoji: '🍬', label: 'Toppings' },
     { key: 'balanza',  emoji: '⚖️', label: 'Balanza'  },
     { key: 'extras',   emoji: '🥤', label: 'Extras'   },
 ];
@@ -55,7 +54,7 @@ export default function AcaiPOSPage() {
     const {
         cart,
         setMixtoMode, setFlavor, toggleFlavor,
-        toggleTopping, confirmWeight, resetWeight,
+        confirmWeight, resetWeight,
         addExtra, decrementExtra, removeExtra, clearCart,
     } = useAcaiSale(branchId, userId);
 
@@ -70,13 +69,14 @@ export default function AcaiPOSPage() {
     } = useScale({ tara: 0.15, autoConnect: false, wsUrl });
 
     const [flavors,   setFlavors]   = useState<ApiProduct[]>([]);
-    const [toppings,  setToppings]  = useState<ApiProduct[]>([]);
     const [beverages, setBeverages] = useState<ApiProduct[]>([]);
     const [isLoading, setIsLoading] = useState(true);
     const [step, setStep]           = useState<Step>('sabor');
     const [showPayment, setShowPayment]         = useState(false);
     const [selectedPayment, setSelectedPayment] = useState<PaymentMethodType>('CASH');
     const [cashGiven, setCashGiven]             = useState('');
+    const [cardGiven, setCardGiven]             = useState('');
+    const [transferGiven, setTransferGiven]     = useState('');
     const [notification, setNotification]       = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [processing, setProcessing]           = useState(false);
 
@@ -89,7 +89,6 @@ export default function AcaiPOSPage() {
             .then(d => {
                 if (d.success) {
                     setFlavors(d.data.filter((p: ApiProduct) => p.type === 'ACAI_BASE'));
-                    setToppings(d.data.filter((p: ApiProduct) => p.type === 'ACAI_TOPPING'));
                     setBeverages(d.data.filter((p: ApiProduct) => p.type === 'BEVERAGE'));
                 }
             })
@@ -151,13 +150,7 @@ export default function AcaiPOSPage() {
                         subtotal:  0,
                     }))
                     : []),
-                // Toppings (precio 0, solo ticket)
-                ...cart.selectedToppings.map(t => ({
-                    productId: t.id,
-                    quantity:  1,
-                    unitPrice: 0,
-                    subtotal:  0,
-                })),
+
                 // Extras a precio fijo
                 ...cart.extras.map(e => ({
                     productId: e.product.id,
@@ -173,7 +166,9 @@ export default function AcaiPOSPage() {
                 body: JSON.stringify({
                     branchId, userId,
                     paymentMethod: selectedPayment,
-                    cashAmount: selectedPayment === 'CASH' ? parseFloat(cashGiven) || cart.total : undefined,
+                    cashAmount: selectedPayment === 'CASH' || selectedPayment === 'MIXED' ? parseFloat(cashGiven) || (selectedPayment === 'CASH' ? cart.total : 0) : undefined,
+                    cardAmount: selectedPayment === 'CARD' || selectedPayment === 'MIXED' ? parseFloat(cardGiven) || (selectedPayment === 'CARD' ? cart.total : 0) : undefined,
+                    transferAmount: selectedPayment === 'TRANSFER' || selectedPayment === 'MIXED' ? parseFloat(transferGiven) || (selectedPayment === 'TRANSFER' ? cart.total : 0) : undefined,
                     items,
                 }),
             });
@@ -183,6 +178,8 @@ export default function AcaiPOSPage() {
                 setShowPayment(false);
                 setStep('sabor');
                 setCashGiven('');
+                setCardGiven('');
+                setTransferGiven('');
                 notify('success', `✅ Venta ${data.data.saleNumber} — Bs. ${data.data.totalAmount.toFixed(2)}`);
             } else {
                 notify('error', data.error || 'Error al registrar la venta');
@@ -194,9 +191,16 @@ export default function AcaiPOSPage() {
         }
     };
 
-    const change = selectedPayment === 'CASH' && cashGiven
-        ? Math.max(0, parseFloat(cashGiven) - cart.total)
-        : 0;
+    const paid = parseFloat(cashGiven || '0') + parseFloat(cardGiven || '0') + parseFloat(transferGiven || '0');
+    const change = Math.max(0, paid - cart.total);
+
+    const handleMethodChange = (method: PaymentMethodType) => {
+        setSelectedPayment(method);
+        if (method === 'CASH')     { setCashGiven(cart.total.toFixed(2)); setCardGiven('0.00'); setTransferGiven('0.00'); }
+        if (method === 'CARD')     { setCashGiven('0.00'); setCardGiven(cart.total.toFixed(2)); setTransferGiven('0.00'); }
+        if (method === 'TRANSFER') { setCashGiven('0.00'); setCardGiven('0.00'); setTransferGiven(cart.total.toFixed(2)); }
+        if (method === 'MIXED')    { const h = (cart.total / 2).toFixed(2); setCashGiven(h); setCardGiven(h); setTransferGiven('0.00'); }
+    };
 
     const stepIndex = STEPS.findIndex(s => s.key === step);
 
@@ -403,7 +407,7 @@ export default function AcaiPOSPage() {
                                                         toggleFlavor({ id: p.id, name: p.name, type: p.type }, p.pricePerKg);
                                                     } else {
                                                         setFlavor({ id: p.id, name: p.name, type: p.type }, p.pricePerKg);
-                                                        setStep('toppings');
+                                                        setStep('balanza');
                                                     }
                                                 }}
                                                 className={`relative rounded-2xl p-5 text-left transition-all hover:scale-[1.03] border-2 ${isSelected
@@ -442,7 +446,7 @@ export default function AcaiPOSPage() {
                                         </p>
                                     </div>
                                     <button
-                                        onClick={() => setStep('toppings')}
+                                        onClick={() => setStep('balanza')}
                                         className="flex items-center gap-2 px-5 py-2.5 bg-purple-500 hover:bg-purple-400 text-white rounded-xl font-semibold transition flex-shrink-0"
                                     >
                                         Continuar <ChevronRight className="h-4 w-4" />
@@ -459,40 +463,6 @@ export default function AcaiPOSPage() {
                                     🥤 Solo quiero vender bebidas / extras (sin bowl)
                                 </button>
                             </div>
-                        </div>
-                    )}
-
-                    {/* ── PASO 2: TOPPINGS ───────────────────────────── */}
-                    {step === 'toppings' && (
-                        <div>
-                            <p className="text-purple-200 text-sm mb-1">Marcá los toppings que lleva el bowl.</p>
-                            <p className="text-white/40 text-xs mb-5">El precio se calcula solo por el peso total — los toppings se registran en el ticket.</p>
-                            {toppings.length === 0 ? (
-                                <div className="text-center py-16 text-white/40">No hay toppings configurados.</div>
-                            ) : (
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-                                    {toppings.map(p => {
-                                        const selected = cart.selectedToppings.some(t => t.id === p.id);
-                                        return (
-                                            <button
-                                                key={p.id}
-                                                onClick={() => toggleTopping({ id: p.id, name: p.name, type: p.type })}
-                                                className={`relative rounded-2xl p-4 text-left transition-all hover:scale-[1.03] border-2 ${selected
-                                                    ? 'bg-pink-500/30 border-pink-400 text-white'
-                                                    : 'bg-white/5 border-white/15 text-white/70 hover:bg-white/10 hover:border-white/30'}`}
-                                            >
-                                                {selected && (
-                                                    <div className="absolute top-2.5 right-2.5 bg-pink-500 rounded-full p-0.5">
-                                                        <Check className="h-3 w-3 text-white" />
-                                                    </div>
-                                                )}
-                                                <div className="text-3xl mb-2">{toppingEmoji(p.name)}</div>
-                                                <h3 className="font-semibold text-sm">{p.name}</h3>
-                                            </button>
-                                        );
-                                    })}
-                                </div>
-                            )}
                         </div>
                     )}
 
@@ -693,18 +663,6 @@ export default function AcaiPOSPage() {
                         </div>
                     )}
 
-                    {/* Toppings */}
-                    {cart.selectedToppings.length > 0 && (
-                        <div className="bg-pink-500/10 border border-pink-400/20 rounded-xl p-3">
-                            <p className="text-xs text-pink-300 mb-2">Toppings incluidos</p>
-                            <div className="flex flex-wrap gap-1.5">
-                                {cart.selectedToppings.map(t => (
-                                    <span key={t.id} className="bg-pink-500/30 text-pink-200 text-xs px-2 py-0.5 rounded-full">{t.name}</span>
-                                ))}
-                            </div>
-                        </div>
-                    )}
-
                     {/* Peso */}
                     {hasBowl && (
                         cart.weightConfirmed ? (
@@ -792,7 +750,7 @@ export default function AcaiPOSPage() {
                                         { method: 'TRANSFER' as const, label: 'QR',              icon: ArrowRightLeft  },
                                         { method: 'MIXED'    as const, label: 'Mixto',           icon: ShoppingCart   },
                                     ]).map(({ method, label, icon: Icon }) => (
-                                        <button key={method} onClick={() => setSelectedPayment(method)}
+                                        <button key={method} onClick={() => handleMethodChange(method)}
                                             className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 font-medium text-sm transition ${selectedPayment === method
                                                 ? 'border-purple-400 bg-purple-500/20 text-white'
                                                 : 'border-white/10 text-white/50 hover:border-white/30 hover:text-white/80'}`}>
@@ -802,19 +760,40 @@ export default function AcaiPOSPage() {
                                 </div>
                             </div>
 
-                            {selectedPayment === 'CASH' && (
+                            {(selectedPayment === 'CASH' || selectedPayment === 'MIXED') && (
                                 <div className="bg-white/5 rounded-xl p-4 space-y-2">
-                                    <label className="block text-sm font-medium text-white/70">Monto recibido</label>
+                                    <label className="block text-sm font-medium text-white/70">💵 Efectivo</label>
                                     <input type="number" step="0.01" value={cashGiven}
                                         onChange={e => setCashGiven(e.target.value)}
                                         placeholder={cart.total.toFixed(2)}
                                         className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-white/20" />
-                                    {change > 0 && (
-                                        <div className="flex justify-between items-center pt-1">
-                                            <span className="text-white/60 text-sm">Vuelto</span>
-                                            <span className="text-green-400 font-black text-2xl">Bs. {change.toFixed(2)}</span>
-                                        </div>
-                                    )}
+                                </div>
+                            )}
+
+                            {(selectedPayment === 'CARD' || selectedPayment === 'MIXED') && (
+                                <div className="bg-white/5 rounded-xl p-4 space-y-2">
+                                    <label className="block text-sm font-medium text-white/70">💳 Tarjeta</label>
+                                    <input type="number" step="0.01" value={cardGiven}
+                                        onChange={e => setCardGiven(e.target.value)}
+                                        placeholder="0.00"
+                                        className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-white/20" />
+                                </div>
+                            )}
+
+                            {(selectedPayment === 'TRANSFER' || selectedPayment === 'MIXED') && (
+                                <div className="bg-white/5 rounded-xl p-4 space-y-2">
+                                    <label className="block text-sm font-medium text-white/70">📲 QR</label>
+                                    <input type="number" step="0.01" value={transferGiven}
+                                        onChange={e => setTransferGiven(e.target.value)}
+                                        placeholder="0.00"
+                                        className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-white/20" />
+                                </div>
+                            )}
+
+                            {selectedPayment === 'CASH' && change > 0 && (
+                                <div className="flex justify-between items-center px-2 py-1">
+                                    <span className="text-white/60 text-sm">Vuelto</span>
+                                    <span className="text-green-400 font-black text-2xl">Bs. {change.toFixed(2)}</span>
                                 </div>
                             )}
                         </div>
@@ -824,11 +803,11 @@ export default function AcaiPOSPage() {
                                 className="flex-1 py-3 rounded-xl border border-white/20 text-white/60 hover:text-white hover:border-white/40 font-semibold transition">
                                 Cancelar
                             </button>
-                            <button onClick={handleProcessSale} disabled={processing}
-                                className="flex-[2] py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 disabled:from-gray-600 disabled:to-gray-600 text-white font-bold text-lg transition shadow-lg">
+                            <button onClick={handleProcessSale} disabled={processing || paid < cart.total}
+                                className="flex-[2] py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-bold text-lg transition shadow-lg">
                                 {processing
                                     ? <span className="flex items-center justify-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> Procesando…</span>
-                                    : 'Confirmar pago'}
+                                    : paid < cart.total ? 'Monto insuficiente' : 'Confirmar pago'}
                             </button>
                         </div>
                     </div>

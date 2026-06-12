@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {
     ArrowLeft, DollarSign, TrendingUp, CreditCard, Clock,
     Check, AlertCircle, Loader2, LogIn, LogOut, Lock,
-    ShoppingCart, ArrowUpRight, Banknote, Smartphone, Package
+    ShoppingCart, ArrowUpRight, Banknote, Smartphone, Package, ChevronRight
 } from 'lucide-react';
 import { useSession } from '@/lib/session-context';
 
@@ -78,8 +78,9 @@ export default function CashClosePage() {
     const [mode, setMode] = useState<'open' | 'close'>('open');
     const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
 
-    const [toppings, setToppings] = useState<{ id: string, name: string, unit: string }[]>([]);
-    const [toppingRequests, setToppingRequests] = useState<Record<string, number>>({});
+    const [inventoryProducts, setInventoryProducts] = useState<{ id: string, name: string, category: string, unit: string }[]>([]);
+    const [orderRequests, setOrderRequests] = useState<Record<string, number>>({});
+    const [expandedCategories, setExpandedCategories] = useState<Record<string, boolean>>({});
     const [selectedFactoryId, setSelectedFactoryId] = useState<string>('');
 
     const [form, setForm] = useState({
@@ -121,7 +122,7 @@ export default function CashClosePage() {
     async function loadData(branchId?: string) {
         const bid = branchId || form.branchId;
         const productsPromise = bid 
-            ? fetch(`/api/pos/products?branchId=${bid}&type=ACAI_TOPPING`).then(r => r.json())
+            ? fetch(`/api/pos/products?branchId=${bid}`).then(r => r.json())
             : Promise.resolve({ success: true, data: [] });
 
         const [branchRes, histRes, productsRes] = await Promise.all([
@@ -135,7 +136,7 @@ export default function CashClosePage() {
             if (factories.length > 0) setSelectedFactoryId(factories[0].id);
         }
         if (productsRes.success) {
-            setToppings(productsRes.data);
+            setInventoryProducts(productsRes.data);
         }
         if (histRes.success) {
             const sessions: CashSession[] = histRes.data;
@@ -214,8 +215,8 @@ export default function CashClosePage() {
             });
             const d = await res.json();
             if (d.success) {
-                // --- Toppings request logic ---
-                const requests = Object.entries(toppingRequests).filter(([_, qty]) => qty > 0);
+                // --- Order requests logic ---
+                const requests = Object.entries(orderRequests).filter(([_, qty]) => qty > 0);
                 const currentBranchId = (activeSession as any)?.branchId || form.branchId;
                 if (requests.length > 0 && selectedFactoryId && currentBranchId) {
                     const orderPayload = {
@@ -224,7 +225,7 @@ export default function CashClosePage() {
                         requestedBy: user?.name || 'Cajero',
                         notes: 'Reposición solicitada automáticamente en el cierre de caja',
                         items: requests.map(([productId, requestedQty]) => {
-                            const product = toppings.find(t => t.id === productId);
+                            const product = inventoryProducts.find(t => t.id === productId);
                             return { productId, requestedQty, unit: product?.unit || 'unit' };
                         }),
                     };
@@ -240,7 +241,7 @@ export default function CashClosePage() {
                 setShiftSummary(null);
                 setMode('open');
                 setForm(f => ({ ...f, actualCash: '', notes: '' }));
-                setToppingRequests({});
+                setOrderRequests({});
                 loadData(form.branchId);
             } else { showToast('error', d.error || 'Error al cerrar caja'); }
         } catch { showToast('error', 'Error de conexión'); }
@@ -493,38 +494,71 @@ export default function CashClosePage() {
                                             <span>{fmt(parseFloat(form.actualCash) - shiftSummary.cashTotal + (shiftSummary.totalExpenses ?? 0) - (activeSession?.openingAmount || 0))}</span>
                                         </div>
                                     )}
-                                    {/* Solicitud de Toppings (solo si es Açaí) */}
-                                    {((activeSession as any)?.branch?.type === 'ACAI' || branches.find(b => b.id === ((activeSession as any)?.branchId || form.branchId))?.type === 'ACAI') && toppings.length > 0 && (
+                                    {/* Solicitud de Reposición (solo si es Açaí) */}
+                                    {((activeSession as any)?.branch?.type === 'ACAI' || branches.find(b => b.id === ((activeSession as any)?.branchId || form.branchId))?.type === 'ACAI') && inventoryProducts.length > 0 && (
                                         <div className="border border-purple-200 bg-purple-50 rounded-xl p-4 my-4">
-                                            <div className="mb-3 flex items-center justify-between">
-                                                <div>
-                                                    <h3 className="text-sm font-bold text-purple-900 flex items-center gap-2">
-                                                        <Package className="h-4 w-4" /> Solicitar Reposición de Toppings
-                                                    </h3>
-                                                    <p className="text-xs text-purple-700 mt-0.5">Opcional. Las cantidades mayores a 0 generarán un pedido interno.</p>
-                                                </div>
-                                                <div>
-                                                    <select value={selectedFactoryId} onChange={e => setSelectedFactoryId(e.target.value)}
-                                                        className="text-xs border border-purple-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400 bg-white text-purple-900 font-semibold">
-                                                        {branches.filter(b => b.type === 'FABRICA').map(b => (
-                                                            <option key={b.id} value={b.id}>{b.name}</option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-3">
-                                                {toppings.map(t => (
-                                                    <div key={t.id} className="flex items-center justify-between bg-white px-3 py-2 rounded-lg border border-purple-100">
-                                                        <span className="text-xs font-semibold text-gray-700">{t.name}</span>
-                                                        <div className="flex items-center gap-1.5">
-                                                            <input type="number" min="0" step="0.01" placeholder="0"
-                                                                value={toppingRequests[t.id] || ''}
-                                                                onChange={e => setToppingRequests(prev => ({ ...prev, [t.id]: parseFloat(e.target.value) || 0 }))}
-                                                                className="w-16 border border-gray-200 rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-300 text-right" />
-                                                            <span className="text-xs text-gray-400 w-8">{t.unit}</span>
-                                                        </div>
+                                            <div className="mb-3 flex flex-col gap-2">
+                                                <div className="flex items-center justify-between">
+                                                    <div>
+                                                        <h3 className="text-sm font-bold text-purple-900 flex items-center gap-2">
+                                                            <Package className="h-4 w-4" /> Solicitar Reposición de Insumos
+                                                        </h3>
+                                                        <p className="text-xs text-purple-700 mt-0.5">Opcional. Cantidades &gt; 0 generarán un pedido interno.</p>
                                                     </div>
-                                                ))}
+                                                    <div>
+                                                        <select value={selectedFactoryId} onChange={e => setSelectedFactoryId(e.target.value)}
+                                                            className="text-xs border border-purple-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400 bg-white text-purple-900 font-semibold">
+                                                            {branches.filter(b => b.type === 'FABRICA').map(b => (
+                                                                <option key={b.id} value={b.id}>{b.name}</option>
+                                                            ))}
+                                                        </select>
+                                                    </div>
+                                                </div>
+                                                {/* Accordion por categoría */}
+                                                <div className="space-y-2 mt-2">
+                                                    {Array.from(new Set(inventoryProducts.map(p => p.category || 'OTROS'))).sort().map(cat => {
+                                                        const catProducts = inventoryProducts.filter(p => (p.category || 'OTROS') === cat);
+                                                        const isExpanded = expandedCategories[cat];
+                                                        const countRequests = catProducts.filter(p => orderRequests[p.id] > 0).length;
+                                                        
+                                                        return (
+                                                            <div key={cat} className="border border-purple-100 rounded-xl bg-white overflow-hidden shadow-sm">
+                                                                <button
+                                                                    type="button"
+                                                                    onClick={() => setExpandedCategories(prev => ({ ...prev, [cat]: !prev[cat] }))}
+                                                                    className="w-full flex items-center justify-between px-4 py-3 bg-purple-100/40 hover:bg-purple-100/70 transition text-purple-900 text-sm font-bold"
+                                                                >
+                                                                    <div className="flex items-center gap-2">
+                                                                        <span>{cat}</span>
+                                                                        <span className="text-xs font-normal text-purple-600 bg-purple-200/50 px-2 py-0.5 rounded-full">{catProducts.length}</span>
+                                                                    </div>
+                                                                    <div className="flex items-center gap-3">
+                                                                        {countRequests > 0 && (
+                                                                            <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full shadow-sm">{countRequests} solicitados</span>
+                                                                        )}
+                                                                        <ChevronRight className={`h-4 w-4 text-purple-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
+                                                                    </div>
+                                                                </button>
+                                                                {isExpanded && (
+                                                                    <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-3 bg-white">
+                                                                        {catProducts.map(t => (
+                                                                            <div key={t.id} className="flex items-center justify-between bg-gray-50/50 px-3 py-2.5 rounded-lg border border-gray-100 transition-colors hover:bg-purple-50/30 hover:border-purple-100">
+                                                                                <span className="text-xs font-semibold text-gray-700 truncate mr-2" title={t.name}>{t.name}</span>
+                                                                                <div className="flex items-center gap-1.5 flex-shrink-0">
+                                                                                    <input type="number" min="0" step="0.01" placeholder="0"
+                                                                                        value={orderRequests[t.id] || ''}
+                                                                                        onChange={e => setOrderRequests(prev => ({ ...prev, [t.id]: parseFloat(e.target.value) || 0 }))}
+                                                                                        className={`w-16 border rounded-md px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-300 text-right transition-colors ${orderRequests[t.id] > 0 ? 'bg-green-50 border-green-200 text-green-800 font-semibold' : 'bg-white border-gray-200'}`} />
+                                                                                    <span className="text-xs text-gray-400 w-10 truncate" title={t.unit}>{t.unit}</span>
+                                                                                </div>
+                                                                            </div>
+                                                                        ))}
+                                                                    </div>
+                                                                )}
+                                                            </div>
+                                                        );
+                                                    })}
+                                                </div>
                                             </div>
                                         </div>
                                     )}
