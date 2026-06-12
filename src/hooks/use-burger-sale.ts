@@ -31,6 +31,13 @@ export function useBurgerSale(branchId: string) {
     // Agregar producto al carrito
     const addToCart = useCallback((product: Product, modifiers: ProductModifier[] = []) => {
         setCart((prev) => {
+            const currentTotalQty = prev.filter(i => i.product.id === product.id).reduce((s, i) => s + i.quantity, 0);
+            const maxStock = (product as any).currentStock ?? Infinity;
+
+            if (currentTotalQty >= maxStock) {
+                return prev; // Stop adding
+            }
+
             // Verificar si el producto ya existe con los mismos modificadores
             const existingIndex = prev.findIndex((item) => {
                 if (item.product.id !== product.id) return false;
@@ -75,8 +82,18 @@ export function useBurgerSale(branchId: string) {
         }
 
         setCart((prev) => {
+            const item = prev[index];
+            const otherItemsQty = prev.filter((i, idx) => idx !== index && i.product.id === item.product.id).reduce((s, i) => s + i.quantity, 0);
+            const maxStock = (item.product as any).currentStock ?? Infinity;
+
+            let finalQty = quantity;
+            if (otherItemsQty + quantity > maxStock) {
+                finalQty = maxStock - otherItemsQty;
+            }
+            if (finalQty <= 0) return prev;
+
             const updated = [...prev];
-            updated[index].quantity = quantity;
+            updated[index].quantity = finalQty;
             updated[index].subtotal = calculateItemSubtotal(updated[index]);
             return updated;
         });

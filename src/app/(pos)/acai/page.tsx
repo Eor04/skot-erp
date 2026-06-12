@@ -597,12 +597,14 @@ export default function AcaiPOSPage() {
                                     {beverages.map(p => {
                                         const inCart = cart.extras.find(e => e.product.id === p.id);
                                         const isOut = p.currentStock <= 0;
+                                        const atMax = inCart && inCart.quantity >= p.currentStock;
+                                        const isDisabled = isOut || atMax;
                                         return (
                                             <button
                                                 key={p.id}
-                                                disabled={isOut}
-                                                onClick={() => addExtra({ id: p.id, name: p.name, type: p.type, price: p.customPrice })}
-                                                className={`relative rounded-2xl p-4 text-left transition-all border-2 overflow-hidden ${isOut ? 'opacity-60 grayscale cursor-not-allowed bg-black/20 border-white/5' : 'hover:scale-[1.03]'} ${inCart
+                                                disabled={isDisabled}
+                                                onClick={() => addExtra({ id: p.id, name: p.name, type: p.type, price: p.customPrice, currentStock: p.currentStock })}
+                                                className={`relative rounded-2xl p-4 text-left transition-all border-2 overflow-hidden ${isDisabled ? 'opacity-60 grayscale cursor-not-allowed bg-black/20 border-white/5' : 'hover:scale-[1.03]'} ${inCart
                                                     ? 'bg-indigo-500/30 border-indigo-400 text-white'
                                                     : 'bg-white/5 border-white/15 text-white/70 hover:bg-white/10 hover:border-white/30'}`}
                                             >
