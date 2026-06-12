@@ -33,12 +33,15 @@ export async function GET(request: NextRequest) {
                 active: true,
                 deletedAt: null,
                 branchProducts: { some: { branchId, active: true } },
-                inventory: { some: { branchId, currentStock: { gt: 0 } } },
                 ...(typeFilter.length > 0 ? { type: { in: typeFilter as any } } : {}),
             },
             include: {
                 branchProducts: {
                     where: { branchId, active: true },
+                    take: 1,
+                },
+                inventory: {
+                    where: { branchId },
                     take: 1,
                 },
             },
@@ -63,6 +66,7 @@ export async function GET(request: NextRequest) {
                 price: customPrice,
                 customPrice,
                 pricePerKg,
+                currentStock: p.inventory[0]?.currentStock ?? 0,
             };
         });
 

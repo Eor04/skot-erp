@@ -405,10 +405,12 @@ export default function AcaiPOSPage() {
                                         const isSelected = cart.isMixto
                                             ? cart.flavors.some(f => f.product.id === p.id)
                                             : cart.flavors[0]?.product.id === p.id;
+                                        const isOut = p.currentStock <= 0;
 
                                         return (
                                             <button
                                                 key={p.id}
+                                                disabled={isOut}
                                                 onClick={() => {
                                                     if (cart.isMixto) {
                                                         toggleFlavor({ id: p.id, name: p.name, type: p.type }, p.pricePerKg);
@@ -417,10 +419,15 @@ export default function AcaiPOSPage() {
                                                         setStep('balanza');
                                                     }
                                                 }}
-                                                className={`relative rounded-2xl p-5 text-left transition-all hover:scale-[1.03] border-2 ${isSelected
+                                                className={`relative rounded-2xl p-5 text-left transition-all border-2 overflow-hidden ${isOut ? 'opacity-60 grayscale cursor-not-allowed bg-black/20 border-white/5' : 'hover:scale-[1.03]'} ${isSelected
                                                     ? 'bg-white border-white text-purple-900 shadow-xl shadow-white/20'
                                                     : 'bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40'}`}
                                             >
+                                                {isOut && (
+                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px] z-10">
+                                                        <span className="text-red-400 font-black bg-black/80 px-3 py-1 rounded-full text-sm tracking-wider animate-pulse border border-red-500/50 shadow-lg shadow-red-900/50">AGOTADO</span>
+                                                    </div>
+                                                )}
                                                 {isSelected && (
                                                     <div className="absolute top-3 right-3 bg-purple-600 rounded-full p-0.5">
                                                         <Check className="h-3 w-3 text-white" />
@@ -581,14 +588,21 @@ export default function AcaiPOSPage() {
                                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
                                     {beverages.map(p => {
                                         const inCart = cart.extras.find(e => e.product.id === p.id);
+                                        const isOut = p.currentStock <= 0;
                                         return (
                                             <button
                                                 key={p.id}
+                                                disabled={isOut}
                                                 onClick={() => addExtra({ id: p.id, name: p.name, type: p.type, price: p.customPrice })}
-                                                className={`relative rounded-2xl p-4 text-left transition-all hover:scale-[1.03] border-2 ${inCart
+                                                className={`relative rounded-2xl p-4 text-left transition-all border-2 overflow-hidden ${isOut ? 'opacity-60 grayscale cursor-not-allowed bg-black/20 border-white/5' : 'hover:scale-[1.03]'} ${inCart
                                                     ? 'bg-indigo-500/30 border-indigo-400 text-white'
                                                     : 'bg-white/5 border-white/15 text-white/70 hover:bg-white/10 hover:border-white/30'}`}
                                             >
+                                                {isOut && (
+                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px] z-10">
+                                                        <span className="text-red-400 font-black bg-black/80 px-2 py-1 rounded-full text-xs tracking-wider animate-pulse border border-red-500/50 shadow-lg shadow-red-900/50">AGOTADO</span>
+                                                    </div>
+                                                )}
                                                 {inCart && (
                                                     <div className="absolute top-2.5 right-2.5 bg-indigo-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 font-bold">
                                                         {inCart.quantity}
