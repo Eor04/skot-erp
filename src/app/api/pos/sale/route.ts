@@ -89,8 +89,28 @@ export async function POST(request: NextRequest) {
                     : 1;
                 const saleNumber = `V-${datePrefix}-${String(seq).padStart(4, '0')}`;
 
+                // Validación estricta de stock antes de iniciar la transacción
+                for (const productId of uniqueProductIds) {
+                    const qty = stockItems
+                        .filter((i: any) => i.productId === productId)
+                        .reduce((s: number, i: any) => s + i.quantity, 0);
+
+                    const inv = await prisma.inventory.findUnique({
+                        where: { branchId_productId: { branchId, productId } },
+                        include: { product: true }
+                    });
+
+                    if (!inv || inv.currentStock < qty) {
+                        return NextResponse.json(
+                            { success: false, error: `Stock insuficiente para ${inv?.product.name || 'un producto'}. Solicitado: ${qty.toFixed(2)}, Disponible: ${inv?.currentStock.toFixed(2) || 0}` },
+                            { status: 400 }
+                        );
+                    }
+                }
+
+                // Iniciar la transacción
                 sale = await prisma.$transaction(async (tx) => {
-                    // 1. Crear la venta con ítems y modificadores
+                    // 1. Crear la Venta (Sale)
                     const newSale = await tx.sale.create({
                         data: {
                             branchId, userId, saleNumber, totalAmount,

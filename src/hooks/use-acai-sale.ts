@@ -17,6 +17,7 @@ export interface Product {
     type: string;
     price?: number;
     pricePerKg?: number;
+    currentStock?: number;
 }
 
 export interface ExtraItem {

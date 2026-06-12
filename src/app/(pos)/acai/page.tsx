@@ -23,6 +23,7 @@ interface ApiProduct {
     description?: string;
     customPrice: number;
     pricePerKg: number;
+    currentStock: number;
 }
 
 const STEPS: { key: Step; emoji: string; label: string }[] = [
@@ -718,7 +719,7 @@ export default function AcaiPOSPage() {
                                     <Minus className="h-3.5 w-3.5" />
                                 </button>
                                 <span className="text-white font-bold text-sm w-5 text-center">{e.quantity}</span>
-                                <button onClick={() => addExtra(e.product, 1)} className="text-white/40 hover:text-white p-1 transition">
+                                <button onClick={() => addExtra(e.product, 1)} disabled={e.quantity >= e.product.currentStock!} className="text-white/40 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed p-1 transition">
                                     <Plus className="h-3.5 w-3.5" />
                                 </button>
                                 <button onClick={() => removeExtra(e.id)} className="text-red-400 hover:text-red-300 p-1 ml-1 transition">
