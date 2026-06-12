@@ -33,6 +33,7 @@ export async function GET(request: NextRequest) {
                 active: true,
                 deletedAt: null,
                 branchProducts: { some: { branchId, active: true } },
+                inventory: { some: { branchId, currentStock: { gt: 0 } } },
                 ...(typeFilter.length > 0 ? { type: { in: typeFilter as any } } : {}),
             },
             include: {
