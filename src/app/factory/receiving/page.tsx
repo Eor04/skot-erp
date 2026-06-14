@@ -73,12 +73,12 @@ function QuickProductModal({
 
     return (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-gray-100">
-                    <h2 className="font-bold text-gray-900 flex items-center gap-2">
+            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+                    <h2 className="font-bold text-white/90 flex items-center gap-2">
                         <Plus className="h-5 w-5 text-green-600" /> Nuevo Producto
                     </h2>
-                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-gray-100 text-gray-400 hover:text-gray-600 transition">
+                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/5 border border-white/10 backdrop-blur-md/10 text-white/40 hover:text-white/70 transition">
                         <X className="h-5 w-5" />
                     </button>
                 </div>
@@ -89,44 +89,44 @@ function QuickProductModal({
                         </div>
                     )}
                     <div>
-                        <label className="block text-xs font-semibold text-gray-600 mb-1">Nombre *</label>
+                        <label className="block text-xs font-semibold text-white/70 mb-1">Nombre *</label>
                         <input required type="text" value={name} onChange={e => { setName(e.target.value); if (!sku) setSku(suggestSku(e.target.value)); }}
                             placeholder="Ej: Harina de trigo"
-                            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                            className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1">SKU *</label>
+                            <label className="block text-xs font-semibold text-white/70 mb-1">SKU *</label>
                             <input required type="text" value={sku} onChange={e => setSku(e.target.value.toUpperCase())}
                                 placeholder="HARINA-1"
-                                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-300" />
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1">Unidad *</label>
+                            <label className="block text-xs font-semibold text-white/70 mb-1">Unidad *</label>
                             <select value={unit} onChange={e => setUnit(e.target.value)}
-                                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                                className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
                                 {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                             </select>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1">Tipo *</label>
+                            <label className="block text-xs font-semibold text-white/70 mb-1">Tipo *</label>
                             <select value={type} onChange={e => setType(e.target.value)}
-                                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                                className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
                                 {PRODUCT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-gray-600 mb-1">Categoría</label>
+                            <label className="block text-xs font-semibold text-white/70 mb-1">Categoría</label>
                             <input type="text" value={category} onChange={e => setCategory(e.target.value)}
                                 placeholder="Lácteos, Carnes…"
-                                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                         </div>
                     </div>
                     <div className="flex gap-3 pt-1">
                         <button type="button" onClick={onClose}
-                            className="flex-1 border border-gray-200 text-gray-600 py-2.5 rounded-xl font-semibold text-sm hover:bg-gray-50 transition">
+                            className="flex-1 border border-white/10 text-white/70 py-2.5 rounded-xl font-semibold text-sm hover:bg-white/5 transition">
                             Cancelar
                         </button>
                         <button type="submit" disabled={saving}
@@ -304,7 +304,13 @@ export default function FactoryReceivingPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E\")", backgroundSize: '56px 100px' }} />
+            </div>
+            <div className="relative z-10 h-full w-full">
             {/* Toast */}
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
@@ -322,21 +328,21 @@ export default function FactoryReceivingPage() {
             )}
 
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-5">
+            <div className="bg-white/5 border border-white/10 backdrop-blur-md border-b border-white/10 px-6 py-5">
                 <div className="max-w-6xl mx-auto">
-                    <Link href="/factory/materials" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-1">
-                        <ArrowLeft className="h-4 w-4" /> Materia Prima
+                    <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-1">
+                        <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
                     </Link>
                     <div className="flex items-center gap-3">
                         <div className="bg-green-100 rounded-xl p-2.5">
                             <PackagePlus className="h-6 w-6 text-green-600" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">Recepción de Mercancía</h1>
-                            <p className="text-sm text-gray-500 mt-0.5">
+                            <h1 className="text-2xl font-bold text-white/90">Recepción de Mercancía</h1>
+                            <p className="text-sm text-white/60 mt-0.5">
                                 Registrá la entrada de productos al almacén ·{' '}
                                 {productsLoading
-                                    ? <span className="text-gray-400">cargando catálogo…</span>
+                                    ? <span className="text-white/40">cargando catálogo…</span>
                                     : <span className="text-green-600 font-semibold">{allProducts.length} productos disponibles</span>
                                 }
                             </p>
@@ -349,37 +355,37 @@ export default function FactoryReceivingPage() {
 
                 {/* ── Formulario ── */}
                 <div className="lg:col-span-2 space-y-4">
-                    <form onSubmit={handleSubmit} className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 space-y-5">
+                    <form onSubmit={handleSubmit} className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6 space-y-5">
 
                         {/* Encabezado del remito */}
                         <div>
-                            <h2 className="font-bold text-gray-800 mb-4 flex items-center gap-2">
-                                <Truck className="h-5 w-5 text-gray-500" /> Datos del remito
+                            <h2 className="font-bold text-white/90 mb-4 flex items-center gap-2">
+                                <Truck className="h-5 w-5 text-white/60" /> Datos del remito
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Almacén destino *</label>
+                                    <label className="block text-xs font-semibold text-white/70 mb-1">Almacén destino *</label>
                                     <select required value={branchId} onChange={e => setBranchId(e.target.value)}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
                                         <option value="">Seleccioná…</option>
                                         {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Proveedor *</label>
+                                    <label className="block text-xs font-semibold text-white/70 mb-1">Proveedor *</label>
                                     <input required type="text" value={supplier} onChange={e => setSupplier(e.target.value)}
                                         placeholder="Nombre del proveedor o empresa…"
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1">N° Factura / Remito</label>
+                                    <label className="block text-xs font-semibold text-white/70 mb-1">N° Factura / Remito</label>
                                     <input type="text" value={invoiceRef} onChange={e => setInvoiceRef(e.target.value)} placeholder="FAC-0001"
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-semibold text-gray-600 mb-1">Observaciones</label>
+                                    <label className="block text-xs font-semibold text-white/70 mb-1">Observaciones</label>
                                     <input type="text" value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder="Opcional…"
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                                 </div>
                             </div>
                         </div>
@@ -387,8 +393,8 @@ export default function FactoryReceivingPage() {
                         {/* Líneas de producto */}
                         <div>
                             <div className="flex items-center justify-between mb-3">
-                                <h2 className="font-bold text-gray-800 flex items-center gap-2">
-                                    <Package className="h-5 w-5 text-gray-500" /> Productos recibidos
+                                <h2 className="font-bold text-white/90 flex items-center gap-2">
+                                    <Package className="h-5 w-5 text-white/60" /> Productos recibidos
                                 </h2>
                                 <button type="button" onClick={() => { setNewProductForRow(null); setShowNewProduct(true); }}
                                     className="flex items-center gap-1.5 text-xs text-green-600 hover:text-green-700 font-semibold bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition">
@@ -398,14 +404,14 @@ export default function FactoryReceivingPage() {
 
                             <div className="space-y-3" ref={dropdownRef}>
                                 {items.map((item, i) => (
-                                    <div key={i} className="border border-gray-100 rounded-xl p-3 bg-gray-50/50 space-y-2">
+                                    <div key={i} className="border border-white/10 rounded-xl p-3 bg-white/5/50 space-y-2">
                                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
 
                                             {/* Búsqueda producto */}
                                             <div className="sm:col-span-5 relative">
-                                                <label className="block text-xs text-gray-500 mb-1">Producto *</label>
+                                                <label className="block text-xs text-white/60 mb-1">Producto *</label>
                                                 <div className="relative">
-                                                    <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-gray-400" />
+                                                    <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-white/40" />
                                                     <input
                                                         type="text"
                                                         value={productSearch[i] ?? item.productName}
@@ -417,28 +423,28 @@ export default function FactoryReceivingPage() {
                                                         onFocus={() => setProductDropdown(i)}
                                                         placeholder={productsLoading ? 'Cargando…' : 'Buscar producto…'}
                                                         disabled={productsLoading}
-                                                        className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300 bg-white disabled:opacity-60"
+                                                        className="w-full pl-8 pr-3 py-2 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300 bg-white/5 border border-white/10 backdrop-blur-md disabled:opacity-60"
                                                     />
                                                 </div>
 
                                                 {/* Dropdown */}
                                                 {productDropdown === i && (
-                                                    <div className="absolute z-20 top-full left-0 right-0 bg-white border border-gray-200 rounded-xl shadow-lg max-h-60 overflow-y-auto mt-1">
+                                                    <div className="absolute z-20 top-full left-0 right-0 bg-white/5 border border-white/10 backdrop-blur-md border border-white/10 rounded-xl shadow-lg max-h-60 overflow-y-auto mt-1">
                                                         {filteredProducts(productSearch[i] ?? '').map(prod => (
                                                             <button key={prod.id} type="button"
                                                                 onMouseDown={() => selectProduct(i, prod)}
                                                                 className="w-full text-left px-3 py-2.5 hover:bg-green-50 flex items-center justify-between gap-2 border-b border-gray-50 last:border-0">
                                                                 <div>
-                                                                    <p className="text-sm font-medium text-gray-800">{prod.name}</p>
-                                                                    <p className="text-xs text-gray-400">{prod.sku} · {TYPE_LABEL[prod.type] ?? prod.type}</p>
+                                                                    <p className="text-sm font-medium text-white/90">{prod.name}</p>
+                                                                    <p className="text-xs text-white/40">{prod.sku} · {TYPE_LABEL[prod.type] ?? prod.type}</p>
                                                                 </div>
-                                                                <span className="text-xs text-gray-400 flex-shrink-0">{prod.unit}</span>
+                                                                <span className="text-xs text-white/40 flex-shrink-0">{prod.unit}</span>
                                                             </button>
                                                         ))}
                                                         {/* Botón crear nuevo */}
                                                         <button type="button"
                                                             onMouseDown={() => handleNewProduct(i)}
-                                                            className="w-full text-left px-3 py-2.5 text-green-600 hover:bg-green-50 flex items-center gap-2 font-semibold text-sm border-t border-gray-100">
+                                                            className="w-full text-left px-3 py-2.5 text-green-600 hover:bg-green-50 flex items-center gap-2 font-semibold text-sm border-t border-white/10">
                                                             <Plus className="h-4 w-4 flex-shrink-0" />
                                                             {productSearch[i] ? `Crear "${productSearch[i]}"` : 'Crear nuevo producto'}
                                                         </button>
@@ -448,29 +454,29 @@ export default function FactoryReceivingPage() {
 
                                             {/* Cantidad */}
                                             <div className="sm:col-span-3">
-                                                <label className="block text-xs text-gray-500 mb-1">
+                                                <label className="block text-xs text-white/60 mb-1">
                                                     Cantidad{item.unit ? ` (${item.unit})` : ''} *
                                                 </label>
                                                 <input type="number" min="0.001" step="0.001" value={item.quantity === 0 ? '' : item.quantity}
                                                     onChange={e => updateItem(i, 'quantity', e.target.value)}
                                                     placeholder=""
-                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300 bg-white" />
+                                                    className="w-full px-3 py-2 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300 bg-white/5 border border-white/10 backdrop-blur-md" />
                                             </div>
 
                                             {/* Nota */}
                                             <div className="sm:col-span-3">
-                                                <label className="block text-xs text-gray-500 mb-1">Nota</label>
+                                                <label className="block text-xs text-white/60 mb-1">Nota</label>
                                                 <input type="text" value={item.notes}
                                                     onChange={e => updateItem(i, 'notes', e.target.value)}
                                                     placeholder="Opcional"
-                                                    className="w-full px-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300 bg-white" />
+                                                    className="w-full px-3 py-2 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300 bg-white/5 border border-white/10 backdrop-blur-md" />
                                             </div>
 
                                             {/* Eliminar */}
                                             <div className="sm:col-span-1 flex items-end justify-center pb-0.5">
                                                 <button type="button" onClick={() => removeItem(i)}
                                                     disabled={items.length === 1}
-                                                    className="p-2 text-gray-400 hover:text-red-500 disabled:opacity-30 transition rounded-lg hover:bg-red-50">
+                                                    className="p-2 text-white/40 hover:text-red-500 disabled:opacity-30 transition rounded-lg hover:bg-red-50">
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
                                             </div>
@@ -478,7 +484,7 @@ export default function FactoryReceivingPage() {
 
                                         {/* Preview nuevo stock */}
                                         {item.productId && (
-                                            <p className="text-xs text-gray-400 pl-1">
+                                            <p className="text-xs text-white/40 pl-1">
                                                 {item.quantity && parseFloat(item.quantity) > 0 ? (
                                                     <span className="text-green-600 font-semibold">
                                                         + {parseFloat(item.quantity).toFixed(3)} {item.unit} → stock actualizado al confirmar
@@ -508,52 +514,52 @@ export default function FactoryReceivingPage() {
 
                 {/* ── Historial ── */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5">
+                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="font-bold text-gray-800 flex items-center gap-2">
-                                <ClipboardCheck className="h-5 w-5 text-gray-500" /> Últimas entradas
+                            <h2 className="font-bold text-white/90 flex items-center gap-2">
+                                <ClipboardCheck className="h-5 w-5 text-white/60" /> Últimas entradas
                             </h2>
-                            <button onClick={loadHistory} disabled={histLoading} className="p-1 text-gray-400 hover:text-gray-600 transition">
+                            <button onClick={loadHistory} disabled={histLoading} className="p-1 text-white/40 hover:text-white/70 transition">
                                 <RefreshCw className={`h-4 w-4 ${histLoading ? 'animate-spin' : ''}`} />
                             </button>
                         </div>
 
                         {histLoading ? (
-                            <div className="text-center py-8"><Loader2 className="h-5 w-5 animate-spin mx-auto text-gray-400" /></div>
+                            <div className="text-center py-8"><Loader2 className="h-5 w-5 animate-spin mx-auto text-white/40" /></div>
                         ) : history.length === 0 ? (
-                            <div className="text-center py-10 text-gray-400">
+                            <div className="text-center py-10 text-white/40">
                                 <PackagePlus className="h-10 w-10 mx-auto mb-2 opacity-30" />
                                 <p className="text-xs">Sin entradas registradas{!branchId && ' — seleccioná un almacén'}</p>
                             </div>
                         ) : (
                             <div className="space-y-2 max-h-[600px] overflow-y-auto">
                                 {history.map(rec => (
-                                    <div key={rec.reference} className="border border-gray-100 rounded-xl overflow-hidden">
+                                    <div key={rec.reference} className="border border-white/10 rounded-xl overflow-hidden">
                                         <button onClick={() => setExpandedRef(p => p === rec.reference ? null : rec.reference)}
-                                            className="w-full text-left px-3 py-3 hover:bg-gray-50 transition flex items-center justify-between gap-2">
+                                            className="w-full text-left px-3 py-3 hover:bg-white/5 transition flex items-center justify-between gap-2">
                                             <div className="min-w-0">
-                                                <p className="font-semibold text-gray-800 text-sm truncate">{rec.supplier}</p>
-                                                <p className="text-xs text-gray-400 font-mono">{rec.reference}</p>
-                                                <p className="text-xs text-gray-400">
+                                                <p className="font-semibold text-white/90 text-sm truncate">{rec.supplier}</p>
+                                                <p className="text-xs text-white/40 font-mono">{rec.reference}</p>
+                                                <p className="text-xs text-white/40">
                                                     {new Date(rec.date).toLocaleString('es-BO', { dateStyle: 'short', timeStyle: 'short' })}
                                                     {' · '}{rec.itemsCount} prod.
                                                 </p>
                                             </div>
                                             {expandedRef === rec.reference
-                                                ? <ChevronUp className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                                : <ChevronDown className="h-4 w-4 text-gray-400 flex-shrink-0" />}
+                                                ? <ChevronUp className="h-4 w-4 text-white/40 flex-shrink-0" />
+                                                : <ChevronDown className="h-4 w-4 text-white/40 flex-shrink-0" />}
                                         </button>
                                         {expandedRef === rec.reference && (
-                                            <div className="border-t border-gray-100 divide-y divide-gray-50">
+                                            <div className="border-t border-white/10 divide-y divide-gray-50">
                                                 {rec.items.map(it => (
                                                     <div key={it.id} className="px-3 py-2 bg-green-50/40 flex items-center justify-between gap-2">
                                                         <div className="min-w-0">
-                                                            <p className="text-xs font-medium text-gray-800 truncate">{it.product.name}</p>
-                                                            <p className="text-xs text-gray-400">{it.product.sku}</p>
+                                                            <p className="text-xs font-medium text-white/90 truncate">{it.product.name}</p>
+                                                            <p className="text-xs text-white/40">{it.product.sku}</p>
                                                         </div>
                                                         <div className="text-right flex-shrink-0">
                                                             <p className="text-sm font-bold text-green-700">+{it.quantity} {it.product.unit}</p>
-                                                            <p className="text-xs text-gray-400">{it.previousStock.toFixed(1)} → {it.newStock.toFixed(1)}</p>
+                                                            <p className="text-xs text-white/40">{it.previousStock.toFixed(1)} → {it.newStock.toFixed(1)}</p>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -567,5 +573,6 @@ export default function FactoryReceivingPage() {
                 </div>
             </div>
         </div>
-    );
+    </div>
+        );
 }

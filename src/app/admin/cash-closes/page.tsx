@@ -145,27 +145,32 @@ export default function CashClosesReportPage() {
     );
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen relative overflow-hidden p-4 md:p-8" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
+            <div className="relative z-10 max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+                    <Link href="/admin" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
                         <ArrowLeft className="h-4 w-4" /> Volver a Admin
                     </Link>
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                    <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                         <ClipboardList className="h-8 w-8 text-slate-600" /> Historial de Cierres de Caja
                     </h1>
-                    <p className="text-gray-500 mt-1">Reporte centralizado de sesiones de caja por sucursal</p>
+                    <p className="text-white/60 mt-1">Reporte centralizado de sesiones de caja por sucursal</p>
                 </div>
 
                 {/* Filtros */}
-                <div className="bg-white rounded-2xl shadow p-5 mb-6 flex flex-wrap gap-4 items-end">
+                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow p-5 mb-6 flex flex-wrap gap-4 items-end">
                     <div>
-                        <p className="text-xs font-semibold text-gray-500 mb-2">Período rápido</p>
+                        <p className="text-xs font-semibold text-white/60 mb-2">Período rápido</p>
                         <div className="flex gap-2">
                             {PERIODS.map(p => (
                                 <button key={p.label} onClick={() => applyPeriod(p.days)}
-                                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-gray-100 hover:bg-gray-200 text-gray-700 transition">
+                                    className="px-3 py-1.5 rounded-lg text-xs font-medium bg-white/10 hover:bg-gray-200 text-white/80 transition">
                                     {p.label}
                                 </button>
                             ))}
@@ -173,30 +178,30 @@ export default function CashClosesReportPage() {
                     </div>
                     <div className="flex gap-2 items-end">
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 mb-1">Desde</label>
+                            <label className="block text-xs font-semibold text-white/60 mb-1">Desde</label>
                             <input type="date" value={fromDate} onChange={e => setFromDate(e.target.value)}
-                                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300" />
+                                className="border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300" />
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 mb-1">Hasta</label>
+                            <label className="block text-xs font-semibold text-white/60 mb-1">Hasta</label>
                             <input type="date" value={toDate} onChange={e => setToDate(e.target.value)}
-                                className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300" />
+                                className="border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300" />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-semibold text-gray-500 mb-1">Sucursal</label>
+                        <label className="block text-xs font-semibold text-white/60 mb-1">Sucursal</label>
                         <select value={branchFilter} onChange={e => setBranchFilter(e.target.value)}
-                            className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
+                            className="border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-slate-300">
                             <option value="">Todas</option>
                             {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                         </select>
                     </div>
                     <div className="relative flex-1 min-w-[180px]">
-                        <label className="block text-xs font-semibold text-gray-500 mb-1">Buscar</label>
+                        <label className="block text-xs font-semibold text-white/60 mb-1">Buscar</label>
                         <div className="relative">
-                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                            <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/40" />
                             <input type="text" placeholder="Sucursal…" value={search} onChange={e => setSearch(e.target.value)}
-                                className="w-full pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300" />
+                                className="w-full pl-9 pr-3 py-2 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-slate-300" />
                         </div>
                     </div>
                 </div>
@@ -205,13 +210,13 @@ export default function CashClosesReportPage() {
                 {summary && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                         {[
-                            { label: 'Total ventas',    value: fmt(summary.totalSales),    color: 'text-gray-900' },
+                            { label: 'Total ventas',    value: fmt(summary.totalSales),    color: 'text-white/90' },
                             { label: 'Efectivo',        value: fmt(summary.totalCash),     color: 'text-green-700' },
                             { label: 'Tarjeta',         value: fmt(summary.totalCard),     color: 'text-blue-700' },
                             { label: 'Transferencia',   value: fmt(summary.totalTransfer), color: 'text-purple-700' },
                         ].map(k => (
-                            <div key={k.label} className="bg-white rounded-2xl shadow p-5">
-                                <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide">{k.label}</p>
+                            <div key={k.label} className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow p-5">
+                                <p className="text-xs text-white/40 font-semibold uppercase tracking-wide">{k.label}</p>
                                 <p className={`text-2xl font-bold mt-1 ${k.color}`}>{k.value}</p>
                             </div>
                         ))}
@@ -220,21 +225,21 @@ export default function CashClosesReportPage() {
 
                 {/* Tabla */}
                 {loading ? (
-                    <div className="text-center py-16 text-gray-400">Cargando…</div>
+                    <div className="text-center py-16 text-white/40">Cargando…</div>
                 ) : (
-                    <div className="bg-white rounded-2xl shadow overflow-hidden">
+                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow overflow-hidden">
                         <table className="w-full text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-white/5 border-b border-white/10">
                                 <tr>
-                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600 w-8"></th>
-                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Sucursal</th>
-                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Cajero</th>
-                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Apertura</th>
-                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Cierre</th>
-                                    <th className="text-right px-5 py-3.5 font-semibold text-gray-600">Ventas</th>
-                                    <th className="text-right px-5 py-3.5 font-semibold text-gray-600">Gastos</th>
-                                    <th className="text-right px-5 py-3.5 font-semibold text-gray-600">Diferencia</th>
-                                    <th className="text-center px-5 py-3.5 font-semibold text-gray-600">Estado</th>
+                                    <th className="text-left px-5 py-3.5 font-semibold text-white/70 w-8"></th>
+                                    <th className="text-left px-5 py-3.5 font-semibold text-white/70">Sucursal</th>
+                                    <th className="text-left px-5 py-3.5 font-semibold text-white/70">Cajero</th>
+                                    <th className="text-left px-5 py-3.5 font-semibold text-white/70">Apertura</th>
+                                    <th className="text-left px-5 py-3.5 font-semibold text-white/70">Cierre</th>
+                                    <th className="text-right px-5 py-3.5 font-semibold text-white/70">Ventas</th>
+                                    <th className="text-right px-5 py-3.5 font-semibold text-white/70">Gastos</th>
+                                    <th className="text-right px-5 py-3.5 font-semibold text-white/70">Diferencia</th>
+                                    <th className="text-center px-5 py-3.5 font-semibold text-white/70">Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -243,23 +248,23 @@ export default function CashClosesReportPage() {
                                     return (
                                         <>
                                             <tr key={c.id}
-                                                className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                                                className="border-b border-white/10 hover:bg-white/5 cursor-pointer"
                                                 onClick={() => toggleExpand(c.id)}>
-                                                <td className="px-5 py-3.5 text-gray-400">
+                                                <td className="px-5 py-3.5 text-white/40">
                                                     {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                                                 </td>
                                                 <td className="px-5 py-3.5">
-                                                    <p className="font-medium text-gray-900">{c.branch.name}</p>
+                                                    <p className="font-medium text-white/90">{c.branch.name}</p>
                                                 </td>
                                                 <td className="px-5 py-3.5">
-                                                    <span className="flex items-center gap-1.5 text-xs text-gray-600">
-                                                        <User className="h-3.5 w-3.5 text-gray-400" />
+                                                    <span className="flex items-center gap-1.5 text-xs text-white/70">
+                                                        <User className="h-3.5 w-3.5 text-white/40" />
                                                         {c.user?.name || '—'}
                                                     </span>
                                                 </td>
-                                                <td className="px-5 py-3.5 text-gray-500 text-xs">{fmtDate(c.openedAt)}</td>
-                                                <td className="px-5 py-3.5 text-gray-500 text-xs">{fmtDate(c.closedAt)}</td>
-                                                <td className="px-5 py-3.5 text-right font-semibold text-gray-900">{fmt(c.totalSales)}</td>
+                                                <td className="px-5 py-3.5 text-white/60 text-xs">{fmtDate(c.openedAt)}</td>
+                                                <td className="px-5 py-3.5 text-white/60 text-xs">{fmtDate(c.closedAt)}</td>
+                                                <td className="px-5 py-3.5 text-right font-semibold text-white/90">{fmt(c.totalSales)}</td>
                                                 <td className="px-5 py-3.5 text-right font-semibold text-red-600">{fmt(c.totalExpenses)}</td>
                                                 <td className={`px-5 py-3.5 text-right font-semibold ${(c.difference ?? 0) < 0 ? 'text-red-600' : 'text-green-600'}`}>
                                                     {fmt(c.difference)}
@@ -285,7 +290,7 @@ export default function CashClosesReportPage() {
                                                                 {/* KPIs del turno */}
                                                                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
                                                                     {[
-                                                                        { label: '💰 Apertura', val: fmt(c.openingAmount), color: 'text-gray-700' },
+                                                                        { label: '💰 Apertura', val: fmt(c.openingAmount), color: 'text-white/80' },
                                                                         { label: '💵 Efectivo ventas', val: fmt(c.cashSales), color: 'text-green-700' },
                                                                         { label: '💳 Tarjeta', val: fmt(c.cardSales), color: 'text-blue-700' },
                                                                         { label: '📲 Transferencia', val: fmt(c.transferSales), color: 'text-purple-700' },
@@ -293,8 +298,8 @@ export default function CashClosesReportPage() {
                                                                         { label: '📊 Neto', val: fmt(c.netCash), color: 'text-slate-800' },
                                                                         { label: '📦 Ventas (#)', val: String(detail.totals.salesCount), color: 'text-indigo-700' },
                                                                     ].map(k => (
-                                                                        <div key={k.label} className="bg-white rounded-xl border border-gray-100 px-3 py-2.5">
-                                                                            <p className="text-xs text-gray-400">{k.label}</p>
+                                                                        <div key={k.label} className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl border border-white/10 px-3 py-2.5">
+                                                                            <p className="text-xs text-white/40">{k.label}</p>
                                                                             <p className={`text-base font-bold mt-0.5 ${k.color}`}>{k.val}</p>
                                                                         </div>
                                                                     ))}
@@ -305,30 +310,30 @@ export default function CashClosesReportPage() {
                                                                     <div>
                                                                         <div className="flex items-center gap-2 mb-2">
                                                                             <ShoppingCart className="h-4 w-4 text-indigo-500" />
-                                                                            <h3 className="font-bold text-gray-800 text-sm">
+                                                                            <h3 className="font-bold text-white/90 text-sm">
                                                                                 Ventas del turno ({detail.sales.length})
                                                                             </h3>
                                                                         </div>
                                                                         {detail.sales.length === 0 ? (
-                                                                            <p className="text-xs text-gray-400 italic py-4 text-center">Sin ventas en este turno</p>
+                                                                            <p className="text-xs text-white/40 italic py-4 text-center">Sin ventas en este turno</p>
                                                                         ) : (
-                                                                            <div className="rounded-xl border border-gray-100 overflow-hidden max-h-72 overflow-y-auto">
+                                                                            <div className="rounded-xl border border-white/10 overflow-hidden max-h-72 overflow-y-auto">
                                                                                 {detail.sales.map(sale => (
-                                                                                    <div key={sale.id} className="border-b border-gray-50 last:border-0 px-3 py-2.5 bg-white hover:bg-gray-50">
+                                                                                    <div key={sale.id} className="border-b border-gray-50 last:border-0 px-3 py-2.5 bg-white/5 border border-white/10 backdrop-blur-md hover:bg-white/5">
                                                                                         <div className="flex items-center justify-between gap-2">
-                                                                                            <span className="font-mono text-xs text-gray-400 flex-shrink-0">{sale.saleNumber}</span>
-                                                                                            <div className="flex items-center gap-1 text-xs text-gray-500 flex-shrink-0">
+                                                                                            <span className="font-mono text-xs text-white/40 flex-shrink-0">{sale.saleNumber}</span>
+                                                                                            <div className="flex items-center gap-1 text-xs text-white/60 flex-shrink-0">
                                                                                                 {METHOD_ICON[sale.paymentMethod]}
                                                                                                 {METHOD_LABEL[sale.paymentMethod] || sale.paymentMethod}
                                                                                             </div>
-                                                                                            <span className="text-xs text-gray-400 flex-shrink-0">{fmtTime(sale.createdAt)}</span>
-                                                                                            <span className="font-bold text-gray-900 text-sm ml-auto flex-shrink-0">{fmt(sale.totalAmount)}</span>
+                                                                                            <span className="text-xs text-white/40 flex-shrink-0">{fmtTime(sale.createdAt)}</span>
+                                                                                            <span className="font-bold text-white/90 text-sm ml-auto flex-shrink-0">{fmt(sale.totalAmount)}</span>
                                                                                         </div>
                                                                                         {/* Items de la venta */}
                                                                                         {sale.items.length > 0 && (
-                                                                                            <div className="mt-1 pl-2 border-l-2 border-gray-100 space-y-0.5">
+                                                                                            <div className="mt-1 pl-2 border-l-2 border-white/10 space-y-0.5">
                                                                                                 {sale.items.map((item, i) => (
-                                                                                                    <p key={i} className="text-xs text-gray-400">
+                                                                                                    <p key={i} className="text-xs text-white/40">
                                                                                                         {item.quantity}× {item.product.name}
                                                                                                         <span className="ml-1 text-gray-300">— {fmt(item.quantity * item.unitPrice)}</span>
                                                                                                     </p>
@@ -346,7 +351,7 @@ export default function CashClosesReportPage() {
                                                                         <div className="flex items-center justify-between mb-2">
                                                                             <div className="flex items-center gap-2">
                                                                                 <AlertCircle className="h-4 w-4 text-red-400" />
-                                                                                <h3 className="font-bold text-gray-800 text-sm">
+                                                                                <h3 className="font-bold text-white/90 text-sm">
                                                                                     Gastos del turno ({detail.expenses.length})
                                                                                 </h3>
                                                                             </div>
@@ -357,25 +362,25 @@ export default function CashClosesReportPage() {
                                                                             )}
                                                                         </div>
                                                                         {detail.expenses.length === 0 ? (
-                                                                            <p className="text-xs text-gray-400 italic py-4 text-center">Sin gastos registrados en este turno</p>
+                                                                            <p className="text-xs text-white/40 italic py-4 text-center">Sin gastos registrados en este turno</p>
                                                                         ) : (
                                                                             <div className="rounded-xl border border-red-100 overflow-hidden max-h-72 overflow-y-auto">
                                                                                 {detail.expenses.map(exp => (
                                                                                     <div key={exp.id} className="border-b border-red-50 last:border-0 px-3 py-2.5 bg-red-50/30 hover:bg-red-50/60">
                                                                                         <div className="flex items-center gap-2">
                                                                                             <div className="flex-1 min-w-0">
-                                                                                                <p className="font-medium text-gray-800 text-xs truncate">{exp.description}</p>
+                                                                                                <p className="font-medium text-white/90 text-xs truncate">{exp.description}</p>
                                                                                                 {exp.supplier && (
-                                                                                                    <p className="text-xs text-gray-400">Proveedor: {exp.supplier}</p>
+                                                                                                    <p className="text-xs text-white/40">Proveedor: {exp.supplier}</p>
                                                                                                 )}
                                                                                             </div>
                                                                                             <div className="text-right flex-shrink-0 space-y-0.5">
                                                                                                 <p className="font-bold text-red-600 text-sm">{fmt(exp.amount)}</p>
                                                                                                 <div className="flex items-center gap-1 justify-end">
-                                                                                                    <span className="text-xs text-gray-400">{CATEGORY_LABEL[exp.category] ?? exp.category}</span>
+                                                                                                    <span className="text-xs text-white/40">{CATEGORY_LABEL[exp.category] ?? exp.category}</span>
                                                                                                     <span className="text-gray-300">·</span>
                                                                                                     {METHOD_ICON[exp.paymentMethod]}
-                                                                                                    <span className="text-xs text-gray-400">{METHOD_LABEL[exp.paymentMethod]}</span>
+                                                                                                    <span className="text-xs text-white/40">{METHOD_LABEL[exp.paymentMethod]}</span>
                                                                                                 </div>
                                                                                             </div>
                                                                                         </div>
@@ -417,7 +422,7 @@ export default function CashClosesReportPage() {
                                                                 </div>
 
                                                                 {c.notes && (
-                                                                    <p className="text-xs text-gray-400 italic">📝 Nota: "{c.notes}"</p>
+                                                                    <p className="text-xs text-white/40 italic">📝 Nota: "{c.notes}"</p>
                                                                 )}
                                                             </div>
                                                         ) : null}
@@ -428,11 +433,11 @@ export default function CashClosesReportPage() {
                                     );
                                 })}
                                 {filtered.length === 0 && (
-                                    <tr><td colSpan={9} className="px-5 py-12 text-center text-gray-400">No hay registros en el período seleccionado</td></tr>
+                                    <tr><td colSpan={9} className="px-5 py-12 text-center text-white/40">No hay registros en el período seleccionado</td></tr>
                                 )}
                             </tbody>
                         </table>
-                        <div className="px-5 py-3 text-xs text-gray-400 bg-gray-50 border-t">
+                        <div className="px-5 py-3 text-xs text-white/40 bg-white/5 border-t">
                             {filtered.length} sesion{filtered.length !== 1 ? 'es' : ''}
                             {summary && ` — ${summary.openSessions} abierta${summary.openSessions !== 1 ? 's' : ''}, ${summary.closedSessions} cerrada${summary.closedSessions !== 1 ? 's' : ''}`}
                         </div>

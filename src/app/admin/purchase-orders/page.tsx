@@ -26,7 +26,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string }> = {
     SENT: { label: 'Enviado', color: 'bg-blue-100 text-blue-700' },
     PARTIAL: { label: 'Parcial', color: 'bg-orange-100 text-orange-700' },
     RECEIVED: { label: 'Recibido', color: 'bg-green-100 text-green-700' },
-    CANCELLED: { label: 'Cancelado', color: 'bg-gray-100 text-gray-500' },
+    CANCELLED: { label: 'Cancelado', color: 'bg-white/10 text-white/60' },
 };
 
 function fmt(n: number) { return 'Bs. ' + n.toFixed(2); }
@@ -163,7 +163,12 @@ export default function PurchaseOrdersPage() {
     const totalSpent = orders.filter(o => o.status === 'RECEIVED').reduce((s, o) => s + o.totalAmount, 0);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6 md:p-8">
+        <div className="min-h-screen relative overflow-hidden p-6 md:p-8" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
             {/* Toast */}
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
@@ -172,17 +177,17 @@ export default function PurchaseOrdersPage() {
                 </div>
             )}
 
-            <div className="max-w-6xl mx-auto space-y-6">
+            <div className="relative z-10 max-w-6xl mx-auto space-y-6">
                 {/* Header */}
                 <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+                        <Link href="/admin" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
                             <ArrowLeft className="h-4 w-4" /> Admin
                         </Link>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                             <ShoppingBag className="h-7 w-7 text-indigo-600" /> Pedidos a Proveedores
                         </h1>
-                        <p className="text-gray-500 text-sm mt-1">Gestioná compras de materia prima e insumos</p>
+                        <p className="text-white/60 text-sm mt-1">Gestioná compras de materia prima e insumos</p>
                     </div>
                     <button onClick={() => setShowForm(true)}
                         className="flex items-center gap-2 bg-indigo-600 hover:bg-indigo-700 text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-md">
@@ -199,24 +204,24 @@ export default function PurchaseOrdersPage() {
                         { label: 'Total gastado', val: fmt(totalSpent), color: 'bg-indigo-50 border-indigo-200', tc: 'text-indigo-700' },
                     ].map(k => (
                         <div key={k.label} className={`border rounded-2xl p-4 ${k.color}`}>
-                            <p className="text-xs font-medium text-gray-500">{k.label}</p>
+                            <p className="text-xs font-medium text-white/60">{k.label}</p>
                             <p className={`text-2xl font-black mt-1 ${k.tc}`}>{k.val}</p>
                         </div>
                     ))}
                 </div>
 
                 {/* Filtros */}
-                <div className="bg-white rounded-2xl shadow p-4 flex flex-wrap gap-3 items-center">
+                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow p-4 flex flex-wrap gap-3 items-center">
                     <div className="relative flex-1 min-w-48">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                         <input value={search} onChange={e => setSearch(e.target.value)}
                             placeholder="Buscar por proveedor o N° pedido…"
-                            className="pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                            className="pl-9 pr-3 py-2 border border-white/10 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-indigo-300" />
                     </div>
                     <div className="flex gap-2 flex-wrap">
                         {['', ...Object.keys(STATUS_CONFIG)].map(s => (
                             <button key={s} onClick={() => setStatusFilter(s)}
-                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${statusFilter === s ? 'bg-indigo-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition ${statusFilter === s ? 'bg-indigo-600 text-white' : 'bg-white/10 text-white/70 hover:bg-gray-200'}`}>
                                 {s ? STATUS_CONFIG[s].label : 'Todos'}
                             </button>
                         ))}
@@ -225,9 +230,9 @@ export default function PurchaseOrdersPage() {
 
                 {/* Lista de pedidos */}
                 {loading ? (
-                    <div className="text-center py-20 text-gray-400"><Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" /> Cargando…</div>
+                    <div className="text-center py-20 text-white/40"><Loader2 className="h-8 w-8 animate-spin mx-auto mb-2" /> Cargando…</div>
                 ) : filteredOrders.length === 0 ? (
-                    <div className="text-center py-20 text-gray-400">
+                    <div className="text-center py-20 text-white/40">
                         <ShoppingBag className="h-12 w-12 mx-auto mb-3 opacity-30" />
                         <p>No hay pedidos registrados aún</p>
                         <button onClick={() => setShowForm(true)} className="mt-3 text-indigo-600 hover:underline text-sm">Crear el primero</button>
@@ -237,43 +242,43 @@ export default function PurchaseOrdersPage() {
                         {filteredOrders.map(order => {
                             const cfg = STATUS_CONFIG[order.status] || STATUS_CONFIG.PENDING;
                             return (
-                                <div key={order.id} className="bg-white rounded-2xl shadow border border-gray-100 p-5">
+                                <div key={order.id} className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow border border-white/10 p-5">
                                     <div className="flex items-start justify-between flex-wrap gap-3">
                                         <div>
                                             <div className="flex items-center gap-2 mb-1">
-                                                <span className="font-mono text-xs text-gray-400">{order.orderNumber}</span>
+                                                <span className="font-mono text-xs text-white/40">{order.orderNumber}</span>
                                                 <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cfg.color}`}>{cfg.label}</span>
                                             </div>
-                                            <p className="font-bold text-gray-900 text-lg">{order.supplier}</p>
-                                            <p className="text-xs text-gray-500 mt-0.5">
+                                            <p className="font-bold text-white/90 text-lg">{order.supplier}</p>
+                                            <p className="text-xs text-white/60 mt-0.5">
                                                 {order.branch.name} · {order.user.name} ·{' '}
                                                 {new Date(order.createdAt).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                 {order.expectedDate && ` · Esperado: ${new Date(order.expectedDate).toLocaleDateString('es-BO')}`}
                                             </p>
                                         </div>
                                         <div className="text-right">
-                                            <p className="text-xs text-gray-400">Total</p>
+                                            <p className="text-xs text-white/40">Total</p>
                                             <p className="text-2xl font-black text-indigo-700">{fmt(order.totalAmount)}</p>
                                         </div>
                                     </div>
                                     {/* Items */}
                                     <div className="mt-3 border-t border-gray-50 pt-3 grid grid-cols-1 sm:grid-cols-2 gap-1.5">
                                         {order.items.map((item, i) => (
-                                            <div key={i} className="flex items-center justify-between text-sm text-gray-600">
+                                            <div key={i} className="flex items-center justify-between text-sm text-white/70">
                                                 <span className="flex items-center gap-1.5">
-                                                    <Package className="h-3.5 w-3.5 text-gray-400" />
+                                                    <Package className="h-3.5 w-3.5 text-white/40" />
                                                     {item.product.name}
-                                                    <span className="text-gray-400 text-xs">{item.quantity} {item.product.unit}</span>
+                                                    <span className="text-white/40 text-xs">{item.quantity} {item.product.unit}</span>
                                                 </span>
-                                                <span className="text-gray-800 font-medium">{fmt(item.subtotal)}</span>
+                                                <span className="text-white/90 font-medium">{fmt(item.subtotal)}</span>
                                             </div>
                                         ))}
                                     </div>
-                                    {order.notes && <p className="text-xs text-gray-400 italic mt-2">"{order.notes}"</p>}
+                                    {order.notes && <p className="text-xs text-white/40 italic mt-2">"{order.notes}"</p>}
 
                                     {/* Acciones de estado */}
                                     {order.status !== 'RECEIVED' && order.status !== 'CANCELLED' && (
-                                        <div className="mt-3 pt-3 border-t border-gray-100 flex flex-wrap gap-2">
+                                        <div className="mt-3 pt-3 border-t border-white/10 flex flex-wrap gap-2">
                                             {order.status === 'PENDING' && (
                                                 <button
                                                     onClick={() => changeStatus(order.id, 'SENT')}
@@ -295,13 +300,13 @@ export default function PurchaseOrdersPage() {
                                             <button
                                                 onClick={() => changeStatus(order.id, 'CANCELLED')}
                                                 disabled={changingId === order.id}
-                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-gray-100 hover:bg-red-50 hover:text-red-600 text-gray-500 rounded-lg text-xs font-semibold transition">
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-white/10 hover:bg-red-50 hover:text-red-600 text-white/60 rounded-lg text-xs font-semibold transition">
                                                 <Ban className="h-3.5 w-3.5" /> Cancelar
                                             </button>
                                         </div>
                                     )}
                                     {order.status === 'RECEIVED' && (
-                                        <p className="mt-3 pt-3 border-t border-gray-100 text-xs text-green-600 font-medium flex items-center gap-1">
+                                        <p className="mt-3 pt-3 border-t border-white/10 text-xs text-green-600 font-medium flex items-center gap-1">
                                             <PackageCheck className="h-3.5 w-3.5" /> Stock actualizado en inventario
                                         </p>
                                     )}
@@ -315,12 +320,12 @@ export default function PurchaseOrdersPage() {
             {/* Modal de nuevo pedido */}
             {showForm && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center overflow-y-auto py-8 px-4">
-                    <div className="bg-white rounded-2xl shadow-2xl w-full max-w-2xl">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                            <h2 className="text-xl font-bold text-gray-900 flex items-center gap-2">
+                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-2xl">
+                        <div className="flex items-center justify-between p-6 border-b border-white/10">
+                            <h2 className="text-xl font-bold text-white/90 flex items-center gap-2">
                                 <ShoppingBag className="h-5 w-5 text-indigo-600" /> Nuevo Pedido
                             </h2>
-                            <button onClick={() => setShowForm(false)} className="text-gray-400 hover:text-gray-600">
+                            <button onClick={() => setShowForm(false)} className="text-white/40 hover:text-white/70">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
@@ -329,44 +334,44 @@ export default function PurchaseOrdersPage() {
                             {/* Sucursal y Proveedor */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Sucursal *</label>
+                                    <label className="text-xs font-semibold text-white/70 block mb-1.5">Sucursal *</label>
                                     {isAdmin ? (
                                         <select required value={form.branchId} onChange={e => setForm(f => ({ ...f, branchId: e.target.value }))}
-                                            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
+                                            className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
                                             <option value="">Seleccioná</option>
                                             {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                                         </select>
                                     ) : (
                                         <input value={branches.find(b => b.id === form.branchId)?.name || ''} disabled
-                                            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50" />
+                                            className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white/5" />
                                     )}
                                 </div>
                                 <div>
-                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Proveedor *</label>
+                                    <label className="text-xs font-semibold text-white/70 block mb-1.5">Proveedor *</label>
                                     <input required value={form.supplier} onChange={e => setForm(f => ({ ...f, supplier: e.target.value }))}
                                         placeholder="Nombre del proveedor"
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
                                 </div>
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5"><Calendar className="h-3 w-3 inline mr-1" />Fecha esperada</label>
+                                    <label className="text-xs font-semibold text-white/70 block mb-1.5"><Calendar className="h-3 w-3 inline mr-1" />Fecha esperada</label>
                                     <input type="date" value={form.expectedDate} onChange={e => setForm(f => ({ ...f, expectedDate: e.target.value }))}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Notas</label>
+                                    <label className="text-xs font-semibold text-white/70 block mb-1.5">Notas</label>
                                     <input value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                                         placeholder="Observaciones…"
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
                                 </div>
                             </div>
 
                             {/* Items del pedido */}
                             <div>
                                 <div className="flex items-center justify-between mb-2">
-                                    <label className="text-xs font-semibold text-gray-600">Productos *</label>
+                                    <label className="text-xs font-semibold text-white/70">Productos *</label>
                                     <button type="button" onClick={addItem}
                                         className="flex items-center gap-1 text-xs text-indigo-600 hover:text-indigo-800 font-medium">
                                         <Plus className="h-3.5 w-3.5" /> Agregar producto
@@ -374,7 +379,7 @@ export default function PurchaseOrdersPage() {
                                 </div>
                                 <div className="space-y-3">
                                     {items.map((item, i) => (
-                                        <div key={i} className="border border-gray-200 rounded-xl p-3 space-y-2">
+                                        <div key={i} className="border border-white/10 rounded-xl p-3 space-y-2">
                                             {/* Buscador de producto */}
                                             <div className="relative">
                                                 {item.productId ? (
@@ -386,17 +391,17 @@ export default function PurchaseOrdersPage() {
                                                     </div>
                                                 ) : (
                                                     <>
-                                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-gray-400" />
+                                                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-3.5 w-3.5 text-white/40" />
                                                         <input value={productSearch[i] || ''}
                                                             onChange={e => setProductSearch(p => ({ ...p, [i]: e.target.value }))}
                                                             placeholder="Buscar producto…"
-                                                            className="w-full pl-8 pr-3 py-2 border border-gray-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
+                                                            className="w-full pl-8 pr-3 py-2 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
                                                         {productSearch[i] && (
-                                                            <div className="absolute top-full left-0 right-0 border border-gray-200 bg-white rounded-lg shadow-lg z-10 max-h-32 overflow-y-auto">
+                                                            <div className="absolute top-full left-0 right-0 border border-white/10 bg-white/5 border border-white/10 backdrop-blur-md rounded-lg shadow-lg z-10 max-h-32 overflow-y-auto">
                                                                 {products.filter(p => p.name.toLowerCase().includes((productSearch[i] || '').toLowerCase()) || p.sku.toLowerCase().includes((productSearch[i] || '').toLowerCase())).slice(0, 8).map(p => (
                                                                     <button key={p.id} type="button" onClick={() => selectProduct(i, p)}
                                                                         className="w-full text-left px-3 py-2 hover:bg-indigo-50 text-sm">
-                                                                        {p.name} <span className="text-gray-400 text-xs">{p.sku}</span>
+                                                                        {p.name} <span className="text-white/40 text-xs">{p.sku}</span>
                                                                     </button>
                                                                 ))}
                                                             </div>
@@ -406,22 +411,22 @@ export default function PurchaseOrdersPage() {
                                             </div>
                                             <div className="grid grid-cols-3 gap-2">
                                                 <div>
-                                                    <label className="text-xs text-gray-500">Cantidad *</label>
+                                                    <label className="text-xs text-white/60">Cantidad *</label>
                                                     <input type="number" min="0.01" step="0.01" value={item.quantity === 0 ? '' : item.quantity}
                                                         onChange={e => updateItem(i, 'quantity', e.target.value)}
-                                                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300" />
+                                                        className="w-full border border-white/10 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300" />
                                                 </div>
                                                 <div>
-                                                    <label className="text-xs text-gray-500">Costo unit. (Bs.)</label>
+                                                    <label className="text-xs text-white/60">Costo unit. (Bs.)</label>
                                                     <input type="number" min="0" step="0.01" value={item.unitCost === 0 ? '' : item.unitCost}
                                                         onChange={e => updateItem(i, 'unitCost', e.target.value)}
                                                         placeholder=""
-                                                        className="w-full border border-gray-200 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300" />
+                                                        className="w-full border border-white/10 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300" />
                                                 </div>
                                                 <div className="flex items-end gap-2">
                                                     <div className="flex-1">
-                                                        <label className="text-xs text-gray-500">Subtotal</label>
-                                                        <p className="text-sm font-semibold text-gray-800 py-2 px-2 bg-gray-50 rounded-lg">
+                                                        <label className="text-xs text-white/60">Subtotal</label>
+                                                        <p className="text-sm font-semibold text-white/90 py-2 px-2 bg-white/5 rounded-lg">
                                                             {fmt(parseFloat(item.quantity || '0') * parseFloat(item.unitCost || '0'))}
                                                         </p>
                                                     </div>
@@ -449,7 +454,7 @@ export default function PurchaseOrdersPage() {
 
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowForm(false)}
-                                    className="flex-1 border border-gray-200 text-gray-600 py-3 rounded-xl font-semibold hover:bg-gray-50 transition">
+                                    className="flex-1 border border-white/10 text-white/70 py-3 rounded-xl font-semibold hover:bg-white/5 transition">
                                     Cancelar
                                 </button>
                                 <button type="submit" disabled={submitting}

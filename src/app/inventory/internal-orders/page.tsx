@@ -32,11 +32,11 @@ type Branch = { id: string; name: string; type: string };
 type Product = { id: string; name: string; sku: string; unit: string };
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: React.ReactNode }> = {
-    PENDING: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-700', icon: <Clock className="h-3.5 w-3.5" /> },
-    APPROVED: { label: 'Aprobado', color: 'bg-blue-100 text-blue-700', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
+    PENDING: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-400', icon: <Clock className="h-3.5 w-3.5" /> },
+    APPROVED: { label: 'Aprobado', color: 'bg-blue-500/20 text-blue-400', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
     DISPATCHED: { label: 'Despachado', color: 'bg-purple-100 text-purple-700', icon: <Truck className="h-3.5 w-3.5" /> },
-    RECEIVED: { label: 'Recibido', color: 'bg-green-100 text-green-700', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
-    CANCELLED: { label: 'Cancelado', color: 'bg-red-100 text-red-700', icon: <XCircle className="h-3.5 w-3.5" /> },
+    RECEIVED: { label: 'Recibido', color: 'bg-green-100 text-green-400', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
+    CANCELLED: { label: 'Cancelado', color: 'bg-red-100 text-red-400', icon: <XCircle className="h-3.5 w-3.5" /> },
 };
 
 export default function InternalOrdersPage() {
@@ -223,7 +223,12 @@ export default function InternalOrdersPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
                     {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
@@ -234,13 +239,13 @@ export default function InternalOrdersPage() {
             <div className="max-w-5xl mx-auto">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <Link href="/inventory" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
-                            <ArrowLeft className="h-4 w-4" /> Volver a Inventario
+                        <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
+                            <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
                         </Link>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            <Truck className="h-8 w-8 text-blue-600" /> Pedidos Internos
+                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
+                            <Truck className="h-8 w-8 text-blue-400" /> Pedidos Internos
                         </h1>
-                        <p className="text-gray-500 mt-1 text-sm">Solicitudes de stock de sucursales a la fábrica</p>
+                        <p className="text-white/60 mt-1 text-sm">Solicitudes de stock de sucursales a la fábrica</p>
                     </div>
                     <button
                         onClick={() => setShowModal(true)}
@@ -251,10 +256,10 @@ export default function InternalOrdersPage() {
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-20 text-gray-400">Cargando pedidos...</div>
+                    <div className="text-center py-20 text-white/40">Cargando pedidos...</div>
                 ) : orders.length === 0 ? (
-                    <div className="text-center py-20 text-gray-400">
-                        <Package className="h-12 w-12 mx-auto mb-3 text-gray-300" />
+                    <div className="text-center py-20 text-white/40">
+                        <Package className="h-12 w-12 mx-auto mb-3 text-white/30" />
                         <p>No hay pedidos internos registrados</p>
                     </div>
                 ) : (
@@ -265,28 +270,28 @@ export default function InternalOrdersPage() {
                             const canApproveOrDispatch = isSystemAdmin || user?.branchIds?.includes(order.toBranch.id);
                             const canReceive = isSystemAdmin || user?.branchIds?.includes(order.fromBranch.id);
                             return (
-                                <div key={order.id} className="bg-white rounded-2xl shadow-sm border border-gray-100">
+                                <div key={order.id} className="bg-white/5/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10">
                                     <div
                                         className="flex items-center justify-between p-5 cursor-pointer"
                                         onClick={() => setExpanded(isExpanded ? null : order.id)}
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className="text-center">
-                                                <p className="font-mono font-bold text-gray-800 text-sm">{order.orderNumber}</p>
-                                                <p className="text-xs text-gray-400">{new Date(order.requestedAt).toLocaleDateString('es')}</p>
+                                                <p className="font-mono font-bold text-white/80 text-sm">{order.orderNumber}</p>
+                                                <p className="text-xs text-white/40">{new Date(order.requestedAt).toLocaleDateString('es')}</p>
                                             </div>
                                             <div>
-                                                <p className="font-medium text-gray-900 text-sm">
+                                                <p className="font-medium text-white/90 text-sm">
                                                     {order.fromBranch.name} → {order.toBranch.name}
                                                 </p>
-                                                <p className="text-xs text-gray-500">Solicitado por: {order.requestedBy}</p>
+                                                <p className="text-xs text-white/60">Solicitado por: {order.requestedBy}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${config.color}`}>
                                                 {config.icon} {config.label}
                                             </span>
-                                            <span className="text-xs text-gray-400">{order.items.length} ítem{order.items.length !== 1 ? 's' : ''}</span>
+                                            <span className="text-xs text-white/40">{order.items.length} ítem{order.items.length !== 1 ? 's' : ''}</span>
                                             {/* Botones de acción según estado */}
                                             {canApproveOrDispatch && order.status === 'PENDING' && (
                                                 <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
@@ -296,7 +301,7 @@ export default function InternalOrdersPage() {
                                                         {actionLoading === order.id + 'approve' ? '...' : 'Aprobar'}
                                                     </button>
                                                     <button onClick={() => handleOrderAction(order.id, 'cancel')} disabled={!!actionLoading}
-                                                        className="flex items-center gap-1 px-2.5 py-1 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-lg text-xs font-semibold disabled:opacity-50">
+                                                        className="flex items-center gap-1 px-2.5 py-1 bg-red-500/10 hover:bg-red-100 text-red-400 border border-red-200 rounded-lg text-xs font-semibold disabled:opacity-50">
                                                         <ThumbsDown className="h-3 w-3" />
                                                         {actionLoading === order.id + 'cancel' ? '...' : 'Rechazar'}
                                                     </button>
@@ -316,30 +321,30 @@ export default function InternalOrdersPage() {
                                                     {actionLoading === order.id + 'receive' ? '...' : 'Confirmar recepción'}
                                                 </button>
                                             )}
-                                            {isExpanded ? <ChevronUp className="h-4 w-4 text-gray-400" /> : <ChevronDown className="h-4 w-4 text-gray-400" />}
+                                            {isExpanded ? <ChevronUp className="h-4 w-4 text-white/40" /> : <ChevronDown className="h-4 w-4 text-white/40" />}
                                         </div>
                                     </div>
                                             {isExpanded && (
-                                                <div className="border-t border-gray-100 p-5">
+                                                <div className="border-t border-white/10 p-5">
                                                     {canApproveOrDispatch && order.status === 'PENDING' && (
-                                                        <div className="mb-4 flex items-center gap-2 bg-blue-50 p-3 rounded-xl border border-blue-100">
-                                                            <Truck className="h-4 w-4 text-blue-600" />
+                                                        <div className="mb-4 flex items-center gap-2 bg-blue-500/10 p-3 rounded-xl border border-blue-100">
+                                                            <Truck className="h-4 w-4 text-blue-400" />
                                                             <span className="text-sm font-semibold text-blue-900">Reasignar Fábrica:</span>
                                                             <select 
                                                                 value={order.toBranch.id}
                                                                 onChange={e => changeOrderFactory(order.id, e.target.value)}
                                                                 onClick={e => e.stopPropagation()}
-                                                                className="text-xs border border-blue-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white"
+                                                                className="text-xs border border-blue-500/30 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white/5/5"
                                                             >
                                                                 {branches.filter(b => b.type === 'FABRICA').map(b => (
-                                                                    <option key={b.id} value={b.id}>{b.name}</option>
+                                                                    <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>
                                                                 ))}
                                                             </select>
                                                         </div>
                                                     )}
                                                     <table className="w-full text-sm">
                                                         <thead>
-                                                            <tr className="text-left text-xs text-gray-500 font-semibold">
+                                                            <tr className="text-left text-xs text-white/60 font-semibold">
                                                                 <th className="pb-2">Producto</th>
                                                                 <th className="pb-2">SKU</th>
                                                                 <th className="pb-2">Solicitado</th>
@@ -351,11 +356,11 @@ export default function InternalOrdersPage() {
                                                 </thead>
                                                 <tbody>
                                                     {order.items.map(item => (
-                                                        <tr key={item.id} className="border-t border-gray-50">
-                                                            <td className="py-2 font-medium text-gray-900">{item.product.name}</td>
-                                                            <td className="py-2 font-mono text-xs text-gray-500">{item.product.sku}</td>
-                                                                <td className="py-2 text-gray-700">{item.requestedQty} {item.unit}</td>
-                                                                <td className="py-2 text-gray-700">
+                                                        <tr key={item.id} className="border-t border-white/5">
+                                                            <td className="py-2 font-medium text-white/90">{item.product.name}</td>
+                                                            <td className="py-2 font-mono text-xs text-white/60">{item.product.sku}</td>
+                                                                <td className="py-2 text-white/80">{item.requestedQty} {item.unit}</td>
+                                                                <td className="py-2 text-white/80">
                                                                     {canApproveOrDispatch && order.status === 'PENDING' ? (
                                                                         <input 
                                                                             type="number" 
@@ -370,7 +375,7 @@ export default function InternalOrdersPage() {
                                                                         item.approvedQty ?? '—'
                                                                     )}
                                                                 </td>
-                                                                <td className="py-2 text-gray-700">
+                                                                <td className="py-2 text-white/80">
                                                                     {canApproveOrDispatch && order.status === 'APPROVED' ? (
                                                                         <input 
                                                                             type="number" 
@@ -385,9 +390,9 @@ export default function InternalOrdersPage() {
                                                                         item.dispatchedQty ?? '—'
                                                                     )}
                                                                 </td>
-                                                                <td className="py-2 text-gray-700">{item.receivedQty ?? '—'}</td>
+                                                                <td className="py-2 text-white/80">{item.receivedQty ?? '—'}</td>
                                                                 <td className="py-2 text-right">
-                                                                    <span className={`text-xs font-semibold px-2 py-1 rounded-md ${item.currentFactoryStock < (item.approvedQty ?? item.requestedQty) ? 'bg-red-50 text-red-600 border border-red-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
+                                                                    <span className={`text-xs font-semibold px-2 py-1 rounded-md ${item.currentFactoryStock < (item.approvedQty ?? item.requestedQty) ? 'bg-red-500/10 text-red-400 border border-red-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
                                                                         {item.currentFactoryStock} {item.unit}
                                                                     </span>
                                                                 </td>
@@ -396,7 +401,7 @@ export default function InternalOrdersPage() {
                                                 </tbody>
                                             </table>
                                             {order.notes && (
-                                                <p className="text-xs text-gray-500 mt-3 bg-gray-50 rounded-lg px-3 py-2">📝 {order.notes}</p>
+                                                <p className="text-xs text-white/60 mt-3 bg-white/5/5/5 rounded-lg px-3 py-2">📝 {order.notes}</p>
                                             )}
                                         </div>
                                     )}
@@ -410,69 +415,69 @@ export default function InternalOrdersPage() {
             {/* Modal nuevo pedido */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 z-40 flex items-start justify-center p-4 overflow-y-auto pt-10">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                            <h2 className="text-lg font-bold text-gray-900">Nuevo Pedido Interno</h2>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600">
+                    <div className="bg-white/5/5 rounded-2xl shadow-xl w-full max-w-lg">
+                        <div className="flex items-center justify-between p-6 border-b border-white/10">
+                            <h2 className="text-lg font-bold text-white/90">Nuevo Pedido Interno</h2>
+                            <button onClick={() => setShowModal(false)} className="text-white/40 hover:text-white/70">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sucursal solicitante *</label>
+                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal solicitante *</label>
                                     {isAdmin ? (
                                         <select required value={form.fromBranchId} onChange={e => setForm(f => ({ ...f, fromBranchId: e.target.value }))}
-                                            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                            <option value="">Seleccionar...</option>
-                                            {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                            className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                            <option value="" className="text-white/90">Seleccionar...</option>
+                                            {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
                                         </select>
                                     ) : (
-                                        <div className="w-full border border-gray-100 bg-gray-50 rounded-xl px-3 py-2.5 text-sm text-gray-700 font-medium">
+                                        <div className="w-full border border-white/10 bg-white/5/5/5 rounded-xl px-3 py-2.5 text-sm text-white/80 font-medium">
                                             {branches.find(b => b.id === form.fromBranchId)?.name || 'Mi sucursal'}
                                         </div>
                                     )}
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sucursal receptora (fábrica) *</label>
+                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal receptora (fábrica) *</label>
                                     <select required value={form.toBranchId} onChange={e => setForm(f => ({ ...f, toBranchId: e.target.value }))}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                        <option value="">Seleccionar...</option>
-                                        {branches.filter(b => b.type === 'FABRICA').map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                        <option value="" className="text-white/90">Seleccionar...</option>
+                                        {branches.filter(b => b.type === 'FABRICA').map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
                                     </select>
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Solicitado por *</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Solicitado por *</label>
                                 <input required type="text" placeholder="Tu nombre" value={form.requestedBy}
                                     onChange={e => setForm(f => ({ ...f, requestedBy: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
                             </div>
 
-                            <div className="border border-gray-200 rounded-xl p-4">
+                            <div className="border border-white/20 rounded-xl p-4">
                                 <div className="flex items-center justify-between mb-3">
-                                    <h3 className="text-sm font-semibold text-gray-700">Productos solicitados</h3>
+                                    <h3 className="text-sm font-semibold text-white/80">Productos solicitados</h3>
                                     <button type="button" onClick={addItem}
-                                        className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1">
+                                        className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1">
                                         <Plus className="h-3.5 w-3.5" /> Agregar
                                     </button>
                                 </div>
                                 {form.items.map((item, idx) => (
                                     <div key={idx} className="flex gap-2 mb-2 items-center">
                                         <select required value={item.productId} onChange={e => updateItem(idx, 'productId', e.target.value)}
-                                            className="flex-1 border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300">
-                                            <option value="">Producto...</option>
-                                            {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
+                                            className="flex-1 border border-white/20 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300">
+                                            <option value="" className="text-white/90">Producto...</option>
+                                            {products.map(p => <option key={p.id} value={p.id} className="text-white/90">{p.name} ({p.sku})</option>)}
                                         </select>
                                         <input type="number" min="0.01" step="0.01" value={item.requestedQty === 0 ? '' : item.requestedQty}
                                             onChange={e => updateItem(idx, 'requestedQty', parseFloat(e.target.value))}
-                                            className="w-20 border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300" />
+                                            className="w-20 border border-white/20 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300" />
                                         <select value={item.unit} onChange={e => updateItem(idx, 'unit', e.target.value)}
-                                            className="w-20 border border-gray-200 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300">
+                                            className="w-20 border border-white/20 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300">
                                             {['unit', 'kg', 'gr', 'litro', 'ml', 'bolsa'].map(u => <option key={u}>{u}</option>)}
                                         </select>
                                         {form.items.length > 1 && (
-                                            <button type="button" onClick={() => removeItem(idx)} className="text-red-400 hover:text-red-600">
+                                            <button type="button" onClick={() => removeItem(idx)} className="text-red-400 hover:text-red-400">
                                                 <X className="h-4 w-4" />
                                             </button>
                                         )}
@@ -481,15 +486,15 @@ export default function InternalOrdersPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Notas</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Notas</label>
                                 <textarea rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                                     placeholder="Observaciones opcionales..."
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none" />
+                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none" />
                             </div>
 
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowModal(false)}
-                                    className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                                    className="flex-1 py-2.5 border border-white/20 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5/5/5 transition-colors">
                                     Cancelar
                                 </button>
                                 <button type="submit" disabled={submitting}

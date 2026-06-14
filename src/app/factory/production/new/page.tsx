@@ -71,7 +71,13 @@ export default function NewProductionPage() {
     const multiplier = selectedRecipe && form.plannedYield ? parseFloat(form.plannedYield) / selectedRecipe.yield : 0;
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E\")", backgroundSize: '56px 100px' }} />
+            </div>
+            <div className="relative z-10 h-full w-full">
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium max-w-sm whitespace-pre-line ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
                     {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4 shrink-0" /> : <AlertCircle className="h-4 w-4 shrink-0" />}
@@ -80,73 +86,73 @@ export default function NewProductionPage() {
             )}
             <div className="max-w-2xl mx-auto">
                 <div className="mb-8">
-                    <Link href="/factory/production" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+                    <Link href="/factory/production" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
                         <ArrowLeft className="h-4 w-4" /> Volver a Órdenes
                     </Link>
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                         <Plus className="h-8 w-8 text-green-600" /> Nueva Orden de Producción
                     </h1>
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-20 text-gray-400">Cargando recetas y sucursales…</div>
+                    <div className="text-center py-20 text-white/40">Cargando recetas y sucursales…</div>
                 ) : (
                     <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="bg-white rounded-2xl shadow p-6 space-y-5">
-                            <h2 className="font-semibold text-gray-800">Datos de la orden</h2>
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow p-6 space-y-5">
+                            <h2 className="font-semibold text-white/90">Datos de la orden</h2>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Receta *</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Receta *</label>
                                 <select required value={form.recipeId} onChange={handleRecipeChange}
-                                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-300">
+                                    className="w-full border border-white/10 rounded-xl px-4 py-2.5 text-sm bg-white/5 border border-white/10 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-green-300">
                                     <option value="">Seleccionar receta…</option>
                                     {recipes.map(r => <option key={r.id} value={r.id}>{r.name} (rinde {r.yield} {r.yieldUnit})</option>)}
                                 </select>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sucursal destino *</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal destino *</label>
                                 <select required value={form.branchId} onChange={e => setForm(f => ({ ...f, branchId: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-green-300">
+                                    className="w-full border border-white/10 rounded-xl px-4 py-2.5 text-sm bg-white/5 border border-white/10 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-green-300">
                                     <option value="">Seleccionar sucursal…</option>
                                     {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                                 </select>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">
                                     Cantidad a producir {selectedRecipe ? `(${selectedRecipe.yieldUnit})` : ''} *
                                 </label>
                                 <input type="number" required min="0.01" step="0.01" placeholder={selectedRecipe ? `Ej: ${selectedRecipe.yield}` : '0'}
                                     value={form.plannedYield === 0 ? '' : form.plannedYield} onChange={e => setForm(f => ({ ...f, plannedYield: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                    className="w-full border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Fecha programada</label>
+                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Fecha programada</label>
                                     <input type="datetime-local" value={form.scheduledDate} onChange={e => setForm(f => ({ ...f, scheduledDate: e.target.value }))}
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                        className="w-full border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Fecha de vencimiento</label>
+                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Fecha de vencimiento</label>
                                     <input type="date" value={form.expirationDate} onChange={e => setForm(f => ({ ...f, expirationDate: e.target.value }))}
-                                        className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                        className="w-full border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Responsable / Operador *</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Responsable / Operador *</label>
                                 <input type="text" required placeholder="Nombre del operador" value={form.createdBy}
                                     onChange={e => setForm(f => ({ ...f, createdBy: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                    className="w-full border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Notas</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Notas</label>
                                 <textarea rows={2} placeholder="Observaciones opcionales…" value={form.notes}
                                     onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none" />
+                                    className="w-full border border-white/10 rounded-xl px-4 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none" />
                             </div>
                         </div>
 
@@ -167,7 +173,7 @@ export default function NewProductionPage() {
                         )}
 
                         <div className="flex gap-3">
-                            <Link href="/factory/production" className="flex-1 text-center py-3 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">
+                            <Link href="/factory/production" className="flex-1 text-center py-3 border border-white/10 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 transition-colors">
                                 Cancelar
                             </Link>
                             <button type="submit" disabled={submitting}
@@ -179,5 +185,6 @@ export default function NewProductionPage() {
                 )}
             </div>
         </div>
-    );
+        </div>
+        );
 }

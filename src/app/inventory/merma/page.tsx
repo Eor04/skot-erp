@@ -15,12 +15,12 @@ const MERMA_REASONS = [
 ];
 
 const REASON_COLORS: Record<string, string> = {
-    VENCIMIENTO: 'bg-red-100 text-red-700',
+    VENCIMIENTO: 'bg-red-100 text-red-400',
     DANO_FISICO: 'bg-orange-100 text-orange-700',
-    DIFERENCIA_RECEPCION: 'bg-yellow-100 text-yellow-700',
-    PROCESO_PRODUCCION: 'bg-blue-100 text-blue-700',
+    DIFERENCIA_RECEPCION: 'bg-yellow-100 text-yellow-400',
+    PROCESO_PRODUCCION: 'bg-blue-500/20 text-blue-400',
     ROBO: 'bg-purple-100 text-purple-700',
-    OTRO: 'bg-gray-100 text-gray-700',
+    OTRO: 'bg-gray-100 text-white/80',
 };
 
 type MermaRecord = {
@@ -127,7 +127,12 @@ export default function MermaPage() {
     const totalUnidades = filtered.reduce((s, m) => s + m.quantity, 0);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
                     {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
@@ -139,13 +144,13 @@ export default function MermaPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
                     <div>
-                        <Link href="/inventory" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
-                            <ArrowLeft className="h-4 w-4" /> Volver a Inventario
+                        <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
+                            <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
                         </Link>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                             <Trash2 className="h-8 w-8 text-red-500" /> Registro de Merma
                         </h1>
-                        <p className="text-gray-500 mt-1 text-sm">Baja de stock por vencimiento, daño u otros motivos</p>
+                        <p className="text-white/60 mt-1 text-sm">Baja de stock por vencimiento, daño u otros motivos</p>
                     </div>
                     <button
                         onClick={() => setShowModal(true)}
@@ -158,53 +163,53 @@ export default function MermaPage() {
                 {/* Filtros */}
                 <div className="flex gap-3 mb-5 flex-wrap">
                     <div className="relative flex-1 min-w-[200px]">
-                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                        <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/40" />
                         <input type="text" placeholder="Buscar producto, SKU o sucursal…"
                             value={searchText} onChange={e => setSearchText(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
+                            className="w-full pl-9 pr-4 py-2.5 border border-white/20 rounded-xl bg-white/5/5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
                     </div>
                     <select value={filterBranch} onChange={e => setFilterBranch(e.target.value)}
-                        className="border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-white focus:outline-none focus:ring-2 focus:ring-red-300">
-                        <option value="">Todas las sucursales</option>
-                        {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                        className="border border-white/20 rounded-xl px-3 py-2.5 text-sm bg-white/5/5 focus:outline-none focus:ring-2 focus:ring-red-300">
+                        <option value="" className="text-white/90">Todas las sucursales</option>
+                        {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
                     </select>
                 </div>
 
                 {/* Tabla */}
                 {loading ? (
-                    <div className="text-center py-20 text-gray-400">Cargando registros…</div>
+                    <div className="text-center py-20 text-white/40">Cargando registros…</div>
                 ) : (
-                    <div className="bg-white rounded-2xl shadow overflow-hidden">
+                    <div className="bg-white/5/5 rounded-2xl shadow overflow-hidden">
                         <table className="w-full text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-white/5/5/5 border-b border-white/20">
                                 <tr>
-                                    <th className="text-left px-5 py-4 font-semibold text-gray-600">Producto</th>
-                                    <th className="text-left px-5 py-4 font-semibold text-gray-600">Sucursal</th>
-                                    <th className="text-left px-5 py-4 font-semibold text-gray-600">Cantidad</th>
-                                    <th className="text-left px-5 py-4 font-semibold text-gray-600">Motivo</th>
-                                    <th className="text-left px-5 py-4 font-semibold text-gray-600">Registrado por</th>
-                                    <th className="text-left px-5 py-4 font-semibold text-gray-600">Fecha</th>
+                                    <th className="text-left px-5 py-4 font-semibold text-white/70">Producto</th>
+                                    <th className="text-left px-5 py-4 font-semibold text-white/70">Sucursal</th>
+                                    <th className="text-left px-5 py-4 font-semibold text-white/70">Cantidad</th>
+                                    <th className="text-left px-5 py-4 font-semibold text-white/70">Motivo</th>
+                                    <th className="text-left px-5 py-4 font-semibold text-white/70">Registrado por</th>
+                                    <th className="text-left px-5 py-4 font-semibold text-white/70">Fecha</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filtered.map(m => (
-                                    <tr key={m.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                    <tr key={m.id} className="border-b border-white/10 hover:bg-white/5/5/5">
                                         <td className="px-5 py-4">
-                                            <p className="font-medium text-gray-900">{m.product.name}</p>
-                                            <p className="text-xs text-gray-400 font-mono">{m.product.sku}</p>
+                                            <p className="font-medium text-white/90">{m.product.name}</p>
+                                            <p className="text-xs text-white/40 font-mono">{m.product.sku}</p>
                                         </td>
-                                        <td className="px-5 py-4 text-gray-700">{m.branch.name}</td>
-                                        <td className="px-5 py-4 font-bold text-red-600">
-                                            -{m.quantity} <span className="text-xs font-normal text-gray-400">{m.unit}</span>
+                                        <td className="px-5 py-4 text-white/80">{m.branch.name}</td>
+                                        <td className="px-5 py-4 font-bold text-red-400">
+                                            -{m.quantity} <span className="text-xs font-normal text-white/40">{m.unit}</span>
                                         </td>
                                         <td className="px-5 py-4">
-                                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${REASON_COLORS[m.reason] || 'bg-gray-100 text-gray-600'}`}>
+                                            <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${REASON_COLORS[m.reason] || 'bg-gray-100 text-white/70'}`}>
                                                 {MERMA_REASONS.find(r => r.value === m.reason)?.label || m.reason}
                                             </span>
-                                            {m.description && <p className="text-xs text-gray-400 mt-1">{m.description}</p>}
+                                            {m.description && <p className="text-xs text-white/40 mt-1">{m.description}</p>}
                                         </td>
-                                        <td className="px-5 py-4 text-gray-700">{m.registeredBy}</td>
-                                        <td className="px-5 py-4 text-gray-400 text-xs">
+                                        <td className="px-5 py-4 text-white/80">{m.registeredBy}</td>
+                                        <td className="px-5 py-4 text-white/40 text-xs">
                                             {new Date(m.createdAt).toLocaleDateString('es-BO')}
                                             <br />
                                             {new Date(m.createdAt).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
@@ -212,11 +217,11 @@ export default function MermaPage() {
                                     </tr>
                                 ))}
                                 {filtered.length === 0 && (
-                                    <tr><td colSpan={6} className="px-5 py-12 text-center text-gray-400">No hay registros de merma</td></tr>
+                                    <tr><td colSpan={6} className="px-5 py-12 text-center text-white/40">No hay registros de merma</td></tr>
                                 )}
                             </tbody>
                         </table>
-                        <div className="px-5 py-3 text-xs text-gray-400 bg-gray-50 border-t flex justify-between">
+                        <div className="px-5 py-3 text-xs text-white/40 bg-white/5/5/5 border-t flex justify-between">
                             <span>{filtered.length} registro{filtered.length !== 1 ? 's' : ''}</span>
                             {filtered.length > 0 && (
                                 <span className="text-red-500 font-medium">Total baja: {totalUnidades.toFixed(2)} unidades</span>
@@ -229,59 +234,59 @@ export default function MermaPage() {
             {/* Modal registrar merma */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                            <h2 className="text-lg font-bold text-gray-900 flex items-center gap-2">
+                    <div className="bg-white/5/5 rounded-2xl shadow-xl w-full max-w-md">
+                        <div className="flex items-center justify-between p-6 border-b border-white/10">
+                            <h2 className="text-lg font-bold text-white/90 flex items-center gap-2">
                                 <Trash2 className="h-5 w-5 text-red-500" /> Registrar Merma
                             </h2>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>
+                            <button onClick={() => setShowModal(false)} className="text-white/40 hover:text-white/70"><X className="h-5 w-5" /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sucursal *</label>
+                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal *</label>
                                     <select required value={form.branchId} onChange={e => setForm(f => ({ ...f, branchId: e.target.value }))}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
-                                        <option value="">Seleccionar…</option>
-                                        {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
+                                        <option value="" className="text-white/90">Seleccionar…</option>
+                                        {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Producto *</label>
+                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Producto *</label>
                                     <select required value={form.productId} onChange={e => setForm(f => ({ ...f, productId: e.target.value }))}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
-                                        <option value="">Seleccionar…</option>
-                                        {products.map(p => <option key={p.id} value={p.id}>{p.name} ({p.sku})</option>)}
+                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
+                                        <option value="" className="text-white/90">Seleccionar…</option>
+                                        {products.map(p => <option key={p.id} value={p.id} className="text-white/90">{p.name} ({p.sku})</option>)}
                                     </select>
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cantidad *</label>
+                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Cantidad *</label>
                                     <input required type="number" min="0.01" step="0.01" value={form.quantity === 0 ? '' : form.quantity}
                                         onChange={e => setForm(f => ({ ...f, quantity: parseFloat(e.target.value) || 0 }))}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
+                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Motivo *</label>
+                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Motivo *</label>
                                     <select required value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
-                                        {MERMA_REASONS.map(r => <option key={r.value} value={r.value}>{r.label}</option>)}
+                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
+                                        {MERMA_REASONS.map(r => <option key={r.value} value={r.value} className="text-white/90">{r.label}</option>)}
                                     </select>
                                 </div>
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">
                                         Registrado por *
-                                        {user?.name && <span className="ml-1 text-xs font-normal text-gray-400">(auto)</span>}
+                                        {user?.name && <span className="ml-1 text-xs font-normal text-white/40">(auto)</span>}
                                     </label>
                                     <input required type="text" placeholder="Nombre del responsable" value={form.registeredBy}
                                         onChange={e => setForm(f => ({ ...f, registeredBy: e.target.value }))}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
+                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
                                 </div>
                                 <div className="col-span-2">
-                                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">Descripción</label>
+                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Descripción</label>
                                     <textarea rows={2} value={form.description}
                                         onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
                                         placeholder="¿Qué pasó exactamente? (opcional)"
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none" />
+                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none" />
                                 </div>
                             </div>
                             <p className="text-xs text-orange-600 bg-orange-50 border border-orange-200 rounded-lg p-3">
@@ -289,7 +294,7 @@ export default function MermaPage() {
                             </p>
                             <div className="flex gap-3">
                                 <button type="button" onClick={() => setShowModal(false)}
-                                    className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
+                                    className="flex-1 py-2.5 border border-white/20 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5/5/5 transition">
                                     Cancelar
                                 </button>
                                 <button type="submit" disabled={submitting}

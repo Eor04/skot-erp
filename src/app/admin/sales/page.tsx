@@ -98,10 +98,10 @@ export default function SalesPage() {
 
     const handleExportCSV = () => {
         const rows = filtered.map(s => ({
-            'N° Venta': s.saleNumber,
+            'Nï¿½ Venta': s.saleNumber,
             'Sucursal': s.branch.name,
             'Vendedor': s.user.name,
-            'Método': fmt.paymentMethod(s.paymentMethod),
+            'Mï¿½todo': fmt.paymentMethod(s.paymentMethod),
             'Total (S/)': Number(s.totalAmount).toFixed(2),
             'Fecha': fmt.date(s.createdAt),
         }));
@@ -113,14 +113,14 @@ export default function SalesPage() {
         try {
             await downloadPDF({
                 title: 'Historial de Ventas',
-                subtitle: `Período: ${fmt.dateShort(filters.from + 'T12:00:00')} — ${fmt.dateShort(filters.to + 'T12:00:00')}`,
+                subtitle: `Perï¿½odo: ${fmt.dateShort(filters.from + 'T12:00:00')} ï¿½ ${fmt.dateShort(filters.to + 'T12:00:00')}`,
                 filename: `ventas_${filters.from}_${filters.to}`,
                 orientation: 'landscape',
                 columns: [
-                    { header: 'N° Venta', dataKey: 'saleNumber' },
+                    { header: 'Nï¿½ Venta', dataKey: 'saleNumber' },
                     { header: 'Sucursal', dataKey: 'branch' },
                     { header: 'Vendedor', dataKey: 'user' },
-                    { header: 'Método', dataKey: 'method' },
+                    { header: 'Mï¿½todo', dataKey: 'method' },
                     { header: 'Total (S/)', dataKey: 'total' },
                     { header: 'Fecha', dataKey: 'date' },
                 ],
@@ -139,19 +139,24 @@ export default function SalesPage() {
     };
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen relative overflow-hidden p-4 md:p-8" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
+            <div className="relative z-10 max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+                        <Link href="/admin" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
                             <ArrowLeft className="h-4 w-4" /> Volver a Admin
                         </Link>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                             <TrendingUp className="h-8 w-8 text-indigo-600" /> Historial de Ventas
                         </h1>
                     </div>
-                    {/* Botones de exportación */}
+                    {/* Botones de exportaciï¿½n */}
                     <div className="flex gap-2">
                         <button
                             onClick={handleExportCSV}
@@ -166,7 +171,7 @@ export default function SalesPage() {
                             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 text-sm font-semibold disabled:opacity-40 transition"
                         >
                             {exporting
-                                ? <><Loader2 className="h-4 w-4 animate-spin" /> Generando…</>
+                                ? <><Loader2 className="h-4 w-4 animate-spin" /> Generandoï¿½</>
                                 : <><FileText className="h-4 w-4" /> PDF</>
                             }
                         </button>
@@ -174,39 +179,39 @@ export default function SalesPage() {
                 </div>
 
                 {/* Filtros */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-5 mb-6">
+                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5 mb-6">
                     <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-4">
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 mb-1">Sucursal</label>
+                            <label className="block text-xs font-semibold text-white/60 mb-1">Sucursal</label>
                             <select
                                 value={filters.branchId}
                                 onChange={e => setFilters(f => ({ ...f, branchId: e.target.value }))}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                className="w-full border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                             >
                                 <option value="">Todas</option>
                                 {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 mb-1">Desde</label>
+                            <label className="block text-xs font-semibold text-white/60 mb-1">Desde</label>
                             <input type="date" value={filters.from}
                                 onChange={e => setFilters(f => ({ ...f, from: e.target.value }))}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                className="w-full border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 mb-1">Hasta</label>
+                            <label className="block text-xs font-semibold text-white/60 mb-1">Hasta</label>
                             <input type="date" value={filters.to}
                                 onChange={e => setFilters(f => ({ ...f, to: e.target.value }))}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                className="w-full border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-gray-500 mb-1">Método de pago</label>
+                            <label className="block text-xs font-semibold text-white/60 mb-1">Mï¿½todo de pago</label>
                             <select
                                 value={filters.paymentMethod}
                                 onChange={e => setFilters(f => ({ ...f, paymentMethod: e.target.value }))}
-                                className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                                className="w-full border border-white/10 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                             >
                                 <option value="">Todos</option>
                                 <option value="CASH">Efectivo</option>
@@ -246,11 +251,11 @@ export default function SalesPage() {
 
                 {/* Buscador */}
                 <div className="relative mb-4">
-                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    <Search className="absolute left-3 top-2.5 h-5 w-5 text-white/40" />
                     <input
-                        type="text" placeholder="Buscar por número de venta, sucursal o vendedor…"
+                        type="text" placeholder="Buscar por nï¿½mero de venta, sucursal o vendedorï¿½"
                         value={search} onChange={e => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
+                        className="w-full pl-10 pr-4 py-2.5 border border-white/10 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                     />
                 </div>
 
@@ -260,16 +265,16 @@ export default function SalesPage() {
                         <Loader2 className="h-8 w-8 animate-spin text-indigo-600" />
                     </div>
                 ) : (
-                    <div className="bg-white rounded-2xl shadow overflow-hidden">
+                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow overflow-hidden">
                         <table className="w-full text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-white/5 border-b border-white/10">
                                 <tr>
-                                    <th className="text-left px-6 py-4 font-semibold text-gray-600">N° Venta</th>
-                                    <th className="text-left px-6 py-4 font-semibold text-gray-600">Sucursal</th>
-                                    <th className="text-left px-6 py-4 font-semibold text-gray-600">Vendedor</th>
-                                    <th className="text-left px-6 py-4 font-semibold text-gray-600">Método</th>
-                                    <th className="text-right px-6 py-4 font-semibold text-gray-600">Total</th>
-                                    <th className="text-left px-6 py-4 font-semibold text-gray-600">Fecha</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-white/70">Nï¿½ Venta</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-white/70">Sucursal</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-white/70">Vendedor</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-white/70">Mï¿½todo</th>
+                                    <th className="text-right px-6 py-4 font-semibold text-white/70">Total</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-white/70">Fecha</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -278,28 +283,28 @@ export default function SalesPage() {
                                         <tr
                                             key={sale.id}
                                             onClick={() => setExpanded(expanded === sale.id ? null : sale.id)}
-                                            className="border-b border-gray-100 hover:bg-gray-50 cursor-pointer"
+                                            className="border-b border-white/10 hover:bg-white/5 cursor-pointer"
                                         >
-                                            <td className="px-6 py-4 font-mono text-xs text-gray-600">{sale.saleNumber}</td>
-                                            <td className="px-6 py-4 font-medium text-gray-900">{sale.branch.name}</td>
-                                            <td className="px-6 py-4 text-gray-600">{sale.user.name}</td>
+                                            <td className="px-6 py-4 font-mono text-xs text-white/70">{sale.saleNumber}</td>
+                                            <td className="px-6 py-4 font-medium text-white/90">{sale.branch.name}</td>
+                                            <td className="px-6 py-4 text-white/70">{sale.user.name}</td>
                                             <td className="px-6 py-4">
-                                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${PAYMENT_COLORS[sale.paymentMethod] || 'bg-gray-100 text-gray-600'}`}>
+                                                <span className={`inline-flex items-center gap-1 px-2 py-1 rounded-full text-xs font-medium ${PAYMENT_COLORS[sale.paymentMethod] || 'bg-white/10 text-white/70'}`}>
                                                     {PAYMENT_ICONS[sale.paymentMethod]}
                                                     {PAYMENT_LABELS[sale.paymentMethod]}
                                                 </span>
                                             </td>
-                                            <td className="px-6 py-4 text-right font-bold text-gray-800">Bs. {sale.totalAmount.toFixed(2)}</td>
-                                            <td className="px-6 py-4 text-gray-500 text-xs">{new Date(sale.createdAt).toLocaleString('es-PE')}</td>
+                                            <td className="px-6 py-4 text-right font-bold text-white/90">Bs. {sale.totalAmount.toFixed(2)}</td>
+                                            <td className="px-6 py-4 text-white/60 text-xs">{new Date(sale.createdAt).toLocaleString('es-PE')}</td>
                                         </tr>
                                         {expanded === sale.id && (
                                             <tr key={`${sale.id}-detail`} className="bg-indigo-50/50">
                                                 <td colSpan={6} className="px-6 py-4">
-                                                    <p className="text-xs font-semibold text-gray-500 mb-2">Detalle de la venta:</p>
+                                                    <p className="text-xs font-semibold text-white/60 mb-2">Detalle de la venta:</p>
                                                     <div className="space-y-1">
                                                         {sale.items.map((item, i) => (
-                                                            <div key={i} className="flex justify-between text-xs text-gray-700">
-                                                                <span>{item.product.name} × {item.quantity}</span>
+                                                            <div key={i} className="flex justify-between text-xs text-white/80">
+                                                                <span>{item.product.name} ï¿½ {item.quantity}</span>
                                                                 <span className="font-medium">Bs. {item.subtotal.toFixed(2)}</span>
                                                             </div>
                                                         ))}
@@ -317,7 +322,7 @@ export default function SalesPage() {
                                 ))}
                                 {filtered.length === 0 && (
                                     <tr>
-                                        <td colSpan={6} className="px-6 py-16 text-center text-gray-400">
+                                        <td colSpan={6} className="px-6 py-16 text-center text-white/40">
                                             <TrendingUp className="h-10 w-10 mx-auto mb-2 opacity-25" />
                                             No se encontraron ventas con esos filtros
                                         </td>
@@ -325,7 +330,7 @@ export default function SalesPage() {
                                 )}
                             </tbody>
                         </table>
-                        <div className="px-6 py-3 text-xs text-gray-400 bg-gray-50 border-t">
+                        <div className="px-6 py-3 text-xs text-white/40 bg-white/5 border-t">
                             {filtered.length} venta{filtered.length !== 1 ? 's' : ''} encontrada{filtered.length !== 1 ? 's' : ''}
                         </div>
                     </div>

@@ -29,13 +29,13 @@ function periodRange(period: string): { from: string; to: string; label: string 
         return { from: to, to, label: 'Hoy' };
     }
     if (period === '7d') {
-        return { from: toISO(new Date(Date.now() - 6 * 86400000)), to, label: 'Últimos 7 días' };
+        return { from: toISO(new Date(Date.now() - 6 * 86400000)), to, label: 'ï¿½ltimos 7 dï¿½as' };
     }
     if (period === '14d') {
-        return { from: toISO(new Date(Date.now() - 13 * 86400000)), to, label: 'Últimos 14 días' };
+        return { from: toISO(new Date(Date.now() - 13 * 86400000)), to, label: 'ï¿½ltimos 14 dï¿½as' };
     }
     if (period === '30d') {
-        return { from: toISO(new Date(Date.now() - 29 * 86400000)), to, label: 'Últimos 30 días' };
+        return { from: toISO(new Date(Date.now() - 29 * 86400000)), to, label: 'ï¿½ltimos 30 dï¿½as' };
     }
     if (period === 'month') {
         const from = new Date(now.getFullYear(), now.getMonth(), 1);
@@ -44,27 +44,27 @@ function periodRange(period: string): { from: string; to: string; label: string 
     if (period === 'year') {
         return { from: `${now.getFullYear()}-01-01`, to, label: String(now.getFullYear()) };
     }
-    return { from: toISO(new Date(Date.now() - 29 * 86400000)), to, label: '30 días' };
+    return { from: toISO(new Date(Date.now() - 29 * 86400000)), to, label: '30 dï¿½as' };
 }
 
-// Formato de etiqueta del eje (compacto para año)
+// Formato de etiqueta del eje (compacto para aï¿½o)
 function dayLabel(dateStr: string, period: string) {
     const d = new Date(dateStr + 'T12:00:00');
     if (period === 'year') return d.toLocaleDateString('es-PE', { month: 'short' });
     return d.toLocaleDateString('es-PE', { day: '2-digit', month: 'short' });
 }
 
-// Agrupación: por día normalmente, por mes cuando period='year'
+// Agrupaciï¿½n: por dï¿½a normalmente, por mes cuando period='year'
 function groupKey(dateStr: string, period: string) {
     return period === 'year' ? dateStr.slice(0, 7) : dateStr.split('T')[0];
 }
 
 const BRANCH_TYPE_LABELS: Record<string, string> = {
-    ACAI: '?? Açaí',
+    ACAI: '?? Aï¿½aï¿½',
     HAMBURGUESAS: '?? Hamburguesas',
-    FABRICA: '?? Fábrica',
-    FACTORY: '?? Fábrica',
-    WAREHOUSE: '?? Almacén',
+    FABRICA: '?? Fï¿½brica',
+    FACTORY: '?? Fï¿½brica',
+    WAREHOUSE: '?? Almacï¿½n',
 };
 
 const PERIOD_OPTIONS = [
@@ -73,7 +73,7 @@ const PERIOD_OPTIONS = [
     { key: '14d', label: '14d' },
     { key: '30d', label: '30d' },
     { key: 'month', label: 'Mes' },
-    { key: 'year', label: 'Año' },
+    { key: 'year', label: 'Aï¿½o' },
 ];
 
 export default function AnalyticsPage() {
@@ -121,7 +121,7 @@ export default function AnalyticsPage() {
                 todayRevenue,
             });
 
-            // Agrupación (día o mes)
+            // Agrupaciï¿½n (dï¿½a o mes)
             const byKey: Record<string, { total: number; count: number; cashTotal: number; cardTotal: number }> = {};
             for (const s of sales) {
                 const key = groupKey(s.createdAt ?? '', period);
@@ -155,7 +155,7 @@ export default function AnalyticsPage() {
             }
             setTopProducts(Object.values(productMap).sort((a, b) => b.revenue - a.revenue).slice(0, 6));
 
-            // Distribución método de pago
+            // Distribuciï¿½n mï¿½todo de pago
             const payMap: Record<string, number> = {};
             for (const s of sales) payMap[s.paymentMethod] = (payMap[s.paymentMethod] || 0) + (s.totalAmount ?? 0);
             const labelMap: Record<string, string> = { CASH: 'Efectivo', CARD: 'Tarjeta', TRANSFER: 'Transferencia', MIXED: 'Mixto' };
@@ -169,9 +169,9 @@ export default function AnalyticsPage() {
 
     const { label: periodLabel } = periodRange(period);
     const selectedBranch = branches.find(b => b.id === branchId);
-    const reportTitle = `Analytics${selectedBranch ? ' — ' + selectedBranch.name : ''} — ${periodLabel}`;
+    const reportTitle = `Analytics${selectedBranch ? ' ï¿½ ' + selectedBranch.name : ''} ï¿½ ${periodLabel}`;
 
-    // Filtros rápidos por tipo de sucursal
+    // Filtros rï¿½pidos por tipo de sucursal
     const branchTypeGroups: Record<string, Branch[]> = {};
     for (const b of branches) {
         const key = b.type;
@@ -180,21 +180,21 @@ export default function AnalyticsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-7xl mx-auto">
+        <div className="min-h-screen bg-white/5 p-6">
+            <div className="relative z-10 max-w-7xl mx-auto">
 
                 {/* -- Header -- */}
                 <div className="flex flex-wrap items-start justify-between gap-4 mb-6">
                     <div>
-                        <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-1">
+                        <Link href="/admin" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-1">
                             <ArrowLeft className="h-4 w-4" /> Volver a Admin
                         </Link>
-                        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
+                        <h1 className="text-2xl font-bold text-white/90 flex items-center gap-2">
                             <BarChart3 className="h-7 w-7 text-purple-600" /> Analytics y Reportes
                         </h1>
                         {(selectedBranch || period !== '30d') && (
-                            <p className="text-sm text-gray-500 mt-0.5">
-                                {selectedBranch ? `?? ${selectedBranch.name}` : '?? Todas las sucursales'} · {periodLabel}
+                            <p className="text-sm text-white/60 mt-0.5">
+                                {selectedBranch ? `?? ${selectedBranch.name}` : '?? Todas las sucursales'} ï¿½ {periodLabel}
                             </p>
                         )}
                     </div>
@@ -204,7 +204,7 @@ export default function AnalyticsPage() {
                         <button
                             onClick={() => downloadCSV(dailySales.map(d => ({
                                 'Fecha': d.date, 'Total (S/)': d.total.toFixed(2),
-                                'N° Ventas': d.count, 'Efectivo (S/)': d.cashTotal.toFixed(2), 'Tarjeta (S/)': d.cardTotal.toFixed(2),
+                                'Nï¿½ Ventas': d.count, 'Efectivo (S/)': d.cashTotal.toFixed(2), 'Tarjeta (S/)': d.cardTotal.toFixed(2),
                             })), `analytics_${period}`)}
                             disabled={dailySales.length === 0}
                             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-green-300 text-green-700 bg-green-50 hover:bg-green-100 text-sm font-semibold disabled:opacity-40 transition">
@@ -221,7 +221,7 @@ export default function AnalyticsPage() {
                                         columns: [
                                             { header: 'Fecha', dataKey: 'date' },
                                             { header: 'Total (S/)', dataKey: 'total' },
-                                            { header: 'N° Ventas', dataKey: 'count' },
+                                            { header: 'Nï¿½ Ventas', dataKey: 'count' },
                                             { header: 'Efectivo (S/)', dataKey: 'cashTotal' },
                                             { header: 'Tarjeta (S/)', dataKey: 'cardTotal' },
                                         ],
@@ -231,19 +231,19 @@ export default function AnalyticsPage() {
                             }}
                             disabled={dailySales.length === 0 || exporting}
                             className="flex items-center gap-1.5 px-3 py-2 rounded-xl border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 text-sm font-semibold disabled:opacity-40 transition">
-                            {exporting ? <><Loader2 className="h-4 w-4 animate-spin" /> PDF…</> : <><FileText className="h-4 w-4" /> PDF</>}
+                            {exporting ? <><Loader2 className="h-4 w-4 animate-spin" /> PDFï¿½</> : <><FileText className="h-4 w-4" /> PDF</>}
                         </button>
                     </div>
                 </div>
 
                 {/* -- Barra de filtros -- */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-6 flex flex-wrap gap-4 items-center">
-                    {/* Filtro período */}
+                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-4 mb-6 flex flex-wrap gap-4 items-center">
+                    {/* Filtro perï¿½odo */}
                     <div className="flex items-center gap-1.5">
-                        <span className="text-xs font-semibold text-gray-500 mr-1">Período:</span>
+                        <span className="text-xs font-semibold text-white/60 mr-1">Perï¿½odo:</span>
                         {PERIOD_OPTIONS.map(p => (
                             <button key={p.key} onClick={() => setPeriod(p.key)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${period === p.key ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${period === p.key ? 'bg-purple-600 text-white' : 'bg-white/10 text-white/70 hover:bg-gray-200'}`}>
                                 {p.label}
                             </button>
                         ))}
@@ -251,30 +251,30 @@ export default function AnalyticsPage() {
 
                     <div className="w-px h-5 bg-gray-200" />
 
-                    {/* Filtro sucursal — Todas */}
+                    {/* Filtro sucursal ï¿½ Todas */}
                     <div className="flex items-center gap-1.5 flex-wrap">
-                        <span className="text-xs font-semibold text-gray-500 mr-1">
+                        <span className="text-xs font-semibold text-white/60 mr-1">
                             <Store className="h-3.5 w-3.5 inline mr-0.5" /> Sucursal:
                         </span>
                         <button onClick={() => setBranchId('')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${branchId === '' ? 'bg-slate-700 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${branchId === '' ? 'bg-slate-700 text-white' : 'bg-white/10 text-white/70 hover:bg-gray-200'}`}>
                             Todas
                         </button>
 
                         {/* Botones agrupados por tipo */}
                         {Object.entries(branchTypeGroups).map(([type, bs]) => (
                             bs.length === 1 ? (
-                                // Una sola sucursal de ese tipo ? botón directo
+                                // Una sola sucursal de ese tipo ? botï¿½n directo
                                 <button key={bs[0].id} onClick={() => setBranchId(bs[0].id)}
-                                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${branchId === bs[0].id ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+                                    className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition ${branchId === bs[0].id ? 'bg-purple-600 text-white' : 'bg-white/10 text-white/70 hover:bg-gray-200'}`}>
                                     {BRANCH_TYPE_LABELS[type] || type}{' '}{bs[0].name}
                                 </button>
                             ) : (
-                                // Múltiples ? select mini
+                                // Mï¿½ltiples ? select mini
                                 <select key={type}
                                     value={bs.some(b => b.id === branchId) ? branchId : ''}
                                     onChange={e => setBranchId(e.target.value)}
-                                    className={`px-2 py-1.5 rounded-xl text-xs font-semibold border transition focus:outline-none ${bs.some(b => b.id === branchId) ? 'bg-purple-600 text-white border-purple-500' : 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+                                    className={`px-2 py-1.5 rounded-xl text-xs font-semibold border transition focus:outline-none ${bs.some(b => b.id === branchId) ? 'bg-purple-600 text-white border-purple-500' : 'bg-white/10 text-white/70 border-white/10'}`}>
                                     <option value="">{BRANCH_TYPE_LABELS[type] || type}</option>
                                     {bs.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                                 </select>
@@ -300,24 +300,24 @@ export default function AnalyticsPage() {
                             ].map(({ label, value, icon: Icon, color }) => {
                                 const [tc, bg] = color.split(' ');
                                 return (
-                                    <div key={label} className="bg-white rounded-2xl p-5 shadow-sm border border-gray-100">
+                                    <div key={label} className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl p-5 shadow-sm border border-white/10">
                                         <div className={`inline-flex p-2.5 rounded-xl ${bg} mb-3`}>
                                             <Icon className={`h-5 w-5 ${tc}`} />
                                         </div>
-                                        <p className="text-xs text-gray-500 font-medium">{label}</p>
-                                        <p className="text-2xl font-black text-gray-800 mt-1">{value}</p>
+                                        <p className="text-xs text-white/60 font-medium">{label}</p>
+                                        <p className="text-2xl font-black text-white/90 mt-1">{value}</p>
                                     </div>
                                 );
                             })}
                         </div>
 
-                        {/* Gráficos principales */}
+                        {/* Grï¿½ficos principales */}
                         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-6">
-                            {/* Ingresos por período */}
-                            <div className="lg:col-span-2 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                                <h2 className="text-sm font-bold text-gray-800 mb-4">
-                                    Ingresos (S/) — {periodLabel}
-                                    {selectedBranch && <span className="ml-2 text-xs text-gray-400 font-normal">{selectedBranch.name}</span>}
+                            {/* Ingresos por perï¿½odo */}
+                            <div className="lg:col-span-2 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6">
+                                <h2 className="text-sm font-bold text-white/90 mb-4">
+                                    Ingresos (S/) ï¿½ {periodLabel}
+                                    {selectedBranch && <span className="ml-2 text-xs text-white/40 font-normal">{selectedBranch.name}</span>}
                                 </h2>
                                 {dailySales.length > 0 ? (
                                     <ResponsiveContainer width="100%" height={260}>
@@ -330,13 +330,13 @@ export default function AnalyticsPage() {
                                         </BarChart>
                                     </ResponsiveContainer>
                                 ) : (
-                                    <div className="flex items-center justify-center h-56 text-gray-400">Sin datos para este período</div>
+                                    <div className="flex items-center justify-center h-56 text-white/40">Sin datos para este perï¿½odo</div>
                                 )}
                             </div>
 
-                            {/* Métodos de pago */}
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                                <h2 className="text-sm font-bold text-gray-800 mb-4">Métodos de Pago</h2>
+                            {/* Mï¿½todos de pago */}
+                            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6">
+                                <h2 className="text-sm font-bold text-white/90 mb-4">Mï¿½todos de Pago</h2>
                                 {paymentDist.length > 0 ? (
                                     <ResponsiveContainer width="100%" height={260}>
                                         <PieChart>
@@ -348,14 +348,14 @@ export default function AnalyticsPage() {
                                         </PieChart>
                                     </ResponsiveContainer>
                                 ) : (
-                                    <div className="flex items-center justify-center h-56 text-gray-400">Sin datos</div>
+                                    <div className="flex items-center justify-center h-56 text-white/40">Sin datos</div>
                                 )}
                             </div>
                         </div>
 
                         {/* Top productos */}
-                        <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6 mb-6">
-                            <h2 className="text-sm font-bold text-gray-800 mb-4">Top Productos por Ingresos</h2>
+                        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6 mb-6">
+                            <h2 className="text-sm font-bold text-white/90 mb-4">Top Productos por Ingresos</h2>
                             {topProducts.length > 0 ? (
                                 <ResponsiveContainer width="100%" height={220}>
                                     <BarChart data={topProducts} layout="vertical" barSize={16}>
@@ -367,14 +367,14 @@ export default function AnalyticsPage() {
                                     </BarChart>
                                 </ResponsiveContainer>
                             ) : (
-                                <div className="text-center py-12 text-gray-400">Sin datos de productos</div>
+                                <div className="text-center py-12 text-white/40">Sin datos de productos</div>
                             )}
                         </div>
 
                         {/* Tendencia cantidad de ventas */}
                         {dailySales.length > 1 && (
-                            <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                                <h2 className="text-sm font-bold text-gray-800 mb-4">Cantidad de Ventas — {periodLabel}</h2>
+                            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6">
+                                <h2 className="text-sm font-bold text-white/90 mb-4">Cantidad de Ventas ï¿½ {periodLabel}</h2>
                                 <ResponsiveContainer width="100%" height={200}>
                                     <LineChart data={dailySales}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="#f0f0f0" />

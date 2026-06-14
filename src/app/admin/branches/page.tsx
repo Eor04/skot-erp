@@ -33,7 +33,7 @@ const typeColors: Record<string, { bg: string; text: string; border: string }> =
     // aliases legacy
     BURGER: { bg: 'bg-orange-100', text: 'text-orange-700', border: 'border-orange-400' },
     FACTORY: { bg: 'bg-blue-100', text: 'text-blue-700', border: 'border-blue-400' },
-    WAREHOUSE: { bg: 'bg-gray-100', text: 'text-gray-700', border: 'border-gray-400' },
+    WAREHOUSE: { bg: 'bg-white/10', text: 'text-white/80', border: 'border-white/30' },
 };
 
 export default function BranchesPage() {
@@ -120,11 +120,16 @@ export default function BranchesPage() {
     }
 
     function getColors(type: string) {
-        return typeColors[type] || { bg: 'bg-gray-100', text: 'text-gray-600', border: 'border-gray-300' };
+        return typeColors[type] || { bg: 'bg-white/10', text: 'text-white/70', border: 'border-white/20' };
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
+        <div className="min-h-screen relative overflow-hidden p-4 md:p-8" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
             {/* Toast */}
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
@@ -136,17 +141,17 @@ export default function BranchesPage() {
             {/* Modal confirmar eliminación */}
             {confirmDelete && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
                         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                             <Trash2 className="h-6 w-6 text-red-600" />
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-1">¿Eliminar sucursal?</h3>
-                        <p className="text-gray-500 text-sm mb-6">
+                        <h3 className="text-lg font-bold text-white/90 mb-1">¿Eliminar sucursal?</h3>
+                        <p className="text-white/60 text-sm mb-6">
                             Se eliminará <strong>{confirmDelete.name}</strong>. Esta acción no se puede deshacer.
                         </p>
                         <div className="flex gap-3">
                             <button onClick={() => setConfirmDelete(null)}
-                                className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
+                                className="flex-1 py-2.5 border border-white/10 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5">
                                 Cancelar
                             </button>
                             <button onClick={() => handleDelete(confirmDelete)}
@@ -158,13 +163,13 @@ export default function BranchesPage() {
                 </div>
             )}
 
-            <div className="max-w-5xl mx-auto">
+            <div className="relative z-10 max-w-5xl mx-auto">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+                        <Link href="/admin" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
                             <ArrowLeft className="h-4 w-4" /> Volver a Admin
                         </Link>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                             <Store className="h-8 w-8 text-green-600" /> Sucursales
                         </h1>
                     </div>
@@ -175,7 +180,7 @@ export default function BranchesPage() {
                 </div>
 
                 {loading ? (
-                    <div className="flex items-center justify-center py-20 text-gray-400">
+                    <div className="flex items-center justify-center py-20 text-white/40">
                         <Loader2 className="h-6 w-6 animate-spin mr-2" /> Cargando sucursales…
                     </div>
                 ) : (
@@ -183,9 +188,9 @@ export default function BranchesPage() {
                         {branches.map(b => {
                             const c = getColors(b.type);
                             return (
-                                <div key={b.id} className={`bg-white rounded-2xl shadow p-6 border-l-4 ${c.border}`}>
+                                <div key={b.id} className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow p-6 border-l-4 ${c.border}`}>
                                     <div className="flex items-start justify-between mb-3">
-                                        <h3 className="font-bold text-lg text-gray-900">{b.name}</h3>
+                                        <h3 className="font-bold text-lg text-white/90">{b.name}</h3>
                                         <div className="flex items-center gap-2 flex-shrink-0 ml-2">
                                             <span className={`px-2 py-1 text-xs rounded-full font-medium border ${c.bg} ${c.text} border-current`}>
                                                 {b.type}
@@ -195,12 +200,12 @@ export default function BranchesPage() {
                                             </span>
                                         </div>
                                     </div>
-                                    <div className="space-y-1 text-sm text-gray-500 mb-4">
+                                    <div className="space-y-1 text-sm text-white/60 mb-4">
                                         {b.address && <p className="flex items-center gap-1.5"><MapPin className="h-3.5 w-3.5 flex-shrink-0" /> {b.address}</p>}
                                         {b.phone && <p className="flex items-center gap-1.5"><Phone className="h-3.5 w-3.5 flex-shrink-0" /> {b.phone}</p>}
                                         {!b.address && !b.phone && <p className="text-gray-300 text-xs italic">Sin dirección ni teléfono</p>}
                                     </div>
-                                    <div className="flex gap-2 border-t border-gray-100 pt-4">
+                                    <div className="flex gap-2 border-t border-white/10 pt-4">
                                         <Link href={`/admin/branches/${b.id}`}
                                             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-green-700 hover:bg-green-50 rounded-lg border border-green-200 font-medium transition">
                                             📊 Ver panel
@@ -221,7 +226,7 @@ export default function BranchesPage() {
                             );
                         })}
                         {branches.length === 0 && (
-                            <div className="col-span-2 text-center py-16 bg-white rounded-2xl shadow text-gray-400">
+                            <div className="col-span-2 text-center py-16 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow text-white/40">
                                 <Store className="h-10 w-10 mx-auto mb-3 opacity-30" />
                                 <p>No hay sucursales registradas.</p>
                             </div>
@@ -233,55 +238,55 @@ export default function BranchesPage() {
             {/* Modal crear / editar */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                            <h2 className="text-lg font-bold text-gray-900">
+                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-xl w-full max-w-md">
+                        <div className="flex items-center justify-between p-6 border-b border-white/10">
+                            <h2 className="text-lg font-bold text-white/90">
                                 {editingBranch ? `Editar — ${editingBranch.name}` : 'Nueva Sucursal'}
                             </h2>
-                            <button onClick={closeModal} className="text-gray-400 hover:text-gray-600">
+                            <button onClick={closeModal} className="text-white/40 hover:text-white/70">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nombre *</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Nombre *</label>
                                 <input required type="text" placeholder="Ej: Skot Açaí Miraflores" value={form.name}
                                     onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                    className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Tipo *</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Tipo *</label>
                                 <select required value={form.type} onChange={e => setForm(f => ({ ...f, type: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                                    className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
                                     <option value="ACAI">ACAI — POS Açaí</option>
                                     <option value="HAMBURGUESAS">HAMBURGUESAS — POS Burgers</option>
                                     <option value="FABRICA">FABRICA — Fábrica</option>
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Dirección</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Dirección</label>
                                 <input type="text" placeholder="Av. Ejemplo 123" value={form.address}
                                     onChange={e => setForm(f => ({ ...f, address: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                    className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Teléfono</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Teléfono</label>
                                 <input type="tel" placeholder="999 000 000" value={form.phone}
                                     onChange={e => setForm(f => ({ ...f, phone: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                    className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                             </div>
                             {editingBranch && (
-                                <div className="flex items-center gap-3 bg-gray-50 rounded-xl px-4 py-3">
-                                    <label className="text-sm font-semibold text-gray-700 flex-1">Sucursal activa</label>
+                                <div className="flex items-center gap-3 bg-white/5 rounded-xl px-4 py-3">
+                                    <label className="text-sm font-semibold text-white/80 flex-1">Sucursal activa</label>
                                     <button type="button" onClick={() => setForm(f => ({ ...f, active: !f.active }))}
                                         className={`relative inline-flex h-6 w-11 rounded-full transition-colors ${form.active ? 'bg-green-600' : 'bg-gray-300'}`}>
-                                        <span className={`inline-block h-5 w-5 mt-0.5 ml-0.5 rounded-full bg-white shadow transform transition-transform ${form.active ? 'translate-x-5' : 'translate-x-0'}`} />
+                                        <span className={`inline-block h-5 w-5 mt-0.5 ml-0.5 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow transform transition-transform ${form.active ? 'translate-x-5' : 'translate-x-0'}`} />
                                     </button>
                                 </div>
                             )}
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={closeModal}
-                                    className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
+                                    className="flex-1 py-2.5 border border-white/10 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5">
                                     Cancelar
                                 </button>
                                 <button type="submit" disabled={submitting}

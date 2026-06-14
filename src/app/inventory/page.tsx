@@ -59,22 +59,28 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
     });
 
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
             {/* Header sucursal */}
-            <div className="bg-white border-b border-gray-200 px-6 py-5">
+            <div className="bg-white/5 border-b border-white/20 px-6 py-5">
                 <div className="max-w-6xl mx-auto flex items-center justify-between">
                     <div>
-                        <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                        <Link href="/" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver al dashboard</Link>
+                        <div className="flex items-center gap-2 text-sm text-white/60 mb-1">
                             <Package className="h-4 w-4" />
                             <span>Inventario</span>
                             <ChevronRight className="h-3 w-3" />
-                            <span className="font-semibold text-gray-900">{branchName}</span>
+                            <span className="font-semibold text-white/90">{branchName}</span>
                         </div>
-                        <h1 className="text-2xl font-bold text-gray-900">Mi Sucursal</h1>
+                        <h1 className="text-2xl font-bold text-white/90">Mi Sucursal</h1>
                     </div>
                     <button
                         onClick={loadStock}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50 transition"
+                        className="flex items-center gap-1.5 px-3 py-2 bg-white/5/5 border border-white/10 text-white/70 rounded-xl text-sm hover:bg-white/5/5 transition"
                     >
                         <RefreshCw className="h-4 w-4" /> Actualizar
                     </button>
@@ -87,30 +93,30 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
                 <div className="grid grid-cols-2 gap-4">
                     <Link
                         href="/inventory/transfers"
-                        className="flex items-center gap-4 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:border-blue-300 hover:shadow-md transition group"
+                        className="flex items-center gap-4 bg-white/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5 hover:border-blue-300 hover:shadow-md transition group"
                     >
-                        <div className="bg-blue-100 rounded-xl p-3 group-hover:bg-blue-200 transition">
-                            <ArrowLeftRight className="h-6 w-6 text-blue-600" />
+                        <div className="bg-blue-500/20 rounded-xl p-3 group-hover:bg-blue-200 transition">
+                            <ArrowLeftRight className="h-6 w-6 text-blue-400" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="font-bold text-gray-900 text-sm">Transferencias entre Sucursales</h3>
-                            <p className="text-xs text-gray-500 mt-0.5">Solicitar o confirmar envíos de stock</p>
+                            <h3 className="font-bold text-white/90 text-sm">Transferencias entre Sucursales</h3>
+                            <p className="text-xs text-white/60 mt-0.5">Solicitar o confirmar envíos de stock</p>
                         </div>
-                        <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-blue-400 transition" />
+                        <ChevronRight className="h-5 w-5 text-white/30 group-hover:text-blue-400 transition" />
                     </Link>
 
                     <Link
                         href="/inventory/internal-orders"
-                        className="flex items-center gap-4 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:border-green-300 hover:shadow-md transition group"
+                        className="flex items-center gap-4 bg-white/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5 hover:border-green-300 hover:shadow-md transition group"
                     >
                         <div className="bg-green-100 rounded-xl p-3 group-hover:bg-green-200 transition">
-                            <Factory className="h-6 w-6 text-green-600" />
+                            <Factory className="h-6 w-6 text-green-400" />
                         </div>
                         <div className="flex-1">
-                            <h3 className="font-bold text-gray-900 text-sm">Pedidos a Fábrica</h3>
-                            <p className="text-xs text-gray-500 mt-0.5">Solicitar productos al área de producción</p>
+                            <h3 className="font-bold text-white/90 text-sm">Pedidos a Fábrica</h3>
+                            <p className="text-xs text-white/60 mt-0.5">Solicitar productos al área de producción</p>
                         </div>
-                        <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-green-400 transition" />
+                        <ChevronRight className="h-5 w-5 text-white/30 group-hover:text-green-400 transition" />
                     </Link>
                 </div>
 
@@ -118,10 +124,10 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
                 {summary && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                         {[
-                            { label: 'Total ítems', value: summary.total, color: 'bg-blue-50 text-blue-700 border-blue-100', f: 'ALL' as const },
-                            { label: 'Stock OK', value: summary.ok, color: 'bg-green-50 text-green-700 border-green-100', f: 'OK' as const },
-                            { label: 'Stock bajo', value: summary.low, color: 'bg-yellow-50 text-yellow-700 border-yellow-100', f: 'LOW' as const },
-                            { label: 'Sin stock', value: summary.critical, color: 'bg-red-50 text-red-700 border-red-100', f: 'CRITICAL' as const },
+                            { label: 'Total ítems', value: summary.total, color: 'bg-blue-500/10 text-blue-400 border-blue-100', f: 'ALL' as const },
+                            { label: 'Stock OK', value: summary.ok, color: 'bg-green-500/10 text-green-400 border-green-500/20', f: 'OK' as const },
+                            { label: 'Stock bajo', value: summary.low, color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20', f: 'LOW' as const },
+                            { label: 'Sin stock', value: summary.critical, color: 'bg-red-500/10 text-red-400 border-red-500/20', f: 'CRITICAL' as const },
                         ].map(kpi => (
                             <button key={kpi.label} onClick={() => setFilter(kpi.f)}
                                 className={`${kpi.color} border rounded-2xl p-4 text-left transition-all ${filter === kpi.f ? 'ring-2 ring-current shadow' : 'hover:shadow-sm'}`}>
@@ -134,16 +140,16 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
 
                 {/* Alertas de stock bajo */}
                 {summary && (summary.critical > 0 || summary.low > 0) && (
-                    <div className={`flex items-start gap-3 p-4 rounded-2xl border ${summary.critical > 0 ? 'bg-red-50 border-red-200' : 'bg-yellow-50 border-yellow-200'}`}>
+                    <div className={`flex items-start gap-3 p-4 rounded-2xl border ${summary.critical > 0 ? 'bg-red-500/10 border-red-200' : 'bg-yellow-500/10 border-yellow-200'}`}>
                         <AlertTriangle className={`h-5 w-5 flex-shrink-0 mt-0.5 ${summary.critical > 0 ? 'text-red-500' : 'text-yellow-500'}`} />
                         <div>
-                            <p className={`text-sm font-bold ${summary.critical > 0 ? 'text-red-800' : 'text-yellow-800'}`}>
+                            <p className={`text-sm font-bold ${summary.critical > 0 ? 'text-red-300' : 'text-yellow-300'}`}>
                                 {summary.critical > 0
                                     ? `⚠️ ${summary.critical} producto${summary.critical !== 1 ? 's' : ''} sin stock`
                                     : `📉 ${summary.low} producto${summary.low !== 1 ? 's' : ''} con stock bajo`
                                 }
                             </p>
-                            <p className={`text-xs mt-0.5 ${summary.critical > 0 ? 'text-red-600' : 'text-yellow-600'}`}>
+                            <p className={`text-xs mt-0.5 ${summary.critical > 0 ? 'text-red-400' : 'text-yellow-400'}`}>
                                 Considerá hacer un pedido a fábrica o solicitar una transferencia.
                             </p>
                         </div>
@@ -158,53 +164,53 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
 
                 {/* Buscador */}
                 <div className="relative">
-                    <Package className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                    <Package className="absolute left-3 top-2.5 h-5 w-5 text-white/40" />
                     <input
                         type="text"
                         placeholder="Buscar producto por nombre o SKU…"
                         value={search}
                         onChange={e => setSearch(e.target.value)}
-                        className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                        className="w-full pl-10 pr-4 py-2.5 border border-white/20 rounded-xl bg-white/5 text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-green-500"
                     />
                 </div>
 
                 {/* Tabla de stock */}
                 {loading ? (
                     <div className="flex justify-center py-16">
-                        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+                        <Loader2 className="h-8 w-8 animate-spin text-green-400" />
                     </div>
                 ) : (
-                    <div className="bg-white rounded-2xl shadow-sm overflow-hidden border border-gray-100">
+                    <div className="bg-white/5 rounded-2xl shadow-sm overflow-hidden border border-white/10">
                         <table className="w-full text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-white/5/5 border-b border-white/20">
                                 <tr>
-                                    <th className="text-left px-5 py-3 font-semibold text-gray-600">Producto</th>
-                                    <th className="text-left px-5 py-3 font-semibold text-gray-600 hidden md:table-cell">SKU</th>
-                                    <th className="text-right px-5 py-3 font-semibold text-gray-600">Stock</th>
-                                    <th className="text-right px-5 py-3 font-semibold text-gray-600 hidden sm:table-cell">Mín.</th>
-                                    <th className="text-center px-5 py-3 font-semibold text-gray-600">Estado</th>
+                                    <th className="text-left px-5 py-3 font-semibold text-white/70">Producto</th>
+                                    <th className="text-left px-5 py-3 font-semibold text-white/70 hidden md:table-cell">SKU</th>
+                                    <th className="text-right px-5 py-3 font-semibold text-white/70">Stock</th>
+                                    <th className="text-right px-5 py-3 font-semibold text-white/70 hidden sm:table-cell">Mín.</th>
+                                    <th className="text-center px-5 py-3 font-semibold text-white/70">Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 {filtered.map(item => (
-                                    <tr key={item.id} className={`border-b border-gray-50 hover:bg-gray-50 ${item.isCritical ? 'bg-red-50/40' : item.isLow ? 'bg-yellow-50/40' : ''}`}>
-                                        <td className="px-5 py-3 font-medium text-gray-900">{item.product?.name ?? '—'}</td>
-                                        <td className="px-5 py-3 font-mono text-xs text-gray-400 hidden md:table-cell">{item.product?.sku ?? '—'}</td>
-                                        <td className={`px-5 py-3 text-right font-bold ${item.isCritical ? 'text-red-600' : item.isLow ? 'text-yellow-600' : 'text-green-700'}`}>
-                                            {item.currentStock} <span className="text-xs font-normal text-gray-400">{item.product?.unit ?? ''}</span>
+                                    <tr key={item.id} className={`border-b border-white/5 hover:bg-white/5/5 ${item.isCritical ? 'bg-red-500/10/40' : item.isLow ? 'bg-yellow-500/10/40' : ''}`}>
+                                        <td className="px-5 py-3 font-medium text-white/90">{item.product?.name ?? '—'}</td>
+                                        <td className="px-5 py-3 font-mono text-xs text-white/40 hidden md:table-cell">{item.product?.sku ?? '—'}</td>
+                                        <td className={`px-5 py-3 text-right font-bold ${item.isCritical ? 'text-red-400' : item.isLow ? 'text-yellow-400' : 'text-green-400'}`}>
+                                            {item.currentStock} <span className="text-xs font-normal text-white/40">{item.product?.unit ?? ''}</span>
                                         </td>
-                                        <td className="px-5 py-3 text-right text-sm text-gray-400 hidden sm:table-cell">{item.minStock}</td>
+                                        <td className="px-5 py-3 text-right text-sm text-white/40 hidden sm:table-cell">{item.minStock}</td>
                                         <td className="px-5 py-3 text-center">
                                             {item.isCritical ? (
-                                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+                                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full">
                                                     <XCircle className="h-3 w-3" /> Sin stock
                                                 </span>
                                             ) : item.isLow ? (
-                                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">
+                                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-full">
                                                     <AlertTriangle className="h-3 w-3" /> Bajo
                                                 </span>
                                             ) : (
-                                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                                                <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">
                                                     <CheckCircle className="h-3 w-3" /> OK
                                                 </span>
                                             )}
@@ -213,7 +219,7 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
                                 ))}
                                 {filtered.length === 0 && (
                                     <tr>
-                                        <td colSpan={5} className="px-6 py-16 text-center text-gray-400">
+                                        <td colSpan={5} className="px-6 py-16 text-center text-white/40">
                                             <Package className="h-10 w-10 mx-auto mb-2 opacity-20" />
                                             No se encontraron productos
                                         </td>
@@ -221,14 +227,14 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
                                 )}
                             </tbody>
                         </table>
-                        <div className="px-5 py-3 bg-gray-50 border-t text-xs text-gray-400">
+                        <div className="px-5 py-3 bg-white/5/5 border-t text-xs text-white/40">
                             {filtered.length} producto{filtered.length !== 1 ? 's' : ''} · {branchName}
                         </div>
                     </div>
                 )}
 
                 {/* Nota informativa */}
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-start gap-3 text-sm text-blue-800">
+                <div className="bg-blue-500/10 border border-blue-100 rounded-2xl p-4 flex items-start gap-3 text-sm text-blue-300">
                     <ClipboardList className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
                     <p>
                         Solo ves el stock de tu sucursal. Para ajustes de inventario contactá a tu administrador. Podés solicitar productos desde{' '}
@@ -245,106 +251,112 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
 /* ── Vista Admin / Manager (panel completo) ── */
 function AdminInventoryView() {
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                        <Package className="h-8 w-8 text-green-600" />
+                    <Link href="/" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2 mt-4"><ArrowLeft className="h-4 w-4" /> Volver al dashboard</Link>
+                    <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
+                        <Package className="h-8 w-8 text-green-400" />
                         Gestión de Inventario
                     </h1>
-                    <p className="text-gray-600 mt-2">
+                    <p className="text-white/70 mt-2">
                         Control de stock multi-sucursal con alertas inteligentes
                     </p>
                 </div>
 
                 {/* Accesos Rápidos */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 mt-8">
-                    <Link href="/inventory/stock" className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-green-500">
+                    <Link href="/inventory/stock" className="bg-white/5 rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-green-500">
                         <div className="flex items-center gap-4">
-                            <BarChart2 className="h-10 w-10 text-green-600" />
+                            <BarChart2 className="h-10 w-10 text-green-400" />
                             <div>
-                                <h3 className="font-semibold text-lg text-gray-900">Stock por Sucursal</h3>
-                                <p className="text-sm text-gray-600">Ver y monitorear el inventario de cada sucursal</p>
+                                <h3 className="font-semibold text-lg text-white/90">Stock por Sucursal</h3>
+                                <p className="text-sm text-white/70">Ver y monitorear el inventario de cada sucursal</p>
                             </div>
                         </div>
                     </Link>
 
-                    <Link href="/inventory/transfers" className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-blue-500">
+                    <Link href="/inventory/transfers" className="bg-white/5 rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-blue-500">
                         <div className="flex items-center gap-4">
-                            <ArrowLeftRight className="h-10 w-10 text-blue-600" />
+                            <ArrowLeftRight className="h-10 w-10 text-blue-400" />
                             <div>
-                                <h3 className="font-semibold text-lg text-gray-900">Transferencias</h3>
-                                <p className="text-sm text-gray-600">Gestionar y aprobar transferencias entre sucursales</p>
+                                <h3 className="font-semibold text-lg text-white/90">Transferencias</h3>
+                                <p className="text-sm text-white/70">Gestionar y aprobar transferencias entre sucursales</p>
                             </div>
                         </div>
                     </Link>
 
-                    <Link href="/inventory/transfers/request" className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-teal-500">
+                    <Link href="/inventory/transfers/request" className="bg-white/5 rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-teal-500">
                         <div className="flex items-center gap-4">
                             <Send className="h-10 w-10 text-teal-600" />
                             <div>
-                                <h3 className="font-semibold text-lg text-gray-900">Solicitar Transferencia</h3>
-                                <p className="text-sm text-gray-600">Pedir productos de otra sucursal o fábrica</p>
+                                <h3 className="font-semibold text-lg text-white/90">Solicitar Transferencia</h3>
+                                <p className="text-sm text-white/70">Pedir productos de otra sucursal o fábrica</p>
                             </div>
                         </div>
                     </Link>
 
-                    <Link href="/inventory/kardex" className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-purple-500">
+                    <Link href="/inventory/kardex" className="bg-white/5 rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-purple-500">
                         <div className="flex items-center gap-4">
                             <FileText className="h-10 w-10 text-purple-600" />
                             <div>
-                                <h3 className="font-semibold text-lg text-gray-900">Kardex</h3>
-                                <p className="text-sm text-gray-600">Ver historial de movimientos</p>
+                                <h3 className="font-semibold text-lg text-white/90">Kardex</h3>
+                                <p className="text-sm text-white/70">Ver historial de movimientos</p>
                             </div>
                         </div>
                     </Link>
 
-                    <Link href="/inventory/suggestions" className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-yellow-500">
+                    <Link href="/inventory/suggestions" className="bg-white/5 rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-yellow-500">
                         <div className="flex items-center gap-4">
-                            <TrendingUp className="h-10 w-10 text-yellow-600" />
+                            <TrendingUp className="h-10 w-10 text-yellow-400" />
                             <div>
-                                <h3 className="font-semibold text-lg text-gray-900">Sugerencias de Reabasto</h3>
-                                <p className="text-sm text-gray-600">Análisis predictivo de stock</p>
+                                <h3 className="font-semibold text-lg text-white/90">Sugerencias de Reabasto</h3>
+                                <p className="text-sm text-white/70">Análisis predictivo de stock</p>
                             </div>
                         </div>
                     </Link>
 
-                    <Link href="/inventory/internal-orders" className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-cyan-500">
+                    <Link href="/inventory/internal-orders" className="bg-white/5 rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-cyan-500">
                         <div className="flex items-center gap-4">
                             <Package className="h-10 w-10 text-cyan-600" />
                             <div>
-                                <h3 className="font-semibold text-lg text-gray-900">Pedidos Internos</h3>
-                                <p className="text-sm text-gray-600">Solicitudes de stock a la fábrica</p>
+                                <h3 className="font-semibold text-lg text-white/90">Pedidos Internos</h3>
+                                <p className="text-sm text-white/70">Solicitudes de stock a la fábrica</p>
                             </div>
                         </div>
                     </Link>
 
-                    <Link href="/inventory/mermas" className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-red-500">
+                    <Link href="/inventory/mermas" className="bg-white/5 rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-red-500">
                         <div className="flex items-center gap-4">
                             <Trash2 className="h-10 w-10 text-red-500" />
                             <div>
-                                <h3 className="font-semibold text-lg text-gray-900">Registro de Merma</h3>
-                                <p className="text-sm text-gray-600">Dar de baja stock por daño, vencimiento u otros</p>
+                                <h3 className="font-semibold text-lg text-white/90">Registro de Merma</h3>
+                                <p className="text-sm text-white/70">Dar de baja stock por daño, vencimiento u otros</p>
                             </div>
                         </div>
                     </Link>
 
-                    <Link href="/inventory/adjustments" className="bg-white rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-amber-500">
+                    <Link href="/inventory/adjustments" className="bg-white/5 rounded-lg shadow hover:shadow-lg transition-shadow p-6 border-l-4 border-amber-500">
                         <div className="flex items-center gap-4">
                             <SlidersHorizontal className="h-10 w-10 text-amber-600" />
                             <div>
-                                <h3 className="font-semibold text-lg text-gray-900">Ajuste de Stock</h3>
-                                <p className="text-sm text-gray-600">Entrada, salida o corrección manual de inventario</p>
+                                <h3 className="font-semibold text-lg text-white/90">Ajuste de Stock</h3>
+                                <p className="text-sm text-white/70">Entrada, salida o corrección manual de inventario</p>
                             </div>
                         </div>
                     </Link>
                 </div>
 
                 {/* Nota Informativa */}
-                <div className="mt-8 bg-green-50 border border-green-200 rounded-lg p-6">
+                <div className="mt-8 bg-green-500/10 border border-green-200 rounded-lg p-6">
                     <h3 className="font-semibold text-green-900 mb-2">💡 Sistema Inteligente:</h3>
-                    <p className="text-green-800">
+                    <p className="text-green-300">
                         El sistema de inventario calcula automáticamente los días restantes de stock
                         basándose en el promedio de ventas. Las sugerencias de reabastecimiento se
                         generan usando análisis predictivo para evitar quiebres de stock.
@@ -358,18 +370,24 @@ function AdminInventoryView() {
 /* ── Vista Fábrica / Almacén ── */
 function FactoryInventoryView({ branchName }: { branchName: string }) {
     return (
-        <div className="min-h-screen bg-gray-50">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
             {/* Header */}
-            <div className="bg-white border-b border-gray-200 px-6 py-5">
+            <div className="bg-white/5 border-b border-white/20 px-6 py-5">
                 <div className="max-w-6xl mx-auto">
-                    <div className="flex items-center gap-2 text-sm text-gray-500 mb-1">
+                    <Link href="/" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2 mt-4"><ArrowLeft className="h-4 w-4" /> Volver al dashboard</Link>
+                    <div className="flex items-center gap-2 text-sm text-white/60 mb-1">
                         <Factory className="h-4 w-4" />
                         <span>Fábrica / Almacén</span>
                         <ChevronRight className="h-3 w-3" />
-                        <span className="font-semibold text-gray-900">{branchName}</span>
+                        <span className="font-semibold text-white/90">{branchName}</span>
                     </div>
-                    <h1 className="text-2xl font-bold text-gray-900">Panel de Fábrica</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">Producción, materia prima y pedidos internos</p>
+                    <h1 className="text-2xl font-bold text-white/90">Panel de Fábrica</h1>
+                    <p className="text-sm text-white/60 mt-0.5">Producción, materia prima y pedidos internos</p>
                 </div>
             </div>
 
@@ -380,27 +398,27 @@ function FactoryInventoryView({ branchName }: { branchName: string }) {
                     {[
                         {
                             href: '/factory/receiving',
-                            icon: <PackagePlus className="h-7 w-7 text-green-700" />,
+                            icon: <PackagePlus className="h-7 w-7 text-green-400" />,
                             title: 'Recepción de Mercancía',
                             desc: 'Registrar ingreso de productos desde proveedores',
                             border: 'border-green-600',
-                            bg: 'bg-green-50',
+                            bg: 'bg-green-500/10',
                         },
                         {
                             href: '/factory',
-                            icon: <Factory className="h-7 w-7 text-blue-600" />,
+                            icon: <Factory className="h-7 w-7 text-blue-400" />,
                             title: 'Dashboard Fábrica',
                             desc: 'Resumen de producción, KPIs y últimas órdenes',
                             border: 'border-blue-500',
-                            bg: 'bg-blue-50',
+                            bg: 'bg-blue-500/10',
                         },
                         {
                             href: '/factory/production',
-                            icon: <ClipboardList className="h-7 w-7 text-green-600" />,
+                            icon: <ClipboardList className="h-7 w-7 text-green-400" />,
                             title: 'Órdenes de Producción',
                             desc: 'Ver y gestionar órdenes activas y programadas',
                             border: 'border-green-500',
-                            bg: 'bg-green-50',
+                            bg: 'bg-green-500/10',
                         },
                         {
                             href: '/factory/production/new',
@@ -462,22 +480,22 @@ function FactoryInventoryView({ branchName }: { branchName: string }) {
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex items-center gap-4 bg-white rounded-2xl shadow-sm border border-gray-100 p-5 hover:shadow-md hover:border-gray-200 transition group border-l-4 ${item.border}`}
+                            className={`flex items-center gap-4 bg-white/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5 hover:shadow-md hover:border-white/20 transition group border-l-4 ${item.border}`}
                         >
                             <div className={`${item.bg} rounded-xl p-3 flex-shrink-0`}>
                                 {item.icon}
                             </div>
                             <div className="flex-1 min-w-0">
-                                <h3 className="font-bold text-gray-900 text-sm">{item.title}</h3>
-                                <p className="text-xs text-gray-500 mt-0.5 leading-relaxed">{item.desc}</p>
+                                <h3 className="font-bold text-white/90 text-sm">{item.title}</h3>
+                                <p className="text-xs text-white/60 mt-0.5 leading-relaxed">{item.desc}</p>
                             </div>
-                            <ChevronRight className="h-5 w-5 text-gray-300 group-hover:text-gray-500 flex-shrink-0 transition" />
+                            <ChevronRight className="h-5 w-5 text-white/30 group-hover:text-white/60 flex-shrink-0 transition" />
                         </Link>
                     ))}
                 </div>
 
                 {/* Nota */}
-                <div className="bg-blue-50 border border-blue-100 rounded-2xl p-4 flex items-start gap-3 text-sm text-blue-800">
+                <div className="bg-blue-500/10 border border-blue-100 rounded-2xl p-4 flex items-start gap-3 text-sm text-blue-300">
                     <Factory className="h-5 w-5 text-blue-500 flex-shrink-0 mt-0.5" />
                     <p>
                         Sos parte de <strong>{branchName}</strong>. Desde acá gestionás la producción y el stock de materia prima.
@@ -515,8 +533,8 @@ export default function InventoryDashboardPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-gray-50">
-                <Loader2 className="h-8 w-8 animate-spin text-green-600" />
+            <div className="flex items-center justify-center min-h-screen bg-white/5/5">
+                <Loader2 className="h-8 w-8 animate-spin text-green-400" />
             </div>
         );
     }
@@ -524,11 +542,11 @@ export default function InventoryDashboardPage() {
     // Sin sucursal asignada
     if (!isAdmin && !branchId) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-gray-50 text-gray-500">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-white/5/5 text-white/60">
                 <Package className="h-12 w-12 mb-3 opacity-30" />
                 <p className="text-lg font-semibold">Sin sucursal asignada</p>
                 <p className="text-sm mt-1">Contactá a tu administrador para que te asigne una sucursal.</p>
-                <Link href="/" className="mt-4 flex items-center gap-1 text-sm text-blue-600 hover:underline">
+                <Link href="/" className="mt-4 flex items-center gap-1 text-sm text-blue-400 hover:underline">
                     <ArrowLeft className="h-4 w-4" /> Volver al dashboard
                 </Link>
             </div>

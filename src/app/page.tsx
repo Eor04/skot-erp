@@ -15,45 +15,45 @@ const ALL_MODULES = [
         description: 'Punto de venta con balanza Prix 4. Venta por peso, toppings y pagos.',
         gradient: 'linear-gradient(135deg,#9333ea,#ec4899)', badge: 'Balanza Prix 4', glow: 'rgba(147,51,234,0.35)',
         showWhen: (role: string, types: string[]) =>
-            ['ADMIN', 'MANAGER'].includes(role) || (role === 'CASHIER' && types.includes('ACAI')),
+            ['MANAGER', 'CASHIER'].includes(role) && types.includes('ACAI'),
     },
     {
         href: '/burgers', emoji: '🍔', logo: '/logo-burger.png', title: 'POS Burgers',
         description: 'Punto de venta táctil con modificadores, combos y gestión de carrito.',
         gradient: 'linear-gradient(135deg,#f97316,#eab308)', badge: 'Táctil', glow: 'rgba(249,115,22,0.35)',
         showWhen: (role: string, types: string[]) =>
-            ['ADMIN', 'MANAGER'].includes(role) || (role === 'CASHIER' && types.includes('HAMBURGUESAS')),
+            ['MANAGER', 'CASHIER'].includes(role) && types.includes('HAMBURGUESAS'),
     },
     {
         href: '/cash-close', emoji: '💰', logo: '', title: 'Cierre de Caja',
         description: 'Registrá el cierre del turno: efectivo, tarjeta y diferencias.',
         gradient: 'linear-gradient(135deg,#64748b,#334155)', badge: 'Turno', glow: 'rgba(100,116,139,0.3)',
-        showWhen: (role: string) => ['ADMIN', 'MANAGER', 'CASHIER'].includes(role),
+        showWhen: (role: string) => ['MANAGER', 'CASHIER'].includes(role),
     },
     {
         href: '/expenses', emoji: '🧾', logo: '', title: 'Gastos',
-        description: 'Registrá pagos a proveedores, servicios y otros gastos operativos.',
+        description: 'Registrá y controla los pagos a proveedores, servicios, sueldos y otros gastos operativos.',
         gradient: 'linear-gradient(135deg,#dc2626,#db2777)', badge: 'Proveedores', glow: 'rgba(220,38,38,0.3)',
         showWhen: (role: string) => ['ADMIN', 'MANAGER', 'CASHIER', 'WAREHOUSE'].includes(role),
     },
     {
-        href: '/factory', emoji: '🏭', logo: '', title: 'Fábrica',
-        description: 'Gestión de recetas, órdenes de producción y kardex de movimientos.',
+        href: '/factory', emoji: '🏭', logo: '', title: 'Almacén y Fábrica',
+        description: 'Central de operaciones: Gestiona recetas, materia prima, recepciones y despachos internos.',
         gradient: 'linear-gradient(135deg,#2563eb,#0891b2)', badge: 'Producción', glow: 'rgba(37,99,235,0.3)',
         showWhen: (role: string, types: string[]) =>
-            ['ADMIN', 'MANAGER'].includes(role) || (role === 'WAREHOUSE' && (types.length === 0 || types.includes('FABRICA'))),
+            ['ADMIN'].includes(role) || role === 'WAREHOUSE',
     },
     {
         href: '/inventory', emoji: '📦', logo: '', title: 'Inventario',
         description: 'Stock en tiempo real, alertas automáticas y transferencias entre sucursales.',
         gradient: 'linear-gradient(135deg,#059669,#0d9488)', badge: 'Multi-sucursal', glow: 'rgba(5,150,105,0.3)',
-        showWhen: (role: string) => ['ADMIN', 'MANAGER', 'WAREHOUSE', 'CASHIER'].includes(role),
+        showWhen: (role: string) => ['MANAGER', 'CASHIER'].includes(role),
     },
     {
         href: '/admin', emoji: '⚙️', logo: '', title: 'Administración',
         description: 'Usuarios, sucursales, productos, reportes de ventas y configuración.',
         gradient: 'linear-gradient(135deg,#4f46e5,#7c3aed)', badge: 'Admin', glow: 'rgba(79,70,229,0.3)',
-        showWhen: (role: string) => ['ADMIN', 'MANAGER'].includes(role),
+        showWhen: (role: string) => ['ADMIN'].includes(role),
     },
 ];
 
@@ -330,10 +330,11 @@ export default function HomePage() {
                 )}
 
                 {/* Grilla de módulos */}
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                <div className="flex flex-wrap justify-center gap-5">
+                    {/* Adjust widths manually to match original grid but centered */}
                     {visibleModules.map((mod) => (
                         <Link key={mod.href} href={mod.href}
-                            className="group relative rounded-2xl p-6 transition-all duration-200 hover:-translate-y-1"
+                            className="group relative rounded-2xl p-6 transition-all duration-200 hover:-translate-y-1 w-full sm:w-[calc(50%-1.25rem)] lg:w-[calc(33.333%-1.25rem)]"
                             style={{
                                 background: 'rgba(255,255,255,0.05)',
                                 border: '1px solid rgba(255,255,255,0.08)',

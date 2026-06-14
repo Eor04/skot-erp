@@ -109,16 +109,21 @@ export default function AlertsPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
-            <div className="max-w-6xl mx-auto">
+        <div className="min-h-screen relative overflow-hidden p-4 md:p-8" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
+            <div className="relative z-10 max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+                    <Link href="/admin" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
                         <ArrowLeft className="h-4 w-4" /> Volver a Admin
                     </Link>
                     <div className="flex items-center justify-between flex-wrap gap-4">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                            <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                                 <Bell className="h-8 w-8 text-red-500" />
                                 Alertas de Stock
                                 {totalAlerts > 0 && (
@@ -127,10 +132,10 @@ export default function AlertsPage() {
                                     </span>
                                 )}
                             </h1>
-                            <p className="text-gray-500 mt-1">
+                            <p className="text-white/60 mt-1">
                                 Productos con stock bajo o por vencer
                                 {lastUpdated && (
-                                    <span className="ml-2 text-xs text-gray-400">
+                                    <span className="ml-2 text-xs text-white/40">
                                         · Actualizado {lastUpdated.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
                                     </span>
                                 )}
@@ -139,7 +144,7 @@ export default function AlertsPage() {
                         <button
                             onClick={loadAlerts}
                             disabled={loading}
-                            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 disabled:opacity-50 transition"
+                            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 backdrop-blur-md border border-white/10 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 disabled:opacity-50 transition"
                         >
                             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
                             Actualizar
@@ -149,11 +154,11 @@ export default function AlertsPage() {
 
                 {/* Filtro de sucursal (Solo ADMIN) */}
                 {user?.role === 'ADMIN' && (
-                <div className="bg-white rounded-2xl shadow p-4 mb-6 flex gap-2 flex-wrap items-center">
-                    <Store className="h-4 w-4 text-gray-400" />
+                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow p-4 mb-6 flex gap-2 flex-wrap items-center">
+                    <Store className="h-4 w-4 text-white/40" />
                     <button
                         onClick={() => setSelectedBranch('')}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${!selectedBranch ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${!selectedBranch ? 'bg-red-600 text-white' : 'bg-white/10 text-white/70 hover:bg-gray-200'}`}
                     >
                         Todas
                     </button>
@@ -161,7 +166,7 @@ export default function AlertsPage() {
                         <button
                             key={b.id}
                             onClick={() => setSelectedBranch(b.id)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${selectedBranch === b.id ? 'bg-red-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}
+                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${selectedBranch === b.id ? 'bg-red-600 text-white' : 'bg-white/10 text-white/70 hover:bg-gray-200'}`}
                         >
                             {b.type === 'ACAI' ? '🥤' : b.type === 'HAMBURGUESAS' ? '🍔' : '🏭'} {b.name}
                         </button>
@@ -170,7 +175,7 @@ export default function AlertsPage() {
                 )}
 
                 {loading ? (
-                    <div className="text-center py-20 text-gray-400">
+                    <div className="text-center py-20 text-white/40">
                         <RefreshCw className="h-8 w-8 mx-auto animate-spin mb-3 opacity-40" />
                         Cargando alertas…
                     </div>
@@ -207,12 +212,12 @@ export default function AlertsPage() {
                             {data?.pendingOrders?.length === 0 ? (
                                 <Empty text="No tienes pedidos internos pendientes" />
                             ) : data?.pendingOrders?.map(order => (
-                                <div key={order.id} className="flex items-center justify-between p-4 border-l-4 border-l-blue-400 bg-white rounded-r-xl shadow-sm mb-2">
+                                <div key={order.id} className="flex items-center justify-between p-4 border-l-4 border-l-blue-400 bg-white/5 border border-white/10 backdrop-blur-md rounded-r-xl shadow-sm mb-2">
                                     <div className="flex items-start gap-3">
                                         <PackageOpen className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
                                         <div>
-                                            <p className="font-semibold text-gray-900">Pedido #{order.orderNumber}</p>
-                                            <p className="text-xs text-gray-500">De: {order.fromBranch.name} → Para: {order.toBranch.name}</p>
+                                            <p className="font-semibold text-white/90">Pedido #{order.orderNumber}</p>
+                                            <p className="text-xs text-white/60">De: {order.fromBranch.name} → Para: {order.toBranch.name}</p>
                                         </div>
                                     </div>
                                     <Link href="/inventory/internal-orders" className="text-sm px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition">
@@ -227,12 +232,12 @@ export default function AlertsPage() {
                             {data?.pendingTransfers?.length === 0 ? (
                                 <Empty text="No tienes transferencias pendientes por aprobar" />
                             ) : data?.pendingTransfers?.map(transfer => (
-                                <div key={transfer.id} className="flex items-center justify-between p-4 border-l-4 border-l-purple-400 bg-white rounded-r-xl shadow-sm mb-2">
+                                <div key={transfer.id} className="flex items-center justify-between p-4 border-l-4 border-l-purple-400 bg-white/5 border border-white/10 backdrop-blur-md rounded-r-xl shadow-sm mb-2">
                                     <div className="flex items-start gap-3">
                                         <PackageOpen className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
                                         <div>
-                                            <p className="font-semibold text-gray-900">Transferencia #{transfer.transferNumber}</p>
-                                            <p className="text-xs text-gray-500">Origen: {transfer.fromBranch.name} → Destino: {transfer.toBranch.name}</p>
+                                            <p className="font-semibold text-white/90">Transferencia #{transfer.transferNumber}</p>
+                                            <p className="text-xs text-white/60">Origen: {transfer.fromBranch.name} → Destino: {transfer.toBranch.name}</p>
                                         </div>
                                     </div>
                                     <Link href="/inventory/transfers" className="text-sm px-4 py-2 bg-purple-50 text-purple-600 rounded-lg font-medium hover:bg-purple-100 transition">
@@ -251,28 +256,28 @@ export default function AlertsPage() {
                                 const cfg = SEVERITY_CONFIG[sev];
                                 const Icon = cfg.icon;
                                 return (
-                                    <div key={item.id} className={`flex items-center justify-between p-4 border-l-4 ${cfg.border} bg-white rounded-r-xl shadow-sm mb-2`}>
+                                    <div key={item.id} className={`flex items-center justify-between p-4 border-l-4 ${cfg.border} bg-white/5 border border-white/10 backdrop-blur-md rounded-r-xl shadow-sm mb-2`}>
                                         <div className="flex items-start gap-3">
                                             <Icon className="h-5 w-5 text-current mt-0.5 flex-shrink-0" style={{ color: sev === 'CRITICO' ? '#dc2626' : sev === 'ALTO' ? '#ea580c' : '#d97706' }} />
                                             <div>
-                                                <p className="font-semibold text-gray-900">{item.product.name}</p>
-                                                <p className="text-xs text-gray-500">{item.branch.name} · SKU: {item.product.sku}</p>
+                                                <p className="font-semibold text-white/90">{item.product.name}</p>
+                                                <p className="text-xs text-white/60">{item.branch.name} · SKU: {item.product.sku}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-6 text-right">
                                             <div>
-                                                <p className="text-xs text-gray-400">Stock actual</p>
-                                                <p className={`font-bold text-lg ${sev === 'CRITICO' ? 'text-red-600' : 'text-gray-900'}`}>
-                                                    {item.currentStock} <span className="text-xs font-normal text-gray-400">{item.product.unit}</span>
+                                                <p className="text-xs text-white/40">Stock actual</p>
+                                                <p className={`font-bold text-lg ${sev === 'CRITICO' ? 'text-red-600' : 'text-white/90'}`}>
+                                                    {item.currentStock} <span className="text-xs font-normal text-white/40">{item.product.unit}</span>
                                                 </p>
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-400">Mínimo</p>
-                                                <p className="font-medium text-gray-600">{item.minStock} <span className="text-xs font-normal text-gray-400">{item.product.unit}</span></p>
+                                                <p className="text-xs text-white/40">Mínimo</p>
+                                                <p className="font-medium text-white/70">{item.minStock} <span className="text-xs font-normal text-white/40">{item.product.unit}</span></p>
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-400">Días restantes</p>
-                                                <p className="font-medium text-gray-700">{daysLabel(item.daysRemaining)}</p>
+                                                <p className="text-xs text-white/40">Días restantes</p>
+                                                <p className="font-medium text-white/80">{daysLabel(item.daysRemaining)}</p>
                                             </div>
                                             <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${cfg.color}`}>
                                                 {cfg.label}
@@ -291,22 +296,22 @@ export default function AlertsPage() {
                                 const exp = new Date(item.expirationDate);
                                 const daysLeft = Math.ceil((exp.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
                                 return (
-                                    <div key={item.id} className="flex items-center justify-between p-4 border-l-4 border-l-orange-400 bg-white rounded-r-xl shadow-sm mb-2">
+                                    <div key={item.id} className="flex items-center justify-between p-4 border-l-4 border-l-orange-400 bg-white/5 border border-white/10 backdrop-blur-md rounded-r-xl shadow-sm mb-2">
                                         <div className="flex items-start gap-3">
                                             <Clock className="h-5 w-5 text-orange-500 mt-0.5" />
                                             <div>
-                                                <p className="font-semibold text-gray-900">{item.product.name}</p>
-                                                <p className="text-xs text-gray-500">{item.branch.name} · SKU: {item.product.sku}</p>
+                                                <p className="font-semibold text-white/90">{item.product.name}</p>
+                                                <p className="text-xs text-white/60">{item.branch.name} · SKU: {item.product.sku}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-6 text-right">
                                             <div>
-                                                <p className="text-xs text-gray-400">Stock</p>
-                                                <p className="font-bold text-gray-900">{item.currentStock} <span className="text-xs font-normal text-gray-400">{item.product.unit}</span></p>
+                                                <p className="text-xs text-white/40">Stock</p>
+                                                <p className="font-bold text-white/90">{item.currentStock} <span className="text-xs font-normal text-white/40">{item.product.unit}</span></p>
                                             </div>
                                             <div>
-                                                <p className="text-xs text-gray-400">Vence</p>
-                                                <p className="font-medium text-gray-700">{exp.toLocaleDateString('es-BO')}</p>
+                                                <p className="text-xs text-white/40">Vence</p>
+                                                <p className="font-medium text-white/80">{exp.toLocaleDateString('es-BO')}</p>
                                             </div>
                                             <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${daysLeft <= 7 ? 'bg-red-100 text-red-700 border-red-200' : 'bg-orange-100 text-orange-700 border-orange-200'}`}>
                                                 {daysLeft <= 0 ? '¡Vencido!' : `En ${daysLeft}d`}
@@ -329,15 +334,15 @@ function Section({ title, count, children, defaultOpen }: { title: string; count
         <div className="mb-6">
             <button
                 onClick={() => setOpen(o => !o)}
-                className="w-full flex items-center justify-between bg-white rounded-2xl shadow px-5 py-4 text-left hover:bg-gray-50 transition"
+                className="w-full flex items-center justify-between bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow px-5 py-4 text-left hover:bg-white/5 transition"
             >
-                <span className="font-semibold text-gray-800">
+                <span className="font-semibold text-white/90">
                     {title}
                     {count > 0 && (
                         <span className="ml-2 bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>
                     )}
                 </span>
-                <ChevronDown className={`h-5 w-5 text-gray-400 transition-transform ${open ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`h-5 w-5 text-white/40 transition-transform ${open ? 'rotate-180' : ''}`} />
             </button>
             {open && <div className="mt-3">{children}</div>}
         </div>
@@ -346,7 +351,7 @@ function Section({ title, count, children, defaultOpen }: { title: string; count
 
 function Empty({ text }: { text: string }) {
     return (
-        <div className="text-center py-10 text-gray-400 bg-white rounded-xl shadow-sm">
+        <div className="text-center py-10 text-white/40 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl shadow-sm">
             <p>{text}</p>
         </div>
     );

@@ -139,7 +139,12 @@ export default function TransferRequestPage() {
     const otherBranches = branches.filter(b => b.id !== form.myBranchId);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
             {notification && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
                     {notification.type === 'success' ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
@@ -150,82 +155,82 @@ export default function TransferRequestPage() {
             <div className="max-w-3xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <Link href="/inventory/transfers" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+                    <Link href="/inventory/transfers" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
                         <ArrowLeft className="h-4 w-4" /> Transferencias
                     </Link>
-                    <h1 className="text-3xl font-bold text-gray-900">📦 Solicitar Transferencia</h1>
-                    <p className="text-gray-500 mt-1">Solicitá productos de otra sucursal o de la fábrica</p>
+                    <h1 className="text-3xl font-bold text-white/90">📦 Solicitar Transferencia</h1>
+                    <p className="text-white/60 mt-1">Solicitá productos de otra sucursal o de la fábrica</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Sucursales */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                        <h2 className="font-bold text-gray-800 mb-4">Origen y destino</h2>
+                    <div className="bg-white/5/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6">
+                        <h2 className="font-bold text-white/80 mb-4">Origen y destino</h2>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">
                                     Mi sucursal (recibe) *
                                 </label>
                                 <select
                                     value={form.myBranchId}
                                     onChange={e => setForm(f => ({ ...f, myBranchId: e.target.value }))}
                                     disabled={!!(user?.branchIds?.[0] && user.role !== 'ADMIN')}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-gray-50"
+                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-white/5/5/5"
                                 >
-                                    <option value="">-- Seleccioná --</option>
-                                    {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                    <option value="" className="text-white/90">-- Seleccioná --</option>
+                                    {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">
                                     Sucursal de origen (provee) *
                                 </label>
                                 <select
                                     value={form.fromBranchId}
                                     onChange={e => handleFromBranchChange(e.target.value)}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                                 >
-                                    <option value="">-- Seleccioná --</option>
-                                    {otherBranches.map(b => <option key={b.id} value={b.id}>{b.name} ({b.type})</option>)}
+                                    <option value="" className="text-white/90">-- Seleccioná --</option>
+                                    {otherBranches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name} ({b.type})</option>)}
                                 </select>
                             </div>
                         </div>
 
                         {myBranch && fromBranch && (
-                            <div className="mt-3 p-3 bg-green-50 rounded-xl text-sm text-green-700">
+                            <div className="mt-3 p-3 bg-green-500/10 rounded-xl text-sm text-green-400">
                                 📦 <strong>{fromBranch.name}</strong> enviará productos a <strong>{myBranch.name}</strong>
                             </div>
                         )}
 
                         <div className="mt-4">
-                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Notas para el administrador</label>
+                            <label className="block text-sm font-semibold text-white/80 mb-1.5">Notas para el administrador</label>
                             <textarea
                                 rows={2}
                                 value={form.notes}
                                 onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                                 placeholder="Ej: Necesitamos urgente para el fin de semana..."
-                                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none"
+                                className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none"
                             />
                         </div>
                     </div>
 
                     {/* Agregar productos */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                        <h2 className="font-bold text-gray-800 mb-4">Productos a solicitar</h2>
+                    <div className="bg-white/5/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6">
+                        <h2 className="font-bold text-white/80 mb-4">Productos a solicitar</h2>
 
                         {!form.fromBranchId ? (
-                            <p className="text-gray-400 text-sm">Seleccioná la sucursal de origen para ver sus productos disponibles</p>
+                            <p className="text-white/40 text-sm">Seleccioná la sucursal de origen para ver sus productos disponibles</p>
                         ) : (
                             <>
                                 <div className="flex gap-3 mb-4">
                                     <select
                                         value={selectedProduct}
                                         onChange={e => setSelectedProduct(e.target.value)}
-                                        className="flex-1 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                                        className="flex-1 border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                                     >
-                                        <option value="">-- Elegí un producto --</option>
+                                        <option value="" className="text-white/90">-- Elegí un producto --</option>
                                         {products.map(p => (
-                                            <option key={p.id} value={p.id}>
+                                            <option key={p.id} value={p.id} className="text-white/90">
                                                 {p.name} — Stock disponible: {p.currentStock} {p.unit}
                                             </option>
                                         ))}
@@ -235,7 +240,7 @@ export default function TransferRequestPage() {
                                         value={qty}
                                         onChange={e => setQty(e.target.value)}
                                         placeholder="Cantidad"
-                                        className="w-28 border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                                        className="w-28 border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                                     />
                                     <button
                                         type="button"
@@ -250,19 +255,19 @@ export default function TransferRequestPage() {
                                 {items.length > 0 ? (
                                     <div className="space-y-2">
                                         {items.map(item => (
-                                            <div key={item.productId} className="flex items-center justify-between bg-green-50 rounded-xl px-4 py-3">
+                                            <div key={item.productId} className="flex items-center justify-between bg-green-500/10 rounded-xl px-4 py-3">
                                                 <div>
-                                                    <p className="font-semibold text-sm text-gray-800">{item.productName}</p>
-                                                    <p className="text-xs text-gray-500">{item.requestedQty} {item.unit}</p>
+                                                    <p className="font-semibold text-sm text-white/80">{item.productName}</p>
+                                                    <p className="text-xs text-white/60">{item.requestedQty} {item.unit}</p>
                                                 </div>
-                                                <button type="button" onClick={() => removeItem(item.productId)} className="text-red-400 hover:text-red-600">
+                                                <button type="button" onClick={() => removeItem(item.productId)} className="text-red-400 hover:text-red-400">
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-gray-400 text-sm text-center py-4">Aún no hay productos en la solicitud</p>
+                                    <p className="text-white/40 text-sm text-center py-4">Aún no hay productos en la solicitud</p>
                                 )}
                             </>
                         )}

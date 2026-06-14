@@ -132,7 +132,12 @@ export default function MermasPage() {
     const productosAfectados = new Set(history.map(m => m.product.name)).size;
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6 md:p-8">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
             {/* Toast */}
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
@@ -144,13 +149,13 @@ export default function MermasPage() {
             <div className="max-w-5xl mx-auto space-y-6">
                 {/* Header */}
                 <div>
-                    <Link href="/inventory" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+                    <Link href="/inventory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
                         <ArrowLeft className="h-4 w-4" /> Inventario
                     </Link>
-                    <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                    <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                         <Trash2 className="h-7 w-7 text-red-500" /> Registro de Mermas
                     </h1>
-                    <p className="text-gray-500 text-sm mt-1">
+                    <p className="text-white/60 text-sm mt-1">
                         Registrá pérdidas, vencimientos y daños de inventario
                     </p>
                 </div>
@@ -158,9 +163,9 @@ export default function MermasPage() {
                 {/* KPIs del día */}
                 {branchId && (
                     <div className="grid grid-cols-2 gap-3">
-                        <div className="bg-red-50 border border-red-100 rounded-2xl p-4">
-                            <p className="text-xs font-medium text-red-600">Mermas hoy (cantidad)</p>
-                            <p className="text-2xl font-black text-red-700 mt-1">{totalMermaHoy.toFixed(2)}</p>
+                        <div className="bg-red-500/10 border border-red-500/20 rounded-2xl p-4">
+                            <p className="text-xs font-medium text-red-400">Mermas hoy (cantidad)</p>
+                            <p className="text-2xl font-black text-red-400 mt-1">{totalMermaHoy.toFixed(2)}</p>
                         </div>
                         <div className="bg-orange-50 border border-orange-100 rounded-2xl p-4">
                             <p className="text-xs font-medium text-orange-600">Productos afectados hoy</p>
@@ -171,59 +176,59 @@ export default function MermasPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Formulario */}
-                    <div className="bg-white rounded-2xl shadow border border-gray-100 p-6">
-                        <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
+                    <div className="bg-white/5/5 rounded-2xl shadow border border-white/10 p-6">
+                        <h2 className="font-bold text-white/90 mb-4 flex items-center gap-2">
                             <AlertTriangle className="h-5 w-5 text-red-500" /> Registrar nueva merma
                         </h2>
                         <form onSubmit={handleSubmit} className="space-y-4">
                             {/* Sucursal */}
                             <div>
-                                <label className="text-xs font-semibold text-gray-600 block mb-1.5">Sucursal *</label>
+                                <label className="text-xs font-semibold text-white/70 block mb-1.5">Sucursal *</label>
                                 {isAdmin ? (
                                     <select value={branchId} onChange={e => { setBranchId(e.target.value); setProductId(''); }}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
-                                        <option value="">Seleccioná</option>
-                                        {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
+                                        <option value="" className="text-white/90">Seleccioná</option>
+                                        {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
                                     </select>
                                 ) : (
                                     <input value={branches.find(b => b.id === branchId)?.name || ''} disabled
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm bg-gray-50" />
+                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm bg-white/5/5/5" />
                                 )}
                             </div>
 
                             {/* Buscar producto */}
                             {branchId && (
                                 <div>
-                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Producto *</label>
+                                    <label className="text-xs font-semibold text-white/70 block mb-1.5">Producto *</label>
                                     {productId ? (
-                                        <div className="flex items-center justify-between bg-red-50 rounded-xl px-3 py-2.5 border border-red-200">
+                                        <div className="flex items-center justify-between bg-red-500/10 rounded-xl px-3 py-2.5 border border-red-200">
                                             <div>
-                                                <span className="font-medium text-red-800 text-sm">{selectedItem?.product.name}</span>
+                                                <span className="font-medium text-red-300 text-sm">{selectedItem?.product.name}</span>
                                                 <span className="text-xs text-red-500 ml-2">
                                                     Stock: {selectedItem?.currentStock} {selectedItem?.product.unit}
                                                 </span>
                                             </div>
-                                            <button type="button" onClick={() => setProductId('')} className="text-red-400 hover:text-red-600">✕</button>
+                                            <button type="button" onClick={() => setProductId('')} className="text-red-400 hover:text-red-400">✕</button>
                                         </div>
                                     ) : (
                                         <>
                                             <div className="relative mb-2">
-                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                                                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                                                 <input value={search} onChange={e => setSearch(e.target.value)}
                                                     placeholder="Buscar producto…"
-                                                    className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
+                                                    className="w-full pl-9 pr-3 py-2.5 border border-white/20 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
                                             </div>
-                                            <div className="max-h-40 overflow-y-auto border border-gray-100 rounded-xl divide-y divide-gray-50">
+                                            <div className="max-h-40 overflow-y-auto border border-white/10 rounded-xl divide-y divide-gray-50">
                                                 {filteredStock.slice(0, 10).map(s => (
                                                     <button key={s.product.id} type="button"
                                                         onClick={() => { setProductId(s.product.id); setSearch(''); }}
-                                                        className="w-full text-left px-3 py-2 hover:bg-red-50 text-sm flex justify-between items-center">
+                                                        className="w-full text-left px-3 py-2 hover:bg-red-500/10 text-sm flex justify-between items-center">
                                                         <span>{s.product.name}</span>
-                                                        <span className="text-xs text-gray-400">{s.currentStock} {s.product.unit}</span>
+                                                        <span className="text-xs text-white/40">{s.currentStock} {s.product.unit}</span>
                                                     </button>
                                                 ))}
                                                 {filteredStock.length === 0 && (
-                                                    <p className="text-center text-xs text-gray-400 py-4">Sin resultados</p>
+                                                    <p className="text-center text-xs text-white/40 py-4">Sin resultados</p>
                                                 )}
                                             </div>
                                         </>
@@ -234,19 +239,19 @@ export default function MermasPage() {
                             {/* Cantidad y motivo */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">
-                                        Cantidad a dar de baja *{selectedItem && <span className="font-normal text-gray-400 ml-1">({selectedItem.product.unit})</span>}
+                                    <label className="text-xs font-semibold text-white/70 block mb-1.5">
+                                        Cantidad a dar de baja *{selectedItem && <span className="font-normal text-white/40 ml-1">({selectedItem.product.unit})</span>}
                                     </label>
                                     <input type="number" min="0.01" step="0.01" value={quantity === 0 ? '' : quantity}
                                         onChange={e => setQuantity(e.target.value)}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
+                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
                                 </div>
                                 <div>
-                                    <label className="text-xs font-semibold text-gray-600 block mb-1.5">Motivo *</label>
+                                    <label className="text-xs font-semibold text-white/70 block mb-1.5">Motivo *</label>
                                     <select value={reason} onChange={e => setReason(e.target.value)}
-                                        className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
+                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
                                         {Object.entries(REASON_LABELS).map(([k, v]) => (
-                                            <option key={k} value={k}>{v}</option>
+                                            <option key={k} value={k} className="text-white/90">{v}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -254,15 +259,15 @@ export default function MermasPage() {
 
                             {/* Notas */}
                             <div>
-                                <label className="text-xs font-semibold text-gray-600 block mb-1.5">Observaciones</label>
+                                <label className="text-xs font-semibold text-white/70 block mb-1.5">Observaciones</label>
                                 <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
                                     placeholder="Descripción adicional, lote afectado..."
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none" />
+                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none" />
                             </div>
 
                             {/* Stock warning */}
                             {selectedItem && quantity && parseFloat(quantity) > selectedItem.currentStock && (
-                                <div className="flex items-center gap-2 bg-red-50 border border-red-200 rounded-xl px-3 py-2 text-sm text-red-700">
+                                <div className="flex items-center gap-2 bg-red-500/10 border border-red-200 rounded-xl px-3 py-2 text-sm text-red-400">
                                     <AlertTriangle className="h-4 w-4 flex-shrink-0" />
                                     La cantidad supera el stock disponible ({selectedItem.currentStock} {selectedItem.product.unit})
                                 </div>
@@ -277,31 +282,31 @@ export default function MermasPage() {
                     </div>
 
                     {/* Historial de hoy */}
-                    <div className="bg-white rounded-2xl shadow border border-gray-100 p-6">
-                        <h2 className="font-bold text-gray-900 mb-4 flex items-center gap-2">
-                            <ClipboardList className="h-5 w-5 text-gray-400" /> Mermas de hoy
+                    <div className="bg-white/5/5 rounded-2xl shadow border border-white/10 p-6">
+                        <h2 className="font-bold text-white/90 mb-4 flex items-center gap-2">
+                            <ClipboardList className="h-5 w-5 text-white/40" /> Mermas de hoy
                         </h2>
                         {!branchId ? (
-                            <div className="text-center py-12 text-gray-400">
+                            <div className="text-center py-12 text-white/40">
                                 <Package className="h-10 w-10 mx-auto mb-2 opacity-30" />
                                 <p className="text-sm">Seleccioná una sucursal</p>
                             </div>
                         ) : history.length === 0 ? (
-                            <div className="text-center py-12 text-gray-400">
+                            <div className="text-center py-12 text-white/40">
                                 <Check className="h-10 w-10 mx-auto mb-2 opacity-30 text-green-400" />
-                                <p className="text-sm text-green-600 font-medium">Sin mermas registradas hoy</p>
+                                <p className="text-sm text-green-400 font-medium">Sin mermas registradas hoy</p>
                             </div>
                         ) : (
                             <div className="divide-y divide-gray-50 max-h-[420px] overflow-y-auto">
                                 {history.map(m => (
                                     <div key={m.id} className="py-3 flex items-start justify-between gap-3">
                                         <div className="flex-1 min-w-0">
-                                            <p className="font-medium text-gray-900 text-sm truncate">{m.product.name}</p>
-                                            <p className="text-xs text-gray-400 mt-0.5 truncate">{m.notes || '—'}</p>
+                                            <p className="font-medium text-white/90 text-sm truncate">{m.product.name}</p>
+                                            <p className="text-xs text-white/40 mt-0.5 truncate">{m.notes || '—'}</p>
                                         </div>
                                         <div className="text-right flex-shrink-0">
-                                            <p className="font-bold text-red-600 text-sm">-{Math.abs(m.quantity)} {m.product.unit}</p>
-                                            <p className="text-xs text-gray-400">
+                                            <p className="font-bold text-red-400 text-sm">-{Math.abs(m.quantity)} {m.product.unit}</p>
+                                            <p className="text-xs text-white/40">
                                                 {new Date(m.createdAt).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
                                             </p>
                                         </div>
@@ -310,7 +315,7 @@ export default function MermasPage() {
                             </div>
                         )}
                         {history.length > 0 && (
-                            <div className="mt-3 pt-3 border-t border-gray-100">
+                            <div className="mt-3 pt-3 border-t border-white/10">
                                 <Link href="/inventory/movements"
                                     className="text-xs text-purple-600 hover:underline">
                                     Ver historial completo en Kardex →

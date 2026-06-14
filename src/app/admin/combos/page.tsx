@@ -121,7 +121,12 @@ export default function CombosPage() {
     ).slice(0, 6);
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
+        <div className="min-h-screen relative overflow-hidden p-4 md:p-8" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
                     {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
@@ -132,15 +137,15 @@ export default function CombosPage() {
             {/* Confirm Delete */}
             {confirmDelete && (
                 <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
                         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                             <Trash2 className="h-6 w-6 text-red-600" />
                         </div>
-                        <h3 className="text-lg font-bold text-gray-900 mb-1">¿Desactivar combo?</h3>
-                        <p className="text-gray-500 text-sm mb-6"><strong>{confirmDelete.name}</strong> no aparecerá en el POS.</p>
+                        <h3 className="text-lg font-bold text-white/90 mb-1">¿Desactivar combo?</h3>
+                        <p className="text-white/60 text-sm mb-6"><strong>{confirmDelete.name}</strong> no aparecerá en el POS.</p>
                         <div className="flex gap-3">
                             <button onClick={() => setConfirmDelete(null)}
-                                className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50">
+                                className="flex-1 py-2.5 border border-white/10 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5">
                                 Cancelar
                             </button>
                             <button onClick={() => handleDelete(confirmDelete)}
@@ -152,17 +157,17 @@ export default function CombosPage() {
                 </div>
             )}
 
-            <div className="max-w-4xl mx-auto">
+            <div className="relative z-10 max-w-4xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
                     <div>
-                        <Link href="/admin" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+                        <Link href="/admin" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
                             <ArrowLeft className="h-4 w-4" /> Volver a Admin
                         </Link>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                             <Layers className="h-7 w-7 text-teal-600" /> Combos
                         </h1>
-                        <p className="text-gray-500 mt-1 text-sm">Agrupaciones de productos con precio especial (burger + bebida, açaí + topping, etc.)</p>
+                        <p className="text-white/60 mt-1 text-sm">Agrupaciones de productos con precio especial (burger + bebida, açaí + topping, etc.)</p>
                     </div>
                     <button onClick={openCreate}
                         className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white px-4 py-2.5 rounded-xl font-medium transition">
@@ -172,9 +177,9 @@ export default function CombosPage() {
 
                 {/* Lista */}
                 {loading ? (
-                    <div className="text-center py-20 text-gray-400">Cargando combos…</div>
+                    <div className="text-center py-20 text-white/40">Cargando combos…</div>
                 ) : combos.length === 0 ? (
-                    <div className="text-center py-16 text-gray-400">
+                    <div className="text-center py-16 text-white/40">
                         <Layers className="h-12 w-12 mx-auto mb-3 opacity-30" />
                         <p>No hay combos registrados</p>
                         <button onClick={openCreate} className="mt-3 text-teal-600 font-medium text-sm hover:underline">
@@ -184,14 +189,14 @@ export default function CombosPage() {
                 ) : (
                     <div className="space-y-3">
                         {combos.map(combo => (
-                            <div key={combo.id} className={`bg-white rounded-2xl shadow overflow-hidden ${!combo.active ? 'opacity-60' : ''}`}>
+                            <div key={combo.id} className={`bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow overflow-hidden ${!combo.active ? 'opacity-60' : ''}`}>
                                 {/* Fila principal */}
                                 <div className="flex items-center gap-4 p-5">
                                     {/* Foto */}
                                     {combo.imageUrl ? (
                                         // eslint-disable-next-line @next/next/no-img-element
                                         <img src={combo.imageUrl} alt={combo.name}
-                                            className="w-16 h-16 rounded-xl object-cover flex-shrink-0 border border-gray-100" />
+                                            className="w-16 h-16 rounded-xl object-cover flex-shrink-0 border border-white/10" />
                                     ) : (
                                         <div className="w-16 h-16 rounded-xl bg-teal-50 flex items-center justify-center flex-shrink-0">
                                             <Layers className="h-7 w-7 text-teal-400" />
@@ -200,27 +205,27 @@ export default function CombosPage() {
 
                                     <div className="flex-1 min-w-0">
                                         <div className="flex items-center gap-2 flex-wrap">
-                                            <h3 className="font-bold text-gray-900 text-lg">{combo.name}</h3>
-                                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${combo.active ? 'bg-green-100 text-green-700' : 'bg-gray-100 text-gray-500'}`}>
+                                            <h3 className="font-bold text-white/90 text-lg">{combo.name}</h3>
+                                            <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${combo.active ? 'bg-green-100 text-green-700' : 'bg-white/10 text-white/60'}`}>
                                                 {combo.active ? 'Activo' : 'Inactivo'}
                                             </span>
                                         </div>
-                                        {combo.description && <p className="text-sm text-gray-400 mt-0.5 truncate">{combo.description}</p>}
-                                        <p className="text-xs text-gray-400 mt-1">{combo.items.length} producto{combo.items.length !== 1 ? 's' : ''}</p>
+                                        {combo.description && <p className="text-sm text-white/40 mt-0.5 truncate">{combo.description}</p>}
+                                        <p className="text-xs text-white/40 mt-1">{combo.items.length} producto{combo.items.length !== 1 ? 's' : ''}</p>
                                     </div>
 
                                     <div className="flex items-center gap-3 flex-shrink-0">
                                         <span className="text-xl font-black text-teal-700">Bs. {combo.price.toFixed(2)}</span>
                                         <button onClick={() => openEdit(combo)}
-                                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar">
+                                            className="p-1.5 text-white/40 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Editar">
                                             <Pencil className="h-4 w-4" />
                                         </button>
                                         <button onClick={() => setConfirmDelete(combo)}
-                                            className="p-1.5 text-gray-400 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Desactivar">
+                                            className="p-1.5 text-white/40 hover:text-red-600 hover:bg-red-50 rounded-lg transition" title="Desactivar">
                                             <Trash2 className="h-4 w-4" />
                                         </button>
                                         <button onClick={() => setExpanded(expanded === combo.id ? null : combo.id)}
-                                            className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-50 rounded-lg transition">
+                                            className="p-1.5 text-white/40 hover:text-white/70 hover:bg-white/5 rounded-lg transition">
                                             {expanded === combo.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                                         </button>
                                     </div>
@@ -228,14 +233,14 @@ export default function CombosPage() {
 
                                 {/* Detalle expandible */}
                                 {expanded === combo.id && (
-                                    <div className="bg-gray-50 border-t border-gray-100 px-5 py-4">
-                                        <p className="text-xs font-semibold text-gray-500 mb-3 uppercase tracking-wide">Productos incluidos</p>
+                                    <div className="bg-white/5 border-t border-white/10 px-5 py-4">
+                                        <p className="text-xs font-semibold text-white/60 mb-3 uppercase tracking-wide">Productos incluidos</p>
                                         <div className="space-y-2">
                                             {combo.items.map(item => (
                                                 <div key={item.productId} className="flex items-center gap-3 text-sm">
-                                                    <Package className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                                    <span className="font-medium text-gray-800">{item.product.name}</span>
-                                                    <span className="text-gray-400 text-xs font-mono">{item.product.sku}</span>
+                                                    <Package className="h-4 w-4 text-white/40 flex-shrink-0" />
+                                                    <span className="font-medium text-white/90">{item.product.name}</span>
+                                                    <span className="text-white/40 text-xs font-mono">{item.product.sku}</span>
                                                     <span className="ml-auto bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full text-xs font-semibold">
                                                         ×{item.quantity}
                                                     </span>
@@ -253,19 +258,19 @@ export default function CombosPage() {
             {/* Modal */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100 sticky top-0 bg-white z-10">
-                            <h2 className="text-lg font-bold text-gray-900">
+                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-xl w-full max-w-lg max-h-[92vh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-6 border-b border-white/10 sticky top-0 bg-white/5 border border-white/10 backdrop-blur-md z-10">
+                            <h2 className="text-lg font-bold text-white/90">
                                 {editingId ? '✏️ Editar combo' : '➕ Nuevo combo'}
                             </h2>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>
+                            <button onClick={() => setShowModal(false)} className="text-white/40 hover:text-white/70"><X className="h-5 w-5" /></button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-5">
                             {/* Imagen */}
                             <div className="flex items-start gap-5">
                                 <div>
-                                    <label className="block text-sm font-semibold text-gray-700 mb-2">Foto</label>
+                                    <label className="block text-sm font-semibold text-white/80 mb-2">Foto</label>
                                     <ImageUpload
                                         value={form.imageUrl || null}
                                         onChange={url => setForm(f => ({ ...f, imageUrl: url || '' }))}
@@ -274,41 +279,41 @@ export default function CombosPage() {
                                 </div>
                                 <div className="flex-1 space-y-3">
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Nombre *</label>
+                                        <label className="block text-sm font-semibold text-white/80 mb-1.5">Nombre *</label>
                                         <input required type="text" placeholder="Ej: Combo Familiar" value={form.name}
                                             onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                                            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
+                                            className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
                                     </div>
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Precio (Bs.) *</label>
+                                        <label className="block text-sm font-semibold text-white/80 mb-1.5">Precio (Bs.) *</label>
                                         <input required type="number" min="0" step="0.5" value={form.price === 0 ? '' : form.price}
                                             onChange={e => setForm(f => ({ ...f, price: parseFloat(e.target.value) || 0 }))}
-                                            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
+                                            className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
                                     </div>
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Descripción</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Descripción</label>
                                 <input type="text" placeholder="Ej: Hamburguesa + papas + bebida a precio especial" value={form.description}
                                     onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
+                                    className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
                             </div>
 
                             {/* Toggle activo */}
                             <div className="flex items-center gap-3">
                                 <button type="button" onClick={() => setForm(f => ({ ...f, active: !f.active }))}
                                     className={`relative inline-flex h-6 w-11 items-center rounded-full transition ${form.active ? 'bg-teal-500' : 'bg-gray-300'}`}>
-                                    <span className={`inline-block h-4 w-4 rounded-full bg-white shadow transition-transform ${form.active ? 'translate-x-6' : 'translate-x-1'}`} />
+                                    <span className={`inline-block h-4 w-4 rounded-full bg-white/5 border border-white/10 backdrop-blur-md shadow transition-transform ${form.active ? 'translate-x-6' : 'translate-x-1'}`} />
                                 </button>
-                                <span className="text-sm text-gray-700">{form.active ? 'Activo en el POS' : 'Inactivo (oculto)'}</span>
+                                <span className="text-sm text-white/80">{form.active ? 'Activo en el POS' : 'Inactivo (oculto)'}</span>
                             </div>
 
                             {/* Builder de productos */}
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-2">
+                                <label className="block text-sm font-semibold text-white/80 mb-2">
                                     Productos del combo *
-                                    <span className="ml-1 font-normal text-gray-400">({items.length} seleccionados)</span>
+                                    <span className="ml-1 font-normal text-white/40">({items.length} seleccionados)</span>
                                 </label>
 
                                 {/* Items seleccionados */}
@@ -319,13 +324,13 @@ export default function CombosPage() {
                                             return (
                                                 <div key={item.productId} className="flex items-center gap-3 bg-teal-50 rounded-xl px-3 py-2">
                                                     <Package className="h-4 w-4 text-teal-500 flex-shrink-0" />
-                                                    <span className="flex-1 text-sm font-medium text-gray-800 min-w-0 truncate">{p?.name}</span>
+                                                    <span className="flex-1 text-sm font-medium text-white/90 min-w-0 truncate">{p?.name}</span>
                                                     <div className="flex items-center gap-1.5 flex-shrink-0">
                                                         <button type="button" onClick={() => updateItemQty(item.productId, Math.max(0.5, item.quantity - 0.5))}
-                                                            className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-sm font-bold">−</button>
+                                                            className="w-6 h-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/70 hover:bg-white/5 text-sm font-bold">−</button>
                                                         <span className="w-8 text-center text-sm font-bold text-teal-700">{item.quantity}</span>
                                                         <button type="button" onClick={() => updateItemQty(item.productId, item.quantity + 0.5)}
-                                                            className="w-6 h-6 rounded-full bg-white border border-gray-200 flex items-center justify-center text-gray-600 hover:bg-gray-50 text-sm font-bold">+</button>
+                                                            className="w-6 h-6 rounded-full bg-white/5 border border-white/10 backdrop-blur-md border border-white/10 flex items-center justify-center text-white/70 hover:bg-white/5 text-sm font-bold">+</button>
                                                     </div>
                                                     <button type="button" onClick={() => removeItem(item.productId)}
                                                         className="text-gray-300 hover:text-red-500 transition"><X className="h-4 w-4" /></button>
@@ -337,32 +342,32 @@ export default function CombosPage() {
 
                                 {/* Buscador de productos */}
                                 <div className="relative">
-                                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-gray-400" />
+                                    <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/40" />
                                     <input type="text" placeholder="Buscar producto para agregar…" value={productSearch}
                                         onChange={e => setProductSearch(e.target.value)}
-                                        className="w-full pl-9 pr-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
+                                        className="w-full pl-9 pr-3 py-2.5 border border-white/10 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-teal-300" />
                                 </div>
                                 {productSearch && suggestedProducts.length > 0 && (
-                                    <div className="mt-1 border border-gray-200 rounded-xl overflow-hidden shadow-sm">
+                                    <div className="mt-1 border border-white/10 rounded-xl overflow-hidden shadow-sm">
                                         {suggestedProducts.map(p => (
                                             <button key={p.id} type="button" onClick={() => addItem(p)}
                                                 className="w-full flex items-center gap-3 px-3 py-2.5 text-sm text-left hover:bg-teal-50 border-b border-gray-50 last:border-0 transition">
-                                                <Package className="h-4 w-4 text-gray-400 flex-shrink-0" />
-                                                <span className="flex-1 font-medium text-gray-800">{p.name}</span>
-                                                <span className="text-xs text-gray-400 font-mono">{p.sku}</span>
+                                                <Package className="h-4 w-4 text-white/40 flex-shrink-0" />
+                                                <span className="flex-1 font-medium text-white/90">{p.name}</span>
+                                                <span className="text-xs text-white/40 font-mono">{p.sku}</span>
                                                 <Plus className="h-4 w-4 text-teal-500" />
                                             </button>
                                         ))}
                                     </div>
                                 )}
                                 {productSearch && suggestedProducts.length === 0 && (
-                                    <p className="text-xs text-gray-400 mt-2 text-center">No se encontraron productos disponibles</p>
+                                    <p className="text-xs text-white/40 mt-2 text-center">No se encontraron productos disponibles</p>
                                 )}
                             </div>
 
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowModal(false)}
-                                    className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition">
+                                    className="flex-1 py-2.5 border border-white/10 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 transition">
                                     Cancelar
                                 </button>
                                 <button type="submit" disabled={submitting}

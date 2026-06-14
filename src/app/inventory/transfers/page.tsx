@@ -20,10 +20,10 @@ type Transfer = {
 };
 
 const STATUS_CFG: Record<string, { label: string; color: string; Icon: React.ElementType }> = {
-    PENDING: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-700', Icon: Clock },
-    IN_TRANSIT: { label: 'En Tránsito', color: 'bg-blue-100 text-blue-700', Icon: Loader },
-    RECEIVED: { label: 'Recibida', color: 'bg-green-100 text-green-700', Icon: CheckCircle },
-    CANCELLED: { label: 'Cancelada', color: 'bg-red-100 text-red-700', Icon: X },
+    PENDING: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-400', Icon: Clock },
+    IN_TRANSIT: { label: 'En Tránsito', color: 'bg-blue-500/20 text-blue-400', Icon: Loader },
+    RECEIVED: { label: 'Recibida', color: 'bg-green-100 text-green-400', Icon: CheckCircle },
+    CANCELLED: { label: 'Cancelada', color: 'bg-red-100 text-red-400', Icon: X },
 };
 
 export default function TransfersPage() {
@@ -100,7 +100,12 @@ export default function TransfersPage() {
     const pending = transfers.filter(t => t.status === 'PENDING');
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
                     {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
@@ -112,11 +117,11 @@ export default function TransfersPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <Link href="/inventory" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
-                            <ArrowLeft className="h-4 w-4" /> Inventario
+                        <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
+                            <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
                         </Link>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
-                            <ArrowLeftRight className="h-8 w-8 text-blue-600" /> Transferencias
+                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
+                            <ArrowLeftRight className="h-8 w-8 text-blue-400" /> Transferencias
                         </h1>
                     </div>
                     <Link
@@ -129,9 +134,9 @@ export default function TransfersPage() {
 
                 {/* Alertas de pendientes para admin */}
                 {isAdmin && pending.length > 0 && (
-                    <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
-                        <Clock className="h-5 w-5 text-yellow-600 flex-shrink-0" />
-                        <p className="text-yellow-800 text-sm font-medium">
+                    <div className="bg-yellow-500/10 border border-yellow-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
+                        <Clock className="h-5 w-5 text-yellow-400 flex-shrink-0" />
+                        <p className="text-yellow-300 text-sm font-medium">
                             Hay <strong>{pending.length} solicitud{pending.length !== 1 ? 'es' : ''}</strong> pendiente{pending.length !== 1 ? 's' : ''} de aprobación.
                         </p>
                     </div>
@@ -143,7 +148,7 @@ export default function TransfersPage() {
                         <button
                             key={s || 'ALL'}
                             onClick={() => setStatusFilter(s)}
-                            className={`px-4 py-1.5 rounded-xl text-sm font-medium transition ${statusFilter === s ? 'bg-blue-600 text-white' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}
+                            className={`px-4 py-1.5 rounded-xl text-sm font-medium transition ${statusFilter === s ? 'bg-blue-600 text-white' : 'bg-white/5/5/5 border border-white/10 text-white/70 hover:bg-white/5/5/5'}`}
                         >
                             {s === '' ? 'Todas' : STATUS_CFG[s]?.label || s}
                         </button>
@@ -152,12 +157,12 @@ export default function TransfersPage() {
 
                 {/* Lista */}
                 {loading ? (
-                    <div className="text-center py-20 text-gray-400">Cargando transferencias…</div>
+                    <div className="text-center py-20 text-white/40">Cargando transferencias…</div>
                 ) : transfers.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-2xl shadow text-gray-400">
+                    <div className="text-center py-20 bg-white/5/5 rounded-2xl shadow text-white/40">
                         <ArrowLeftRight className="h-12 w-12 mx-auto mb-3 opacity-30" />
                         <p>No hay transferencias{statusFilter ? ` en estado "${STATUS_CFG[statusFilter]?.label}"` : ''}.</p>
-                        <Link href="/inventory/transfers/request" className="mt-4 inline-block text-green-600 font-medium hover:underline">
+                        <Link href="/inventory/transfers/request" className="mt-4 inline-block text-green-400 font-medium hover:underline">
                             Solicitar una →
                         </Link>
                     </div>
@@ -168,26 +173,26 @@ export default function TransfersPage() {
                             const Icon = cfg.Icon;
                             const isPending = t.status === 'PENDING';
                             return (
-                                <div key={t.id} className={`bg-white rounded-2xl shadow p-5 border-l-4 ${isPending ? 'border-yellow-400' : t.status === 'RECEIVED' ? 'border-green-400' : 'border-gray-200'}`}>
+                                <div key={t.id} className={`bg-white/5/5 rounded-2xl shadow p-5 border-l-4 ${isPending ? 'border-yellow-400' : t.status === 'RECEIVED' ? 'border-green-400' : 'border-white/20'}`}>
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-3 mb-1">
-                                                <span className="font-mono text-xs text-gray-400">{t.transferNumber}</span>
+                                                <span className="font-mono text-xs text-white/40">{t.transferNumber}</span>
                                                 <span className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.color}`}>
                                                     <Icon className="h-3.5 w-3.5" /> {cfg.label}
                                                 </span>
                                             </div>
-                                            <p className="font-semibold text-gray-900 text-sm">
+                                            <p className="font-semibold text-white/90 text-sm">
                                                 {t.items.map(i => `${i.product.name} (${i.requestedQty})`).join(' · ')}
                                             </p>
-                                            <p className="text-xs text-gray-500 mt-0.5 flex items-center gap-1.5">
+                                            <p className="text-xs text-white/60 mt-0.5 flex items-center gap-1.5">
                                                 <span className="font-medium">{t.fromBranch.name}</span>
                                                 <ArrowLeftRight className="h-3 w-3" />
                                                 <span className="font-medium">{t.toBranch.name}</span>
-                                                <span className="text-gray-300">·</span>
+                                                <span className="text-white/30">·</span>
                                                 <span>{new Date(t.requestedDate).toLocaleDateString('es-PE')}</span>
                                             </p>
-                                            {t.notes && <p className="text-xs text-gray-400 mt-1 italic">"{t.notes}"</p>}
+                                            {t.notes && <p className="text-xs text-white/40 mt-1 italic">"{t.notes}"</p>}
                                         </div>
 
                                         {/* Botones de acción según el estado */}
@@ -204,7 +209,7 @@ export default function TransfersPage() {
                                                 <button
                                                     onClick={() => handleAction(t.id, 'cancel')}
                                                     disabled={!!actionLoading}
-                                                    className="flex items-center gap-1.5 px-3 py-2 bg-red-50 hover:bg-red-100 text-red-600 border border-red-200 rounded-xl text-xs font-semibold disabled:opacity-50 transition"
+                                                    className="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 hover:bg-red-100 text-red-400 border border-red-200 rounded-xl text-xs font-semibold disabled:opacity-50 transition"
                                                 >
                                                     <ThumbsDown className="h-3.5 w-3.5" />
                                                     {actionLoading === t.id + 'cancel' ? 'Cancelando…' : 'Rechazar'}
@@ -229,7 +234,7 @@ export default function TransfersPage() {
                     </div>
                 )}
 
-                <p className="text-xs text-gray-400 text-center mt-6">{transfers.length} transferencia{transfers.length !== 1 ? 's' : ''}</p>
+                <p className="text-xs text-white/40 text-center mt-6">{transfers.length} transferencia{transfers.length !== 1 ? 's' : ''}</p>
             </div>
         </div>
     );

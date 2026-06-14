@@ -57,17 +57,17 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
     }, [params.id]);
 
     if (loading) return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-white/5 flex items-center justify-center">
             <Loader2 className="h-10 w-10 animate-spin text-slate-500" />
         </div>
     );
 
     if (error || !data) return (
-        <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+        <div className="min-h-screen bg-white/5 flex items-center justify-center">
             <div className="text-center text-red-500">
                 <XCircle className="h-10 w-10 mx-auto mb-2" />
                 <p>{error || 'No se pudo cargar'}</p>
-                <Link href="/admin/branches" className="mt-3 inline-block text-sm underline text-gray-600">Volver</Link>
+                <Link href="/admin/branches" className="mt-3 inline-block text-sm underline text-white/70">Volver</Link>
             </div>
         </div>
     );
@@ -76,18 +76,18 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
     const typeEmoji = branch.type === 'ACAI' ? '🥤' : branch.type === 'HAMBURGUESAS' ? '🍔' : '🏭';
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
-            <div className="max-w-6xl mx-auto">
+        <div className="min-h-screen bg-white/5 p-6">
+            <div className="relative z-10 max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-6">
                     <div>
-                        <Link href="/admin/branches" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-1">
+                        <Link href="/admin/branches" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-1">
                             <ArrowLeft className="h-4 w-4" /> Sucursales
                         </Link>
-                        <h1 className="text-2xl font-bold text-gray-900">
+                        <h1 className="text-2xl font-bold text-white/90">
                             {typeEmoji} {branch.name}
                         </h1>
-                        <p className="text-sm text-gray-500 mt-0.5">
+                        <p className="text-sm text-white/60 mt-0.5">
                             {branch.type} {branch.address ? '· ' + branch.address : ''} {branch.phone ? '· ' + branch.phone : ''}
                         </p>
                     </div>
@@ -112,21 +112,21 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                     <KPI label="Gastos del mes" value={S(expenses.month.amount)} sub={`${expenses.month.count} gastos`}
                         color="bg-rose-50 text-rose-800" icon={Receipt} />
                     <KPI label="Stock crítico" value={`${stock.criticalCount} sin stock`} sub={`${stock.lowCount} bajo mínimo`}
-                        color={stock.criticalCount > 0 ? 'bg-red-50 text-red-800' : 'bg-gray-50 text-gray-700'} icon={Package} />
+                        color={stock.criticalCount > 0 ? 'bg-red-50 text-red-800' : 'bg-white/5 text-white/80'} icon={Package} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Stock crítico */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                            <h2 className="font-bold text-gray-800 flex items-center gap-2">
+                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 overflow-hidden">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+                            <h2 className="font-bold text-white/90 flex items-center gap-2">
                                 <AlertTriangle className="h-5 w-5 text-yellow-500" /> Stock bajo / Crítico
                             </h2>
                             <Link href={`/inventory/stock`}
                                 className="text-xs text-green-600 hover:underline font-medium">Ver todo →</Link>
                         </div>
                         {stock.criticalItems.length === 0 ? (
-                            <div className="py-10 text-center text-gray-400">
+                            <div className="py-10 text-center text-white/40">
                                 <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-400" />
                                 <p className="text-sm">¡Todo el stock está OK!</p>
                             </div>
@@ -135,8 +135,8 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                                 {stock.criticalItems.map((item, i) => (
                                     <div key={i} className="px-5 py-3 flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm font-medium text-gray-800">{item.name}</p>
-                                            <p className="text-xs text-gray-400">Mín: {item.min} {item.unit}</p>
+                                            <p className="text-sm font-medium text-white/90">{item.name}</p>
+                                            <p className="text-xs text-white/40">Mín: {item.min} {item.unit}</p>
                                         </div>
                                         <span className={`text-sm font-bold px-3 py-1 rounded-full ${item.current <= 0 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
                                             {item.current} {item.unit}
@@ -148,14 +148,14 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                     </div>
 
                     {/* Últimos cierres de caja */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 overflow-hidden">
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
-                            <h2 className="font-bold text-gray-800 flex items-center gap-2">
+                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 overflow-hidden">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+                            <h2 className="font-bold text-white/90 flex items-center gap-2">
                                 <DollarSign className="h-5 w-5 text-slate-500" /> Cierres de Caja
                             </h2>
                         </div>
                         {cashCloses.length === 0 ? (
-                            <div className="py-10 text-center text-gray-400">
+                            <div className="py-10 text-center text-white/40">
                                 <DollarSign className="h-8 w-8 mx-auto mb-2 opacity-30" />
                                 <p className="text-sm">Sin cierres registrados</p>
                             </div>
@@ -172,8 +172,8 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                                         <div key={c.id} className="px-5 py-3">
                                             <div className="flex items-center justify-between mb-1">
                                                 <div>
-                                                    <p className="text-sm font-semibold text-gray-800">{c.user}</p>
-                                                    <div className="flex items-center gap-2 text-xs text-gray-400">
+                                                    <p className="text-sm font-semibold text-white/90">{c.user}</p>
+                                                    <div className="flex items-center gap-2 text-xs text-white/40">
                                                         {openedAt && (
                                                             <span className="flex items-center gap-1">
                                                                 <Clock className="h-3 w-3" />
@@ -186,13 +186,13 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-sm font-bold text-gray-800">{S(c.totalSales)}</p>
+                                                    <p className="text-sm font-bold text-white/90">{S(c.totalSales)}</p>
                                                     <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${diff === 0 ? 'bg-green-100 text-green-700' : diff > 0 ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'}`}>
                                                         {diff > 0 ? '+' : ''}{diff.toFixed(2)}
                                                     </span>
                                                 </div>
                                             </div>
-                                            {c.notes && <p className="text-xs text-gray-400 italic mt-0.5">"{c.notes}"</p>}
+                                            {c.notes && <p className="text-xs text-white/40 italic mt-0.5">"{c.notes}"</p>}
                                         </div>
                                     );
                                 })}

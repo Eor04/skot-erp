@@ -96,7 +96,13 @@ export default function ProductionPage() {
     }
 
     return (
-        <div className="min-h-screen bg-gray-50 p-8">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E\")", backgroundSize: '56px 100px' }} />
+            </div>
+            <div className="relative z-10 h-full w-full">
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
                     {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
@@ -107,10 +113,10 @@ export default function ProductionPage() {
             <div className="max-w-5xl mx-auto">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <Link href="/factory" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+                        <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
                             <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
                         </Link>
-                        <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                             <PlayCircle className="h-8 w-8 text-green-600" /> Órdenes de Producción
                         </h1>
                     </div>
@@ -121,9 +127,9 @@ export default function ProductionPage() {
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-20 text-gray-400">Cargando órdenes…</div>
+                    <div className="text-center py-20 text-white/40">Cargando órdenes…</div>
                 ) : orders.length === 0 ? (
-                    <div className="text-center py-20 bg-white rounded-2xl shadow text-gray-400">
+                    <div className="text-center py-20 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow text-white/40">
                         <PlayCircle className="h-12 w-12 mx-auto mb-3 opacity-30" />
                         <p>No hay órdenes de producción.</p>
                         <button onClick={() => setShowModal(true)} className="mt-4 text-green-600 font-medium hover:underline">Crear primera orden →</button>
@@ -134,13 +140,13 @@ export default function ProductionPage() {
                             const cfg = statusConfig[order.status] || statusConfig['SCHEDULED'];
                             const Icon = cfg.Icon;
                             return (
-                                <div key={order.id} className="bg-white rounded-2xl shadow p-6">
+                                <div key={order.id} className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow p-6">
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-4">
-                                            <span className="font-mono text-sm text-gray-400">{order.orderNumber}</span>
+                                            <span className="font-mono text-sm text-white/40">{order.orderNumber}</span>
                                             <div>
-                                                <p className="font-semibold text-gray-900">{order.recipe?.name || order.recipe?.product?.name}</p>
-                                                <p className="text-sm text-gray-500">{order.plannedYield} uds · {order.branch?.name} · {new Date(order.createdAt).toLocaleDateString('es-PE')}</p>
+                                                <p className="font-semibold text-white/90">{order.recipe?.name || order.recipe?.product?.name}</p>
+                                                <p className="text-sm text-white/60">{order.plannedYield} uds · {order.branch?.name} · {new Date(order.createdAt).toLocaleDateString('es-PE')}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
@@ -164,55 +170,55 @@ export default function ProductionPage() {
 
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-                    <div className="bg-white rounded-2xl shadow-xl w-full max-w-md">
-                        <div className="flex items-center justify-between p-6 border-b border-gray-100">
-                            <h2 className="text-lg font-bold text-gray-900">Nueva Orden de Producción</h2>
-                            <button onClick={() => setShowModal(false)} className="text-gray-400 hover:text-gray-600"><X className="h-5 w-5" /></button>
+                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-xl w-full max-w-md">
+                        <div className="flex items-center justify-between p-6 border-b border-white/10">
+                            <h2 className="text-lg font-bold text-white/90">Nueva Orden de Producción</h2>
+                            <button onClick={() => setShowModal(false)} className="text-white/40 hover:text-white/70"><X className="h-5 w-5" /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Receta *</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Receta *</label>
                                 <select required value={form.recipeId} onChange={e => setForm(f => ({ ...f, recipeId: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                                    className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
                                     <option value="">Seleccionar…</option>
                                     {recipes.map(r => <option key={r.id} value={r.id}>{r.name} (rinde {r.yield} {r.yieldUnit})</option>)}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sucursal *</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal *</label>
                                 <select required value={form.branchId} onChange={e => setForm(f => ({ ...f, branchId: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                                    className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
                                     <option value="">Seleccionar…</option>
                                     {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Cantidad a producir *</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Cantidad a producir *</label>
                                 <input type="number" min="1" step="0.01" required value={form.plannedYield === 0 ? '' : form.plannedYield}
                                     onChange={e => setForm(f => ({ ...f, plannedYield: parseFloat(e.target.value) }))}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                    className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Fecha programada</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Fecha programada</label>
                                 <input type="datetime-local" value={form.scheduledDate}
                                     onChange={e => setForm(f => ({ ...f, scheduledDate: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                    className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Responsable *</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Responsable *</label>
                                 <input type="text" required placeholder="Nombre del operador" value={form.createdBy}
                                     onChange={e => setForm(f => ({ ...f, createdBy: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                    className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-gray-700 mb-1.5">Notas</label>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Notas</label>
                                 <textarea rows={2} placeholder="Observaciones…" value={form.notes}
                                     onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-                                    className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none" />
+                                    className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none" />
                             </div>
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowModal(false)}
-                                    className="flex-1 py-2.5 border border-gray-200 rounded-xl text-sm font-medium text-gray-600 hover:bg-gray-50 transition-colors">Cancelar</button>
+                                    className="flex-1 py-2.5 border border-white/10 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 transition-colors">Cancelar</button>
                                 <button type="submit" disabled={submitting}
                                     className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
                                     {submitting ? 'Creando…' : 'Crear orden'}
@@ -223,5 +229,6 @@ export default function ProductionPage() {
                 </div>
             )}
         </div>
-    );
+        </div>
+        );
 }

@@ -67,6 +67,10 @@ const METHOD_LABEL: Record<string, string> = {
     CASH: 'Efectivo', CARD: 'Tarjeta', TRANSFER: 'Transferencia', MIXED: 'Mixto',
 };
 
+const BG_STYLE = {
+    background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)',
+};
+
 export default function CashClosePage() {
     const { user } = useSession();
     const [branches, setBranches] = useState<Branch[]>([]);
@@ -249,15 +253,27 @@ export default function CashClosePage() {
     }
 
     if (loading) return (
-        <div className="flex items-center justify-center min-h-screen bg-gray-50">
-            <Loader2 className="h-8 w-8 animate-spin text-slate-600" />
+        <div className="flex items-center justify-center min-h-screen" style={BG_STYLE}>
+            <Loader2 className="h-8 w-8 animate-spin text-white/60" />
         </div>
     );
 
     const now = new Date();
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen relative overflow-hidden p-6" style={BG_STYLE}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full"
+                    style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full"
+                    style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]"
+                    style={{
+                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`,
+                        backgroundSize: '56px 100px',
+                    }} />
+            </div>
+            <div className="relative z-10 max-w-5xl mx-auto">
             {toast && (
                 <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
                     {toast.type === 'success' ? <Check className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
@@ -265,23 +281,23 @@ export default function CashClosePage() {
                 </div>
             )}
 
-            <div className="max-w-5xl mx-auto">
+            
                 {/* Header */}
                 <div className="mb-6">
-                    <Link href="/" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-1">
+                    <Link href="/" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-1">
                         <ArrowLeft className="h-4 w-4" /> Dashboard
                     </Link>
                     <div className="flex items-center justify-between flex-wrap gap-3">
                         <div>
-                            <h1 className="text-2xl font-bold text-gray-900">💰 Cierre de Caja</h1>
-                            <p className="text-sm text-gray-500 mt-0.5 flex items-center gap-1">
+                            <h1 className="text-2xl font-bold text-white">💰 Cierre de Caja</h1>
+                            <p className="text-sm text-white/60 mt-0.5 flex items-center gap-1">
                                 <Clock className="h-3.5 w-3.5" />
                                 {now.toLocaleDateString('es-BO', { weekday: 'long', day: '2-digit', month: 'long' })}
                                 {' · '}{now.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                         </div>
                         {activeSession && (
-                            <div className="flex items-center gap-2 bg-green-100 text-green-800 px-4 py-2 rounded-xl text-sm font-semibold">
+                            <div className="flex items-center gap-2 bg-green-500/20 text-green-400 px-4 py-2 rounded-xl text-sm font-semibold">
                                 <span className="w-2 h-2 bg-green-500 rounded-full animate-pulse" />
                                 Caja abierta · {duration(activeSession.openedAt)}
                             </div>
@@ -292,22 +308,22 @@ export default function CashClosePage() {
                 {/* Tabs */}
                 <div className="flex gap-3 mb-5">
                     <button onClick={() => setMode('open')}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition ${mode === 'open' ? 'bg-green-600 text-white shadow-sm shadow-green-200' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition ${mode === 'open' ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-[0_0_15px_rgba(16,185,129,0.4)] border-transparent' : 'bg-white/5 border border-white/20 text-white/70 hover:bg-white/5'}`}>
                         <LogIn className="h-4 w-4" /> Abrir Caja
                     </button>
                     <button onClick={() => setMode('close')}
-                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition ${mode === 'close' ? 'bg-red-600 text-white shadow-sm shadow-red-200' : 'bg-white border border-gray-200 text-gray-600 hover:bg-gray-50'}`}>
+                        className={`flex items-center gap-2 px-5 py-2.5 rounded-xl text-sm font-semibold transition ${mode === 'close' ? 'bg-gradient-to-r from-rose-500 to-pink-600 text-white shadow-[0_0_15px_rgba(244,63,94,0.4)] border-transparent' : 'bg-white/5 border border-white/20 text-white/70 hover:bg-white/5'}`}>
                         <LogOut className="h-4 w-4" /> Cerrar Caja
                     </button>
                 </div>
 
                 {/* ── RESUMEN DEL TURNO (solo cuando hay sesión activa y modo=close) ── */}
                 {mode === 'close' && activeSession && shiftSummary && (
-                    <div className="mb-6 bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <div className="mb-6 bg-white/5 rounded-2xl shadow-sm border border-white/10 p-6">
                         <div className="flex items-center gap-2 mb-4">
                             <TrendingUp className="h-5 w-5 text-indigo-600" />
-                            <h2 className="font-bold text-gray-900">Resumen del Turno</h2>
-                            <span className="ml-auto text-xs text-gray-400">
+                            <h2 className="font-bold text-white">Resumen del Turno</h2>
+                            <span className="ml-auto text-xs text-white/40">
                                 desde {new Date(shiftSummary.from).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
                             </span>
                         </div>
@@ -315,16 +331,16 @@ export default function CashClosePage() {
                         {/* KPI strip */}
                         <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-5">
                             {[
-                                { label: 'Total ventas', value: shiftSummary.totalSales.toString(), icon: <ShoppingCart className="h-4 w-4 text-indigo-600" />, bg: 'bg-indigo-50' },
-                                { label: 'Ingresos', value: fmt(shiftSummary.totalRevenue), icon: <TrendingUp className="h-4 w-4 text-green-600" />, bg: 'bg-green-50' },
+                                { label: 'Total ventas', value: shiftSummary.totalSales.toString(), icon: <ShoppingCart className="h-4 w-4 text-indigo-600" />, bg: 'bg-indigo-500/10' },
+                                { label: 'Ingresos', value: fmt(shiftSummary.totalRevenue), icon: <TrendingUp className="h-4 w-4 text-green-600" />, bg: 'bg-green-500/10' },
                                 { label: 'Ticket prom.', value: fmt(shiftSummary.avgTicket), icon: <DollarSign className="h-4 w-4 text-amber-600" />, bg: 'bg-amber-50' },
-                                { label: 'Items vendidos', value: shiftSummary.totalItems.toString(), icon: <Package className="h-4 w-4 text-purple-600" />, bg: 'bg-purple-50' },
+                                { label: 'Items vendidos', value: shiftSummary.totalItems.toString(), icon: <Package className="h-4 w-4 text-purple-600" />, bg: 'bg-purple-500/10' },
                             ].map(k => (
                                 <div key={k.label} className={`${k.bg} rounded-xl p-3 flex items-center gap-3`}>
                                     <div className="flex-shrink-0">{k.icon}</div>
                                     <div>
-                                        <p className="text-xs text-gray-500">{k.label}</p>
-                                        <p className="text-lg font-black text-gray-900 leading-tight">{k.value}</p>
+                                        <p className="text-xs text-white/60">{k.label}</p>
+                                        <p className="text-lg font-black text-white leading-tight">{k.value}</p>
                                     </div>
                                 </div>
                             ))}
@@ -333,16 +349,16 @@ export default function CashClosePage() {
                         {/* Desglose por método de pago */}
                         <div className="grid grid-cols-3 gap-3 mb-5">
                             {[
-                                { key: 'cashTotal', label: 'Efectivo', icon: METHOD_ICON.CASH, color: 'border-green-300 bg-green-50/50', val: shiftSummary.cashTotal },
-                                { key: 'cardTotal', label: 'Tarjeta', icon: METHOD_ICON.CARD, color: 'border-blue-300 bg-blue-50/50', val: shiftSummary.cardTotal },
-                                { key: 'transferTotal', label: 'Transferencia', icon: METHOD_ICON.TRANSFER, color: 'border-purple-300 bg-purple-50/50', val: shiftSummary.transferTotal },
+                                { key: 'cashTotal', label: 'Efectivo', icon: METHOD_ICON.CASH, color: 'border-green-300 bg-green-500/10/50', val: shiftSummary.cashTotal },
+                                { key: 'cardTotal', label: 'Tarjeta', icon: METHOD_ICON.CARD, color: 'border-blue-300 bg-blue-500/10/50', val: shiftSummary.cardTotal },
+                                { key: 'transferTotal', label: 'Transferencia', icon: METHOD_ICON.TRANSFER, color: 'border-purple-300 bg-purple-500/10/50', val: shiftSummary.transferTotal },
                             ].map(m => (
                                 <div key={m.key} className={`border rounded-xl p-3 ${m.color}`}>
                                     <div className="flex items-center gap-1.5 mb-1">
                                         {m.icon}
-                                        <span className="text-xs font-medium text-gray-600">{m.label}</span>
+                                        <span className="text-xs font-medium text-white/70">{m.label}</span>
                                     </div>
-                                    <p className="text-xl font-black text-gray-900">{fmt(m.val)}</p>
+                                    <p className="text-xl font-black text-white">{fmt(m.val)}</p>
                                 </div>
                             ))}
                         </div>
@@ -351,26 +367,26 @@ export default function CashClosePage() {
                         {shiftSummary.totalExpenses !== undefined && (
                             <div className="mb-5">
                                 <div className="flex items-center justify-between mb-2">
-                                    <p className="text-xs font-semibold text-gray-500 flex items-center gap-1">
+                                    <p className="text-xs font-semibold text-white/60 flex items-center gap-1">
                                         <AlertCircle className="h-3.5 w-3.5 text-red-400" /> Gastos del turno
                                     </p>
                                     <span className="text-sm font-black text-red-600">{fmt(shiftSummary.totalExpenses)}</span>
                                 </div>
                                 {(shiftSummary.expensesDetail ?? []).length > 0 ? (
-                                    <div className="divide-y divide-gray-50 rounded-xl border border-red-100 overflow-hidden">
+                                    <div className="divide-y divide-white/10 rounded-xl border border-red-500/30 overflow-hidden">
                                         {(shiftSummary.expensesDetail ?? []).map(exp => (
-                                            <div key={exp.id} className="flex items-center px-3 py-2 bg-red-50/40 gap-2 text-xs">
-                                                <span className="flex-1 text-gray-700">{exp.description}</span>
-                                                <span className="text-gray-400">{exp.category}</span>
+                                            <div key={exp.id} className="flex items-center px-3 py-2 bg-red-500/10/40 gap-2 text-xs">
+                                                <span className="flex-1 text-white/80">{exp.description}</span>
+                                                <span className="text-white/40">{exp.category}</span>
                                                 <span className="font-bold text-red-600 w-20 text-right">{fmt(exp.amount)}</span>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-xs text-gray-400 italic">Sin gastos registrados en este turno.</p>
+                                    <p className="text-xs text-white/40 italic">Sin gastos registrados en este turno.</p>
                                 )}
                                 {/* Ingreso neto estimado */}
-                                <div className="mt-3 flex items-center justify-between bg-slate-800 text-white rounded-xl px-4 py-2.5">
+                                <div className="mt-3 flex items-center justify-between bg-white/10 text-white shadow-inner rounded-xl px-4 py-2.5">
                                     <span className="text-sm font-semibold">Ingreso Neto Estimado</span>
                                     <span className="text-lg font-black">{fmt(shiftSummary.totalRevenue - shiftSummary.totalExpenses)}</span>
                                 </div>
@@ -380,19 +396,19 @@ export default function CashClosePage() {
                         {/* Últimas ventas del turno */}
                         {shiftSummary.recentSales.length > 0 && (
                             <div>
-                                <p className="text-xs font-semibold text-gray-500 mb-2">Últimas ventas del turno</p>
-                                <div className="divide-y divide-gray-50 rounded-xl border border-gray-100 overflow-hidden">
+                                <p className="text-xs font-semibold text-white/60 mb-2">Últimas ventas del turno</p>
+                                <div className="divide-y divide-white/10 rounded-xl border border-white/10 overflow-hidden">
                                     {shiftSummary.recentSales.map(s => (
-                                        <div key={s.saleNumber} className="flex items-center px-3 py-2 bg-white hover:bg-gray-50 transition gap-3">
-                                            <span className="text-xs text-gray-400 w-28 flex-shrink-0 font-mono">{s.saleNumber}</span>
-                                            <div className="flex items-center gap-1 text-xs text-gray-500 flex-shrink-0">
+                                        <div key={s.saleNumber} className="flex items-center px-3 py-2 bg-white/5 hover:bg-white/5 transition gap-3">
+                                            <span className="text-xs text-white/40 w-28 flex-shrink-0 font-mono">{s.saleNumber}</span>
+                                            <div className="flex items-center gap-1 text-xs text-white/60 flex-shrink-0">
                                                 {METHOD_ICON[s.paymentMethod] || <DollarSign className="h-3 w-3" />}
                                                 {METHOD_LABEL[s.paymentMethod] || s.paymentMethod}
                                             </div>
-                                            <span className="text-xs text-gray-400 ml-auto flex-shrink-0">
+                                            <span className="text-xs text-white/40 ml-auto flex-shrink-0">
                                                 {new Date(s.createdAt).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
                                             </span>
-                                            <span className="text-sm font-bold text-gray-900 w-20 text-right flex-shrink-0">{fmt(s.totalAmount)}</span>
+                                            <span className="text-sm font-bold text-white w-20 text-right flex-shrink-0">{fmt(s.totalAmount)}</span>
                                         </div>
                                     ))}
                                 </div>
@@ -404,35 +420,35 @@ export default function CashClosePage() {
                 {/* Grid form + historial */}
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Formulario */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
+                    <div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-6">
                         {mode === 'open' ? (
                             <>
-                                <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <h2 className="text-lg font-bold text-white/90 mb-4 flex items-center gap-2">
                                     <LogIn className="h-5 w-5 text-green-600" /> Apertura de Caja
                                 </h2>
                                 <form onSubmit={handleOpen} className="space-y-4">
                                     {isAdmin && (
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sucursal *</label>
+                                            <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal *</label>
                                             <select required value={form.branchId}
                                                 onChange={e => setForm(f => ({ ...f, branchId: e.target.value }))}
-                                                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                                                className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-400">
                                                 <option value="">Seleccioná una sucursal</option>
                                                 {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                                             </select>
                                         </div>
                                     )}
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                                        <label className="block text-sm font-semibold text-white/80 mb-1.5">
                                             <span className="flex items-center gap-1"><DollarSign className="h-3.5 w-3.5" /> Efectivo inicial (Bs.)</span>
                                         </label>
-                                        <input type="number" min="0" step="0.01" value={form.openingAmount === 0 ? '' : form.openingAmount}
+                                        <input type="number" min="0" step="0.01" value={form.openingAmount === '0' ? '' : form.openingAmount}
                                             onChange={e => setForm(f => ({ ...f, openingAmount: e.target.value }))}
                                             placeholder=""
-                                            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                            className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-purple-400" />
                                     </div>
                                     <button type="submit" disabled={submitting}
-                                        className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
+                                        className="w-full bg-gradient-to-r from-emerald-500 to-teal-500 hover:from-emerald-400 hover:to-teal-400 shadow-[0_0_20px_rgba(16,185,129,0.3)] disabled:opacity-50 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
                                         {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <LogIn className="h-4 w-4" />}
                                         Abrir Caja Ahora
                                     </button>
@@ -440,11 +456,11 @@ export default function CashClosePage() {
                             </>
                         ) : (
                             <>
-                                <h2 className="text-lg font-bold text-gray-800 mb-4 flex items-center gap-2">
+                                <h2 className="text-lg font-bold text-white/90 mb-4 flex items-center gap-2">
                                     <Lock className="h-5 w-5 text-red-500" /> Cierre de Caja
                                 </h2>
                                 {activeSession && (
-                                    <div className="bg-green-50 border border-green-200 rounded-xl p-3 mb-4 text-sm text-green-800">
+                                    <div className="bg-green-500/10 border border-green-500/30 rounded-xl p-3 mb-4 text-sm text-green-400">
                                         <p className="font-semibold">🟢 Sesión activa</p>
                                         <p className="text-xs mt-0.5">
                                             Abierta: {activeSession.openedAt
@@ -458,10 +474,10 @@ export default function CashClosePage() {
                                 <form onSubmit={handleClose} className="space-y-4">
                                     {isAdmin && !activeSession && (
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Sucursal *</label>
+                                            <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal *</label>
                                             <select required value={form.branchId}
                                                 onChange={e => setForm(f => ({ ...f, branchId: e.target.value }))}
-                                                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400">
+                                                className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-400">
                                                 <option value="">Seleccioná una sucursal</option>
                                                 {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                                             </select>
@@ -469,26 +485,26 @@ export default function CashClosePage() {
                                     )}
                                     <div className="grid grid-cols-2 gap-4">
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Efectivo apertura (Bs.)</label>
+                                            <label className="block text-sm font-semibold text-white/80 mb-1.5">Efectivo apertura (Bs.)</label>
                                             <input type="number" min="0" step="0.01"
                                                 value={form.openingAmount || (activeSession?.openingAmount ?? '')}
                                                 onChange={e => setForm(f => ({ ...f, openingAmount: e.target.value }))}
                                                 placeholder={String(activeSession?.openingAmount ?? '0.00')}
-                                                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+                                                className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-400" />
                                         </div>
                                         <div>
-                                            <label className="block text-sm font-semibold text-gray-700 mb-1.5">Efectivo real (Bs.) *</label>
-                                            <input required type="number" min="0" step="0.01" value={form.actualCash === 0 ? '' : form.actualCash}
+                                            <label className="block text-sm font-semibold text-white/80 mb-1.5">Efectivo real (Bs.) *</label>
+                                            <input required type="number" min="0" step="0.01" value={form.actualCash === '0' ? '' : form.actualCash}
                                                 onChange={e => setForm(f => ({ ...f, actualCash: e.target.value }))}
                                                 placeholder=""
-                                                className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400" />
+                                                className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-400" />
                                         </div>
                                     </div>
                                     {/* Preview de diferencia */}
                                     {form.actualCash && shiftSummary && (
                                         <div className={`rounded-xl p-3 text-sm font-semibold flex items-center justify-between ${
                                             parseFloat(form.actualCash) - (shiftSummary.cashTotal - (shiftSummary.totalExpenses ?? 0) + (activeSession?.openingAmount || 0)) >= 0
-                                                ? 'bg-blue-50 text-blue-800' : 'bg-red-50 text-red-700'
+                                                ? 'bg-blue-500/10 text-blue-400' : 'bg-red-500/10 text-red-700'
                                         }`}>
                                             <span>Diferencia estimada:</span>
                                             <span>{fmt(parseFloat(form.actualCash) - shiftSummary.cashTotal + (shiftSummary.totalExpenses ?? 0) - (activeSession?.openingAmount || 0))}</span>
@@ -496,7 +512,7 @@ export default function CashClosePage() {
                                     )}
                                     {/* Solicitud de Reposición (solo si es Açaí) */}
                                     {((activeSession as any)?.branch?.type === 'ACAI' || branches.find(b => b.id === ((activeSession as any)?.branchId || form.branchId))?.type === 'ACAI') && inventoryProducts.length > 0 && (
-                                        <div className="border border-purple-200 bg-purple-50 rounded-xl p-4 my-4">
+                                        <div className="border border-purple-500/30 bg-purple-500/10 rounded-xl p-4 my-4">
                                             <div className="mb-3 flex flex-col gap-2">
                                                 <div className="flex items-center justify-between">
                                                     <div>
@@ -507,7 +523,7 @@ export default function CashClosePage() {
                                                     </div>
                                                     <div>
                                                         <select value={selectedFactoryId} onChange={e => setSelectedFactoryId(e.target.value)}
-                                                            className="text-xs border border-purple-200 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400 bg-white text-purple-900 font-semibold">
+                                                            className="text-xs border border-purple-500/30 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-purple-400 bg-white/5 text-purple-900 font-semibold">
                                                             {branches.filter(b => b.type === 'FABRICA').map(b => (
                                                                 <option key={b.id} value={b.id}>{b.name}</option>
                                                             ))}
@@ -522,7 +538,7 @@ export default function CashClosePage() {
                                                         const countRequests = catProducts.filter(p => orderRequests[p.id] > 0).length;
                                                         
                                                         return (
-                                                            <div key={cat} className="border border-purple-100 rounded-xl bg-white overflow-hidden shadow-sm">
+                                                            <div key={cat} className="border border-purple-100 rounded-xl bg-white/5 overflow-hidden shadow-sm">
                                                                 <button
                                                                     type="button"
                                                                     onClick={() => setExpandedCategories(prev => ({ ...prev, [cat]: !prev[cat] }))}
@@ -534,22 +550,22 @@ export default function CashClosePage() {
                                                                     </div>
                                                                     <div className="flex items-center gap-3">
                                                                         {countRequests > 0 && (
-                                                                            <span className="text-xs font-semibold bg-green-100 text-green-700 px-2 py-0.5 rounded-full shadow-sm">{countRequests} solicitados</span>
+                                                                            <span className="text-xs font-semibold bg-green-500/20 text-green-700 px-2 py-0.5 rounded-full shadow-sm">{countRequests} solicitados</span>
                                                                         )}
                                                                         <ChevronRight className={`h-4 w-4 text-purple-500 transition-transform ${isExpanded ? 'rotate-90' : ''}`} />
                                                                     </div>
                                                                 </button>
                                                                 {isExpanded && (
-                                                                    <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-3 bg-white">
+                                                                    <div className="p-3 grid grid-cols-1 md:grid-cols-2 gap-3 bg-white/5">
                                                                         {catProducts.map(t => (
-                                                                            <div key={t.id} className="flex flex-col gap-2 bg-gray-50/50 px-3 py-2.5 rounded-lg border border-gray-100 transition-colors hover:bg-purple-50/30 hover:border-purple-100">
-                                                                                <span className="text-xs font-semibold text-gray-700 leading-tight" title={t.name}>{t.name}</span>
+                                                                            <div key={t.id} className="flex flex-col gap-2 bg-white/5/50 px-3 py-2.5 rounded-lg border border-white/10 transition-colors hover:bg-purple-500/10/30 hover:border-purple-100">
+                                                                                <span className="text-xs font-semibold text-white/80 leading-tight" title={t.name}>{t.name}</span>
                                                                                 <div className="flex items-center justify-end gap-1.5 w-full">
                                                                                     <input type="number" min="0" step="0.01" placeholder=""
                                                                                         value={orderRequests[t.id] || ''}
                                                                                         onChange={e => setOrderRequests(prev => ({ ...prev, [t.id]: parseFloat(e.target.value) || 0 }))}
-                                                                                        className={`w-20 border rounded-md px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-purple-300 text-right transition-colors ${orderRequests[t.id] > 0 ? 'bg-green-50 border-green-200 text-green-800 font-semibold shadow-sm' : 'bg-white border-gray-200'}`} />
-                                                                                    <span className="text-xs text-gray-500 w-12 truncate" title={t.unit}>{t.unit}</span>
+                                                                                        className={`w-20 border rounded-md px-2 py-1.5 text-xs focus:outline-none focus:ring-1 focus:ring-purple-300 text-right transition-colors ${orderRequests[t.id] > 0 ? 'bg-green-500/10 border-green-500/30 text-green-400 font-semibold shadow-sm' : 'bg-white/5 border-white/20'}`} />
+                                                                                    <span className="text-xs text-white/60 w-12 truncate" title={t.unit}>{t.unit}</span>
                                                                                 </div>
                                                                             </div>
                                                                         ))}
@@ -563,11 +579,11 @@ export default function CashClosePage() {
                                         </div>
                                     )}
                                     <div>
-                                        <label className="block text-sm font-semibold text-gray-700 mb-1.5">Observaciones</label>
+                                        <label className="block text-sm font-semibold text-white/80 mb-1.5">Observaciones</label>
                                         <textarea rows={2} value={form.notes}
                                             onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                                             placeholder="Notas del cierre…"
-                                            className="w-full border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-slate-400 resize-none" />
+                                            className="w-full bg-white/5 border border-white/20 rounded-xl px-3 py-2.5 text-sm text-white placeholder-white/40 focus:outline-none focus:ring-2 focus:ring-pink-400 resize-none" />
                                     </div>
                                     <button type="submit" disabled={submitting}
                                         className="w-full bg-slate-800 hover:bg-slate-900 disabled:opacity-50 text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
@@ -580,10 +596,10 @@ export default function CashClosePage() {
                     </div>
 
                     {/* Historial */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-6">
-                        <h2 className="text-lg font-bold text-gray-800 mb-4">Últimos Cierres</h2>
+                    <div className="bg-white/5 rounded-2xl shadow-sm border border-white/10 p-6">
+                        <h2 className="text-lg font-bold text-white/90 mb-4">Últimos Cierres</h2>
                         {history.length === 0 ? (
-                            <div className="text-center py-12 text-gray-400">
+                            <div className="text-center py-12 text-white/40">
                                 <DollarSign className="h-12 w-12 mx-auto mb-3 opacity-30" />
                                 <p className="text-sm">Sin cierres registrados</p>
                             </div>
@@ -595,36 +611,36 @@ export default function CashClosePage() {
                                     const closedAt = c.closedAt ? new Date(c.closedAt) : new Date(c.createdAt);
                                     const sessionOpen = (c as any).sessionStatus === 'OPEN';
                                     return (
-                                        <div key={c.id} className={`border rounded-xl p-4 ${sessionOpen ? 'border-green-300 bg-green-50/40' : 'border-gray-100'}`}>
+                                        <div key={c.id} className={`border rounded-xl p-4 ${sessionOpen ? 'border-green-300 bg-green-500/10/40' : 'border-white/10'}`}>
                                             <div className="flex justify-between items-start mb-2">
                                                 <div>
                                                     <div className="flex items-center gap-2">
-                                                        <p className="font-semibold text-gray-800 text-sm">{c.branch?.name}</p>
+                                                        <p className="font-semibold text-white/90 text-sm">{c.branch?.name}</p>
                                                         {sessionOpen && (
-                                                            <span className="text-xs bg-green-200 text-green-800 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
+                                                            <span className="text-xs bg-green-200 text-green-400 px-2 py-0.5 rounded-full font-semibold flex items-center gap-1">
                                                                 <span className="w-1.5 h-1.5 bg-green-600 rounded-full animate-pulse" /> ABIERTA
                                                             </span>
                                                         )}
                                                     </div>
-                                                    <p className="text-xs text-gray-400 mt-0.5">
+                                                    <p className="text-xs text-white/40 mt-0.5">
                                                         {c.user.name} · {new Date(c.createdAt).toLocaleDateString('es-BO', { day: '2-digit', month: 'short', year: 'numeric' })}
                                                     </p>
                                                     {openedAt && (
-                                                        <p className="text-xs text-gray-500 flex items-center gap-1 mt-0.5">
+                                                        <p className="text-xs text-white/60 flex items-center gap-1 mt-0.5">
                                                             <Clock className="h-3 w-3" />
                                                             {openedAt.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
                                                             {!sessionOpen && <> → {closedAt.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })} · {duration(c.openedAt, c.closedAt)}</>}
                                                         </p>
                                                     )}
                                                 </div>
-                                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${diff === 0 ? 'bg-green-100 text-green-700' : diff > 0 ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'}`}>
+                                                <span className={`text-xs font-bold px-2 py-1 rounded-full ${diff === 0 ? 'bg-green-500/20 text-green-700' : diff > 0 ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'}`}>
                                                     {diff > 0 ? '+' : ''}{diff.toFixed(2)}
                                                 </span>
                                             </div>
-                                            <div className="grid grid-cols-3 gap-2 text-xs text-gray-500">
+                                            <div className="grid grid-cols-3 gap-2 text-xs text-white/60">
                                                 <div className="flex items-center gap-1">
                                                     <TrendingUp className="h-3 w-3" />
-                                                    Ventas: <span className="font-semibold text-gray-700">{fmt(c.totalSales)}</span>
+                                                    Ventas: <span className="font-semibold text-white/80">{fmt(c.totalSales)}</span>
                                                 </div>
                                                 <div className="flex items-center gap-1">
                                                     <AlertCircle className="h-3 w-3 text-red-400" />
@@ -635,7 +651,7 @@ export default function CashClosePage() {
                                                     Neto: <span className="font-semibold text-green-700">{fmt(c.netCash ?? c.totalSales)}</span>
                                                 </div>
                                             </div>
-                                            {c.notes && <p className="text-xs text-gray-400 mt-2 italic">"{c.notes}"</p>}
+                                            {c.notes && <p className="text-xs text-white/40 mt-2 italic">"{c.notes}"</p>}
                                         </div>
                                     );
                                 })}

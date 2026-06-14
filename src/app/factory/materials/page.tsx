@@ -38,7 +38,7 @@ function StockBar({ current, min, max = null }: { current: number; min: number; 
     const pct = Math.min((current / cap) * 100, 100);
     const sev = getSeverity(current, min);
     return (
-        <div className="w-full bg-gray-100 rounded-full h-2 mt-1">
+        <div className="w-full bg-white/5 border border-white/10 backdrop-blur-md/10 rounded-full h-2 mt-1">
             <div className={`h-2 rounded-full transition-all ${SEV_CONFIG[sev].bar}`} style={{ width: `${pct}%` }} />
         </div>
     );
@@ -87,25 +87,31 @@ export default function FactoryMaterialsPage() {
     const ok = stocks.filter(s => getSeverity(s.currentStock, s.minStock) === 'ok').length;
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6 md:p-8">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E\")", backgroundSize: '56px 100px' }} />
+            </div>
+            <div className="relative z-10 h-full w-full">
             <div className="max-w-5xl mx-auto space-y-6">
                 {/* Header */}
                 <div>
-                    <Link href="/factory" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-2">
+                    <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
                         <ArrowLeft className="h-4 w-4" /> Fábrica
                     </Link>
                     <div className="flex items-center justify-between flex-wrap gap-3">
                         <div>
-                            <h1 className="text-3xl font-bold text-gray-900 flex items-center gap-3">
+                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                                 <Package className="h-7 w-7 text-blue-600" /> Inventario de Materia Prima
                             </h1>
-                            <p className="text-gray-500 text-sm mt-1">
+                            <p className="text-white/60 text-sm mt-1">
                                 Stock de ingredientes y materiales en fábrica
-                                {lastUpd && <span className="ml-2 text-gray-400">· Actualizado {lastUpd.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}</span>}
+                                {lastUpd && <span className="ml-2 text-white/40">· Actualizado {lastUpd.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}</span>}
                             </p>
                         </div>
                         <button onClick={load} disabled={loading}
-                            className="flex items-center gap-2 px-4 py-2 bg-white border border-gray-200 rounded-xl text-sm text-gray-600 hover:bg-gray-50 transition disabled:opacity-50">
+                            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 backdrop-blur-md border border-white/10 rounded-xl text-sm text-white/70 hover:bg-white/5 transition disabled:opacity-50">
                             <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar
                         </button>
                     </div>
@@ -120,26 +126,26 @@ export default function FactoryMaterialsPage() {
                     ].map(k => (
                         <button key={k.key} onClick={() => setFilter(filter === k.key as any ? 'all' : k.key as any)}
                             className={`border rounded-2xl p-4 text-left transition ${k.color} ${filter === k.key ? 'ring-2 ring-offset-1 ring-blue-400' : ''}`}>
-                            <p className="text-xs font-medium text-gray-500">{k.label}</p>
+                            <p className="text-xs font-medium text-white/60">{k.label}</p>
                             <p className={`text-3xl font-black mt-1 ${k.tc}`}>{k.val}</p>
                         </button>
                     ))}
                 </div>
 
                 {/* Sucursal selector + búsqueda */}
-                <div className="bg-white rounded-2xl shadow p-4 flex flex-wrap gap-3 items-center">
+                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow p-4 flex flex-wrap gap-3 items-center">
                     {branches.length > 1 && (
                         <select value={branchId} onChange={e => setBranchId(e.target.value)}
-                            className="border border-gray-200 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                            className="border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
                             <option value="">Todas las fábricas</option>
                             {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                         </select>
                     )}
                     <div className="relative flex-1 min-w-48">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                         <input value={search} onChange={e => setSearch(e.target.value)}
                             placeholder="Buscar por nombre o SKU…"
-                            className="pl-9 pr-3 py-2 border border-gray-200 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                            className="pl-9 pr-3 py-2 border border-white/10 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-300" />
                     </div>
                     {filter !== 'all' && (
                         <button onClick={() => setFilter('all')}
@@ -151,26 +157,26 @@ export default function FactoryMaterialsPage() {
 
                 {/* Tabla / lista */}
                 {loading ? (
-                    <div className="text-center py-20 text-gray-400">
+                    <div className="text-center py-20 text-white/40">
                         <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" /> Cargando…
                     </div>
                 ) : filtered.length === 0 ? (
-                    <div className="text-center py-20 text-gray-400">
+                    <div className="text-center py-20 text-white/40">
                         <Package className="h-12 w-12 mx-auto mb-3 opacity-30" />
                         <p className="text-sm">No hay materiales con esas condiciones</p>
                         {!branchId && <p className="text-xs mt-1">Seleccioná una sucursal tipo Fábrica</p>}
                     </div>
                 ) : (
-                    <div className="bg-white rounded-2xl shadow overflow-hidden">
+                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow overflow-hidden">
                         <table className="w-full text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-white/5 border-b border-white/10">
                                 <tr>
-                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600">Material</th>
-                                    <th className="text-left px-5 py-3.5 font-semibold text-gray-600 hidden sm:table-cell">Categoría</th>
-                                    <th className="text-right px-5 py-3.5 font-semibold text-gray-600">Stock actual</th>
-                                    <th className="text-right px-5 py-3.5 font-semibold text-gray-600 hidden md:table-cell">Mínimo</th>
-                                    <th className="px-5 py-3.5 font-semibold text-gray-600 w-32 hidden md:table-cell">Nivel</th>
-                                    <th className="text-center px-5 py-3.5 font-semibold text-gray-600">Estado</th>
+                                    <th className="text-left px-5 py-3.5 font-semibold text-white/70">Material</th>
+                                    <th className="text-left px-5 py-3.5 font-semibold text-white/70 hidden sm:table-cell">Categoría</th>
+                                    <th className="text-right px-5 py-3.5 font-semibold text-white/70">Stock actual</th>
+                                    <th className="text-right px-5 py-3.5 font-semibold text-white/70 hidden md:table-cell">Mínimo</th>
+                                    <th className="px-5 py-3.5 font-semibold text-white/70 w-32 hidden md:table-cell">Nivel</th>
+                                    <th className="text-center px-5 py-3.5 font-semibold text-white/70">Estado</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -178,21 +184,21 @@ export default function FactoryMaterialsPage() {
                                     const sev = getSeverity(s.currentStock, s.minStock);
                                     const cfg = SEV_CONFIG[sev];
                                     return (
-                                        <tr key={s.id} className={`border-b border-gray-100 hover:bg-gray-50 ${sev === 'critical' ? 'bg-red-50/30' : ''}`}>
+                                        <tr key={s.id} className={`border-b border-white/10 hover:bg-white/5 ${sev === 'critical' ? 'bg-red-50/30' : ''}`}>
                                             <td className="px-5 py-3.5">
-                                                <p className="font-semibold text-gray-900">{s.product.name}</p>
-                                                <p className="text-xs text-gray-400 font-mono">{s.product.sku}</p>
+                                                <p className="font-semibold text-white/90">{s.product.name}</p>
+                                                <p className="text-xs text-white/40 font-mono">{s.product.sku}</p>
                                             </td>
-                                            <td className="px-5 py-3.5 text-gray-500 text-xs hidden sm:table-cell">
+                                            <td className="px-5 py-3.5 text-white/60 text-xs hidden sm:table-cell">
                                                 {s.product.category || '—'}
                                             </td>
                                             <td className="px-5 py-3.5 text-right">
-                                                <span className={`font-bold text-base ${sev === 'critical' ? 'text-red-600' : 'text-gray-900'}`}>
+                                                <span className={`font-bold text-base ${sev === 'critical' ? 'text-red-600' : 'text-white/90'}`}>
                                                     {s.currentStock.toFixed(s.product.unit === 'KG' ? 2 : 0)}
                                                 </span>
-                                                <span className="text-xs text-gray-400 ml-1">{s.product.unit}</span>
+                                                <span className="text-xs text-white/40 ml-1">{s.product.unit}</span>
                                             </td>
-                                            <td className="px-5 py-3.5 text-right text-gray-500 text-sm hidden md:table-cell">
+                                            <td className="px-5 py-3.5 text-right text-white/60 text-sm hidden md:table-cell">
                                                 {s.minStock} {s.product.unit}
                                             </td>
                                             <td className="px-5 py-3.5 hidden md:table-cell">
@@ -208,7 +214,7 @@ export default function FactoryMaterialsPage() {
                                 })}
                             </tbody>
                         </table>
-                        <div className="px-5 py-3 text-xs text-gray-400 bg-gray-50 border-t">
+                        <div className="px-5 py-3 text-xs text-white/40 bg-white/5 border-t">
                             {filtered.length} material{filtered.length !== 1 ? 'es' : ''}
                         </div>
                     </div>
@@ -229,5 +235,6 @@ export default function FactoryMaterialsPage() {
                 </div>
             </div>
         </div>
-    );
+    </div>
+        );
 }

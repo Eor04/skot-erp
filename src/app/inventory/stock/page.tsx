@@ -37,8 +37,8 @@ const TYPE_COLORS: Record<string, string> = {
     ACAI_TOPPING: 'bg-pink-100 text-pink-700',
     BURGER: 'bg-orange-100 text-orange-700',
     BURGER_EXTRA: 'bg-amber-100 text-amber-700',
-    BEVERAGE: 'bg-blue-100 text-blue-700',
-    RAW_MATERIAL: 'bg-gray-100 text-gray-700',
+    BEVERAGE: 'bg-blue-500/20 text-blue-400',
+    RAW_MATERIAL: 'bg-gray-100 text-white/80',
 };
 
 /* ── Fila editable ── */
@@ -82,20 +82,20 @@ function StockRow({
         } finally { setSaving(false); }
     }
 
-    const rowBg = item.isCritical ? 'bg-red-50/40' : item.isLow ? 'bg-yellow-50/40' : '';
+    const rowBg = item.isCritical ? 'bg-red-500/10/40' : item.isLow ? 'bg-yellow-500/10/40' : '';
 
     return (
-        <tr className={`border-b border-gray-100 hover:bg-gray-50 ${rowBg}`}>
-            <td className="px-5 py-3 font-medium text-gray-900 text-sm">{item.product.name}</td>
-            <td className="px-5 py-3 font-mono text-xs text-gray-400">{item.product.sku}</td>
+        <tr className={`border-b border-white/10 hover:bg-white/5/5/5 ${rowBg}`}>
+            <td className="px-5 py-3 font-medium text-white/90 text-sm">{item.product.name}</td>
+            <td className="px-5 py-3 font-mono text-xs text-white/40">{item.product.sku}</td>
             <td className="px-5 py-3">
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[item.product.type] || 'bg-gray-100 text-gray-600'}`}>
+                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[item.product.type] || 'bg-gray-100 text-white/70'}`}>
                     {TYPE_LABELS[item.product.type] || item.product.type}
                 </span>
             </td>
 
             {/* Stock actual */}
-            <td className={`px-5 py-3 text-right font-bold text-base ${item.isCritical ? 'text-red-600' : item.isLow ? 'text-yellow-600' : 'text-green-700'}`}>
+            <td className={`px-5 py-3 text-right font-bold text-base ${item.isCritical ? 'text-red-400' : item.isLow ? 'text-yellow-400' : 'text-green-400'}`}>
                 {editing ? (
                     <div className="flex items-center justify-end gap-1">
                         <button onClick={() => setNewStock(s => Math.max(0, s - 1))} className="p-1 rounded bg-gray-100 hover:bg-gray-200">
@@ -107,15 +107,15 @@ function StockRow({
                         <button onClick={() => setNewStock(s => s + 1)} className="p-1 rounded bg-gray-100 hover:bg-gray-200">
                             <Plus className="h-3 w-3" />
                         </button>
-                        <span className="text-xs text-gray-400 ml-1">{item.product.unit}</span>
+                        <span className="text-xs text-white/40 ml-1">{item.product.unit}</span>
                     </div>
                 ) : (
-                    <>{item.currentStock} <span className="text-xs font-normal text-gray-400">{item.product.unit}</span></>
+                    <>{item.currentStock} <span className="text-xs font-normal text-white/40">{item.product.unit}</span></>
                 )}
             </td>
 
             {/* Mín */}
-            <td className="px-5 py-3 text-right text-sm text-gray-500">
+            <td className="px-5 py-3 text-right text-sm text-white/60">
                 {editing ? (
                     <input type="number" min="0" step="0.01" value={newMin === 0 ? '' : newMin}
                         onChange={e => setNewMin(parseFloat(e.target.value) || 0)}
@@ -126,29 +126,29 @@ function StockRow({
             {/* Estado */}
             <td className="px-5 py-3 text-center">
                 {item.isCritical ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full">
                         <XCircle className="h-3 w-3" /> Sin stock
                     </span>
                 ) : item.isLow ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-yellow-600 bg-yellow-50 px-2 py-0.5 rounded-full">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-full">
                         <AlertTriangle className="h-3 w-3" /> Bajo
                     </span>
                 ) : (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-600 bg-green-50 px-2 py-0.5 rounded-full">
+                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">
                         <CheckCircle className="h-3 w-3" /> OK
                     </span>
                 )}
             </td>
 
             {/* Razón (solo al editar) */}
-            <td className="px-5 py-3 text-xs text-gray-400">
+            <td className="px-5 py-3 text-xs text-white/40">
                 {editing ? (
                     <select value={reason} onChange={e => setReason(e.target.value)}
-                        className="border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-green-400">
-                        <option value="AJUSTE">Ajuste</option>
-                        <option value="ENTRADA">Entrada</option>
-                        <option value="MERMA">Merma</option>
-                        <option value="INVENTARIO_FISICO">Inv. físico</option>
+                        className="border border-white/20 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-green-400">
+                        <option value="AJUSTE" className="text-white/90">Ajuste</option>
+                        <option value="ENTRADA" className="text-white/90">Entrada</option>
+                        <option value="MERMA" className="text-white/90">Merma</option>
+                        <option value="INVENTARIO_FISICO" className="text-white/90">Inv. físico</option>
                     </select>
                 ) : (
                     new Date(item.lastUpdated).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })
@@ -159,7 +159,7 @@ function StockRow({
             {canEdit && (
                 <td className="px-5 py-3 text-right">
                     {toast ? (
-                        <span className="text-xs font-semibold text-green-600">{toast}</span>
+                        <span className="text-xs font-semibold text-green-400">{toast}</span>
                     ) : editing ? (
                         <div className="flex items-center gap-1.5 justify-end">
                             <button onClick={save} disabled={saving}
@@ -168,13 +168,13 @@ function StockRow({
                                 Guardar
                             </button>
                             <button onClick={() => { setEditing(false); setNewStock(item.currentStock); setNewMin(item.minStock); }}
-                                className="p-1.5 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition">
+                                className="p-1.5 text-white/40 hover:text-white/70 hover:bg-gray-100 rounded-lg transition">
                                 <X className="h-3.5 w-3.5" />
                             </button>
                         </div>
                     ) : (
                         <button onClick={() => setEditing(true)}
-                            className="p-1.5 text-gray-400 hover:text-blue-600 hover:bg-blue-50 rounded-lg transition" title="Ajustar stock">
+                            className="p-1.5 text-white/40 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition" title="Ajustar stock">
                             <Pencil className="h-3.5 w-3.5" />
                         </button>
                     )}
@@ -246,23 +246,28 @@ export default function StockPage() {
     });
 
     return (
-        <div className="min-h-screen bg-gray-50 p-6">
+        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
+            <div className="absolute inset-0 pointer-events-none overflow-hidden">
+                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
+                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
+                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
+            </div>
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <Link href="/inventory" className="text-sm text-gray-500 hover:text-gray-700 flex items-center gap-1 mb-1">
-                            <ArrowLeft className="h-4 w-4" /> Inventario
+                        <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-1">
+                            <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
                         </Link>
-                        <h1 className="text-2xl font-bold text-gray-900 flex items-center gap-2">
-                            <Package className="h-7 w-7 text-green-600" /> Stock por Sucursal
-                            {selectedBranchName && <span className="text-base font-normal text-gray-500">— {selectedBranchName}</span>}
+                        <h1 className="text-2xl font-bold text-white/90 flex items-center gap-2">
+                            <Package className="h-7 w-7 text-green-400" /> Stock por Sucursal
+                            {selectedBranchName && <span className="text-base font-normal text-white/60">— {selectedBranchName}</span>}
                         </h1>
                     </div>
                     <div className="flex gap-2">
                         {selectedBranchId && (
                             <button onClick={() => loadStock(selectedBranchId)}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-white border border-gray-200 text-gray-600 rounded-xl text-sm hover:bg-gray-50 transition">
+                                className="flex items-center gap-1.5 px-3 py-2 bg-white/5/5/5 border border-white/10 text-white/70 rounded-xl text-sm hover:bg-white/5/5/5 transition">
                                 <RefreshCw className="h-4 w-4" /> Actualizar
                             </button>
                         )}
@@ -274,15 +279,15 @@ export default function StockPage() {
                 </div>
 
                 {/* Selector sucursal */}
-                <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-4 mb-5">
-                    <label className="block text-sm font-semibold text-gray-700 mb-1.5">
+                <div className="bg-white/5/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-4 mb-5">
+                    <label className="block text-sm font-semibold text-white/80 mb-1.5">
                         {isAdmin ? 'Seleccioná una sucursal:' : 'Tu sucursal:'}
                     </label>
                     <select value={selectedBranchId} onChange={e => handleBranchChange(e.target.value)}
                         disabled={!isAdmin && !!user?.branchIds?.[0]}
-                        className="w-full max-w-sm border border-gray-200 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-gray-50">
-                        <option value="">-- Elegí una sucursal --</option>
-                        {branches.map(b => <option key={b.id} value={b.id}>{b.name} ({b.type})</option>)}
+                        className="w-full max-w-sm border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-white/5/5/5">
+                        <option value="" className="text-white/90">-- Elegí una sucursal --</option>
+                        {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name} ({b.type})</option>)}
                     </select>
                 </div>
 
@@ -290,10 +295,10 @@ export default function StockPage() {
                 {summary && (
                     <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
                         {[
-                            { label: 'Total ítems', value: summary.total, color: 'bg-blue-50 text-blue-700', f: 'ALL' as const },
-                            { label: 'Stock OK', value: summary.ok, color: 'bg-green-50 text-green-700', f: 'OK' as const },
-                            { label: 'Stock bajo', value: summary.low, color: 'bg-yellow-50 text-yellow-700', f: 'LOW' as const },
-                            { label: 'Sin stock', value: summary.critical, color: 'bg-red-50 text-red-700', f: 'CRITICAL' as const },
+                            { label: 'Total ítems', value: summary.total, color: 'bg-blue-500/10 text-blue-400', f: 'ALL' as const },
+                            { label: 'Stock OK', value: summary.ok, color: 'bg-green-500/10 text-green-400', f: 'OK' as const },
+                            { label: 'Stock bajo', value: summary.low, color: 'bg-yellow-500/10 text-yellow-400', f: 'LOW' as const },
+                            { label: 'Sin stock', value: summary.critical, color: 'bg-red-500/10 text-red-400', f: 'CRITICAL' as const },
                         ].map(kpi => (
                             <button key={kpi.label} onClick={() => setFilter(kpi.f)}
                                 className={`${kpi.color} rounded-2xl p-4 text-left transition-all ${filter === kpi.f ? 'ring-2 ring-current' : 'hover:scale-105'}`}>
@@ -307,33 +312,33 @@ export default function StockPage() {
                 {/* Buscador */}
                 {selectedBranchId && (
                     <div className="relative mb-4">
-                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-gray-400" />
+                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-white/40" />
                         <input type="text" placeholder="Buscar por nombre o SKU…" value={search}
                             onChange={e => setSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-gray-200 rounded-xl bg-white text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                            className="w-full pl-10 pr-4 py-2.5 border border-white/20 rounded-xl bg-white/5/5 text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
                     </div>
                 )}
 
                 {/* Tabla */}
                 {loading ? (
-                    <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-green-600" /></div>
+                    <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-green-400" /></div>
                 ) : !selectedBranchId ? (
-                    <div className="text-center py-24 text-gray-400">
+                    <div className="text-center py-24 text-white/40">
                         <Package className="h-14 w-14 mx-auto mb-4 opacity-20" />
                         <p>Seleccioná una sucursal para ver su inventario</p>
                     </div>
                 ) : (
-                    <div className="bg-white rounded-2xl shadow overflow-hidden">
+                    <div className="bg-white/5/5 rounded-2xl shadow overflow-hidden">
                         <table className="w-full text-sm">
-                            <thead className="bg-gray-50 border-b border-gray-200">
+                            <thead className="bg-white/5/5/5 border-b border-white/20">
                                 <tr>
-                                    <th className="text-left px-5 py-3 font-semibold text-gray-600">Producto</th>
-                                    <th className="text-left px-5 py-3 font-semibold text-gray-600">SKU</th>
-                                    <th className="text-left px-5 py-3 font-semibold text-gray-600">Tipo</th>
-                                    <th className="text-right px-5 py-3 font-semibold text-gray-600">Stock actual</th>
-                                    <th className="text-right px-5 py-3 font-semibold text-gray-600">Mín.</th>
-                                    <th className="text-center px-5 py-3 font-semibold text-gray-600">Estado</th>
-                                    <th className="text-left px-5 py-3 font-semibold text-gray-600">Fecha / Motivo</th>
+                                    <th className="text-left px-5 py-3 font-semibold text-white/70">Producto</th>
+                                    <th className="text-left px-5 py-3 font-semibold text-white/70">SKU</th>
+                                    <th className="text-left px-5 py-3 font-semibold text-white/70">Tipo</th>
+                                    <th className="text-right px-5 py-3 font-semibold text-white/70">Stock actual</th>
+                                    <th className="text-right px-5 py-3 font-semibold text-white/70">Mín.</th>
+                                    <th className="text-center px-5 py-3 font-semibold text-white/70">Estado</th>
+                                    <th className="text-left px-5 py-3 font-semibold text-white/70">Fecha / Motivo</th>
                                     {canEdit && <th className="px-5 py-3" />}
                                 </tr>
                             </thead>
@@ -343,15 +348,15 @@ export default function StockPage() {
                                         onSaved={() => loadStock(selectedBranchId)} />
                                 ))}
                                 {filtered.length === 0 && (
-                                    <tr><td colSpan={canEdit ? 8 : 7} className="px-6 py-16 text-center text-gray-400">
+                                    <tr><td colSpan={canEdit ? 8 : 7} className="px-6 py-16 text-center text-white/40">
                                         No se encontraron productos
                                     </td></tr>
                                 )}
                             </tbody>
                         </table>
-                        <div className="px-5 py-3 bg-gray-50 border-t text-xs text-gray-400">
+                        <div className="px-5 py-3 bg-white/5/5/5 border-t text-xs text-white/40">
                             {filtered.length} producto{filtered.length !== 1 ? 's' : ''} · {selectedBranchName}
-                            {canEdit && <span className="ml-3 text-green-600 font-medium">✏️ Hacé click en el lápiz para ajustar stock</span>}
+                            {canEdit && <span className="ml-3 text-green-400 font-medium">✏️ Hacé click en el lápiz para ajustar stock</span>}
                         </div>
                     </div>
                 )}
