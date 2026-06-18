@@ -85,7 +85,7 @@ function StockRow({
     const rowBg = item.isCritical ? 'bg-red-500/10/40' : item.isLow ? 'bg-yellow-500/10/40' : '';
 
     return (
-        <tr className={`border-b border-white/10 hover:bg-white/5/5/5 ${rowBg}`}>
+        <tr className={`border-b border-white/10 hover:bg-white/5 ${rowBg}`}>
             <td className="px-5 py-3 font-medium text-white/90 text-sm">{item.product.name}</td>
             <td className="px-5 py-3 font-mono text-xs text-white/40">{item.product.sku}</td>
             <td className="px-5 py-3">
@@ -145,10 +145,10 @@ function StockRow({
                 {editing ? (
                     <select value={reason} onChange={e => setReason(e.target.value)}
                         className="border border-white/20 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-green-400">
-                        <option value="AJUSTE" className="text-white/90">Ajuste</option>
-                        <option value="ENTRADA" className="text-white/90">Entrada</option>
-                        <option value="MERMA" className="text-white/90">Merma</option>
-                        <option value="INVENTARIO_FISICO" className="text-white/90">Inv. físico</option>
+                        <option value="AJUSTE" className="bg-gray-900 text-white">Ajuste</option>
+                        <option value="ENTRADA" className="bg-gray-900 text-white">Entrada</option>
+                        <option value="MERMA" className="bg-gray-900 text-white">Merma</option>
+                        <option value="INVENTARIO_FISICO" className="bg-gray-900 text-white">Inv. físico</option>
                     </select>
                 ) : (
                     new Date(item.lastUpdated).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })
@@ -256,9 +256,7 @@ export default function StockPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-1">
-                            <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
-                        </Link>
+                        <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-1"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
                         <h1 className="text-2xl font-bold text-white/90 flex items-center gap-2">
                             <Package className="h-7 w-7 text-green-400" /> Stock por Sucursal
                             {selectedBranchName && <span className="text-base font-normal text-white/60">— {selectedBranchName}</span>}
@@ -267,7 +265,7 @@ export default function StockPage() {
                     <div className="flex gap-2">
                         {selectedBranchId && (
                             <button onClick={() => loadStock(selectedBranchId)}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-white/5/5/5 border border-white/10 text-white/70 rounded-xl text-sm hover:bg-white/5/5/5 transition">
+                                className="flex items-center gap-1.5 px-3 py-2 bg-white/5 border border-white/10 text-white/70 rounded-xl text-sm hover:bg-white/5 transition">
                                 <RefreshCw className="h-4 w-4" /> Actualizar
                             </button>
                         )}
@@ -279,15 +277,15 @@ export default function StockPage() {
                 </div>
 
                 {/* Selector sucursal */}
-                <div className="bg-white/5/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-4 mb-5">
+                <div className="bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-4 mb-5">
                     <label className="block text-sm font-semibold text-white/80 mb-1.5">
                         {isAdmin ? 'Seleccioná una sucursal:' : 'Tu sucursal:'}
                     </label>
                     <select value={selectedBranchId} onChange={e => handleBranchChange(e.target.value)}
                         disabled={!isAdmin && !!user?.branchIds?.[0]}
-                        className="w-full max-w-sm border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-white/5/5/5">
-                        <option value="" className="text-white/90">-- Elegí una sucursal --</option>
-                        {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name} ({b.type})</option>)}
+                        className="w-full max-w-sm border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-white/5">
+                        <option value="" className="bg-gray-900 text-white">-- Elegí una sucursal --</option>
+                        {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name} ({b.type})</option>)}
                     </select>
                 </div>
 
@@ -315,7 +313,7 @@ export default function StockPage() {
                         <Search className="absolute left-3 top-2.5 h-5 w-5 text-white/40" />
                         <input type="text" placeholder="Buscar por nombre o SKU…" value={search}
                             onChange={e => setSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-white/20 rounded-xl bg-white/5/5 text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
+                            className="w-full pl-10 pr-4 py-2.5 border border-white/20 rounded-xl bg-white/5 text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
                     </div>
                 )}
 
@@ -328,9 +326,9 @@ export default function StockPage() {
                         <p>Seleccioná una sucursal para ver su inventario</p>
                     </div>
                 ) : (
-                    <div className="bg-white/5/5 rounded-2xl shadow overflow-hidden">
+                    <div className="bg-white/5 rounded-2xl shadow overflow-hidden">
                         <table className="w-full text-sm">
-                            <thead className="bg-white/5/5/5 border-b border-white/20">
+                            <thead className="bg-white/5 border-b border-white/20">
                                 <tr>
                                     <th className="text-left px-5 py-3 font-semibold text-white/70">Producto</th>
                                     <th className="text-left px-5 py-3 font-semibold text-white/70">SKU</th>
@@ -354,7 +352,7 @@ export default function StockPage() {
                                 )}
                             </tbody>
                         </table>
-                        <div className="px-5 py-3 bg-white/5/5/5 border-t text-xs text-white/40">
+                        <div className="px-5 py-3 bg-white/5 border-t text-xs text-white/40">
                             {filtered.length} producto{filtered.length !== 1 ? 's' : ''} · {selectedBranchName}
                             {canEdit && <span className="ml-3 text-green-400 font-medium">✏️ Hacé click en el lápiz para ajustar stock</span>}
                         </div>

@@ -66,7 +66,7 @@ export default function ExpensesPage() {
     const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [form, setForm] = useState(BLANK);
 
-    const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
+    const isAdmin = user?.role === 'ADMIN';
 
     /* ── Para cajeros: branchId directo de la sesión (sin esperar fetch) ── */
     useEffect(() => {
@@ -246,7 +246,7 @@ export default function ExpensesPage() {
                 ) : loading ? (
                     <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-rose-500" /></div>
                 ) : expenses.length === 0 ? (
-                    <div className="text-center py-16 bg-white rounded-2xl border border-gray-100 text-white/40">
+                    <div className="text-center py-16 bg-white/5 rounded-2xl border border-white/10 text-white/40">
                         <Receipt className="h-10 w-10 mx-auto mb-3 opacity-25" />
                         <p>No hay gastos registrados{filterCat ? ` en la categoría seleccionada` : ''}.</p>
                     </div>
@@ -321,7 +321,7 @@ export default function ExpensesPage() {
                             {/* Monto + Método de pago */}
                             <div className="grid grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Monto (S/) *</label>
+                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Monto (Bs.) *</label>
                                     <input required type="number" min="0.01" step="0.01" placeholder=""
                                         value={form.amount}
                                         onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}

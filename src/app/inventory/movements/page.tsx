@@ -102,9 +102,7 @@ export default function MovementsPage() {
                 {/* Header */}
                 <div className="flex items-start justify-between flex-wrap gap-3">
                     <div>
-                        <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
-                            <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
-                        </Link>
+                        <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
                         <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                             <FileText className="h-7 w-7 text-purple-600" /> Kardex de Movimientos
                         </h1>
@@ -122,7 +120,7 @@ export default function MovementsPage() {
 
                 {/* KPIs rápidos */}
                 <div className="grid grid-cols-3 gap-3">
-                    <div className="bg-white/5/5 rounded-2xl border border-white/10 shadow-sm p-4">
+                    <div className="bg-white/5 rounded-2xl border border-white/10 shadow-sm p-4">
                         <p className="text-xs text-white/60 font-medium">Total movimientos</p>
                         <p className="text-2xl font-black text-white/80 mt-1">{filtered.length}</p>
                     </div>
@@ -137,7 +135,7 @@ export default function MovementsPage() {
                 </div>
 
                 {/* Filtros */}
-                <div className="bg-white/5/5 rounded-2xl shadow border border-white/10 p-4">
+                <div className="bg-white/5 rounded-2xl shadow border border-white/10 p-4">
                     <div className="flex flex-wrap gap-3">
                         {/* Búsqueda */}
                         <div className="relative flex-1 min-w-48">
@@ -182,15 +180,15 @@ export default function MovementsPage() {
                 {loading ? (
                     <div className="text-center py-20 text-white/40">Cargando movimientos…</div>
                 ) : filtered.length === 0 ? (
-                    <div className="text-center py-20 bg-white/5/5 rounded-2xl shadow text-white/40">
+                    <div className="text-center py-20 bg-white/5 rounded-2xl shadow text-white/40">
                         <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
                         <p>{hasFilters ? 'No hay movimientos con esos filtros' : 'No hay movimientos registrados'}</p>
                     </div>
                 ) : (
-                    <div className="bg-white/5/5 rounded-2xl shadow overflow-hidden border border-white/10">
+                    <div className="bg-white/5 rounded-2xl shadow overflow-hidden border border-white/10">
                         <div className="overflow-x-auto">
                             <table className="w-full text-sm">
-                                <thead className="bg-white/5/5/5 border-b border-white/20">
+                                <thead className="bg-white/5 border-b border-white/20">
                                     <tr>
                                         <th className="text-left px-4 py-3 font-semibold text-white/70">Producto</th>
                                         <th className="text-left px-4 py-3 font-semibold text-white/70">Tipo</th>
@@ -206,7 +204,7 @@ export default function MovementsPage() {
                                         const cfg = MOV_CFG[m.type] || MOV_CFG['AJUSTE'];
                                         const Icon = cfg.Icon;
                                         return (
-                                            <tr key={m.id} className="border-b border-white/5 hover:bg-white/5/5/5 transition">
+                                            <tr key={m.id} className="border-b border-white/5 hover:bg-white/5 transition">
                                                 <td className="px-4 py-3 font-medium text-white/90">{m.product?.name || '—'}</td>
                                                 <td className="px-4 py-3">
                                                     <span className={`flex items-center gap-1 px-2 py-0.5 rounded-full text-xs font-semibold w-fit ${cfg.bg} ${cfg.color}`}>
@@ -234,7 +232,7 @@ export default function MovementsPage() {
                                 </tbody>
                             </table>
                         </div>
-                        <div className="px-4 py-3 text-xs text-white/40 bg-white/5/5/5 border-t border-white/10 flex justify-between">
+                        <div className="px-4 py-3 text-xs text-white/40 bg-white/5 border-t border-white/10 flex justify-between">
                             <span>{filtered.length} de {movements.length} movimientos</span>
                             {hasFilters && <span className="text-purple-600 font-medium">Filtros activos</span>}
                         </div>

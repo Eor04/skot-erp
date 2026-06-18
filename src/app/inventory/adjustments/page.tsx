@@ -145,9 +145,7 @@ export default function StockAdjustmentsPage() {
             <div className="max-w-6xl mx-auto space-y-6">
                 {/* Header */}
                 <div>
-                    <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
-                            <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
-                        </Link>
+                    <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
                     <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                         <SlidersHorizontal className="h-7 w-7 text-amber-600" /> Ajuste de Stock
                     </h1>
@@ -156,12 +154,12 @@ export default function StockAdjustmentsPage() {
 
                 {/* Selector de Sucursal (admin) */}
                 {isAdmin && (
-                    <div className="bg-white/5/5 rounded-2xl shadow p-4 flex items-center gap-3">
+                    <div className="bg-white/5 rounded-2xl shadow p-4 flex items-center gap-3">
                         <Package className="h-5 w-5 text-white/40" />
                         <select value={branchId} onChange={e => setBranchId(e.target.value)}
                             className="border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-amber-300 flex-1 max-w-xs">
-                            <option value="" className="text-white/90">Seleccioná una sucursal</option>
-                            {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
+                            <option value="" className="bg-gray-900 text-white">Seleccioná una sucursal</option>
+                            {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
                         </select>
                     </div>
                 )}
@@ -176,7 +174,7 @@ export default function StockAdjustmentsPage() {
                 {branchId && (
                     <div className="grid lg:grid-cols-2 gap-6">
                         {/* ── Formulario de ajuste ── */}
-                        <div className="bg-white/5/5 rounded-2xl shadow p-6 space-y-5">
+                        <div className="bg-white/5 rounded-2xl shadow p-6 space-y-5">
                             <h2 className="font-bold text-white/90 flex items-center gap-2">
                                 <RefreshCw className="h-5 w-5 text-amber-600" /> Nuevo Ajuste
                             </h2>
@@ -266,7 +264,7 @@ export default function StockAdjustmentsPage() {
                         </div>
 
                         {/* ── Historial de ajustes ── */}
-                        <div className="bg-white/5/5 rounded-2xl shadow p-6">
+                        <div className="bg-white/5 rounded-2xl shadow p-6">
                             <h2 className="font-bold text-white/90 mb-4 flex items-center gap-2">
                                 <History className="h-5 w-5 text-white/60" /> Historial de Ajustes
                             </h2>
@@ -285,7 +283,7 @@ export default function StockAdjustmentsPage() {
                                         const cfg = TYPE_CONFIG[m.type as AdjType] || TYPE_CONFIG.AJUSTE;
                                         const delta = m.newStock - m.previousStock;
                                         return (
-                                            <div key={m.id} className="border border-white/10 rounded-xl p-3.5 hover:bg-white/5/5/5 transition">
+                                            <div key={m.id} className="border border-white/10 rounded-xl p-3.5 hover:bg-white/5 transition">
                                                 <div className="flex items-center justify-between mb-1.5">
                                                     <div className="flex items-center gap-2">
                                                         <span className={`text-xs px-2 py-0.5 rounded-full font-semibold ${cfg.color}`}>

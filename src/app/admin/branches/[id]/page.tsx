@@ -32,13 +32,13 @@ function KPI({ label, value, sub, color, icon: Icon }: {
     color: string; icon: React.ElementType;
 }) {
     return (
-        <div className={`${color} rounded-2xl p-5`}>
+        <div className={`${color} rounded-2xl p-5 border`}>
             <div className="flex items-center gap-2 mb-2">
-                <Icon className="h-5 w-5 opacity-70" />
-                <span className="text-xs font-semibold opacity-70">{label}</span>
+                <Icon className="h-5 w-5 opacity-80" />
+                <span className="text-xs font-semibold opacity-80">{label}</span>
             </div>
-            <p className="text-2xl font-black">{value}</p>
-            {sub && <p className="text-xs mt-1 opacity-60">{sub}</p>}
+            <p className="text-2xl font-black text-white">{value}</p>
+            {sub && <p className="text-xs mt-1 opacity-60 text-white/70">{sub}</p>}
         </div>
     );
 }
@@ -57,14 +57,14 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
     }, [params.id]);
 
     if (loading) return (
-        <div className="min-h-screen bg-white/5 flex items-center justify-center">
+        <div className="min-h-screen bg-[#0A0002] bg-[url('/hex-pattern.svg')] bg-repeat flex items-center justify-center">
             <Loader2 className="h-10 w-10 animate-spin text-slate-500" />
         </div>
     );
 
     if (error || !data) return (
-        <div className="min-h-screen bg-white/5 flex items-center justify-center">
-            <div className="text-center text-red-500">
+        <div className="min-h-screen bg-[#0A0002] bg-[url('/hex-pattern.svg')] bg-repeat flex items-center justify-center">
+            <div className="text-center text-red-500 bg-black/40 p-6 rounded-2xl border border-red-500/20 backdrop-blur-md">
                 <XCircle className="h-10 w-10 mx-auto mb-2" />
                 <p>{error || 'No se pudo cargar'}</p>
                 <Link href="/admin/branches" className="mt-3 inline-block text-sm underline text-white/70">Volver</Link>
@@ -76,7 +76,7 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
     const typeEmoji = branch.type === 'ACAI' ? '🥤' : branch.type === 'HAMBURGUESAS' ? '🍔' : '🏭';
 
     return (
-        <div className="min-h-screen bg-white/5 p-6">
+        <div className="min-h-screen bg-[#0A0002] bg-[url('/hex-pattern.svg')] bg-repeat p-6">
             <div className="relative z-10 max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-6">
@@ -106,13 +106,13 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                 {/* KPIs */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <KPI label="Ventas hoy" value={S(sales.today.amount)} sub={`${sales.today.count} transacciones`}
-                        color="bg-green-50 text-green-800" icon={TrendingUp} />
+                        color="bg-green-500/10 text-green-400 border-green-500/20" icon={TrendingUp} />
                     <KPI label="Ventas del mes" value={S(sales.month.amount)} sub={`${sales.month.count} transacciones`}
-                        color="bg-blue-50 text-blue-800" icon={BarChart3} />
+                        color="bg-blue-500/10 text-blue-400 border-blue-500/20" icon={BarChart3} />
                     <KPI label="Gastos del mes" value={S(expenses.month.amount)} sub={`${expenses.month.count} gastos`}
-                        color="bg-rose-50 text-rose-800" icon={Receipt} />
+                        color="bg-rose-500/10 text-rose-400 border-rose-500/20" icon={Receipt} />
                     <KPI label="Stock crítico" value={`${stock.criticalCount} sin stock`} sub={`${stock.lowCount} bajo mínimo`}
-                        color={stock.criticalCount > 0 ? 'bg-red-50 text-red-800' : 'bg-white/5 text-white/80'} icon={Package} />
+                        color={stock.criticalCount > 0 ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-white/5 text-white/80 border-white/10'} icon={Package} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
@@ -131,14 +131,14 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                                 <p className="text-sm">¡Todo el stock está OK!</p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-gray-50">
+                            <div className="divide-y divide-white/5">
                                 {stock.criticalItems.map((item, i) => (
                                     <div key={i} className="px-5 py-3 flex items-center justify-between">
                                         <div>
                                             <p className="text-sm font-medium text-white/90">{item.name}</p>
                                             <p className="text-xs text-white/40">Mín: {item.min} {item.unit}</p>
                                         </div>
-                                        <span className={`text-sm font-bold px-3 py-1 rounded-full ${item.current <= 0 ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>
+                                        <span className={`text-sm font-bold px-3 py-1 rounded-full ${item.current <= 0 ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
                                             {item.current} {item.unit}
                                         </span>
                                     </div>
@@ -160,7 +160,7 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                                 <p className="text-sm">Sin cierres registrados</p>
                             </div>
                         ) : (
-                            <div className="divide-y divide-gray-50">
+                            <div className="divide-y divide-white/5">
                                 {cashCloses.map(c => {
                                     const diff = c.difference;
                                     const openedAt = c.openedAt ? new Date(c.openedAt) : null;
@@ -187,7 +187,7 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                                                 </div>
                                                 <div className="text-right">
                                                     <p className="text-sm font-bold text-white/90">{S(c.totalSales)}</p>
-                                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${diff === 0 ? 'bg-green-100 text-green-700' : diff > 0 ? 'bg-blue-100 text-blue-700' : 'bg-red-100 text-red-600'}`}>
+                                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${diff === 0 ? 'bg-green-500/20 text-green-400' : diff > 0 ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'}`}>
                                                         {diff > 0 ? '+' : ''}{diff.toFixed(2)}
                                                     </span>
                                                 </div>

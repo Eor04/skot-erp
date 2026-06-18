@@ -176,7 +176,7 @@ export default function MermasPage() {
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Formulario */}
-                    <div className="bg-white/5/5 rounded-2xl shadow border border-white/10 p-6">
+                    <div className="bg-white/5 rounded-2xl shadow border border-white/10 p-6">
                         <h2 className="font-bold text-white/90 mb-4 flex items-center gap-2">
                             <AlertTriangle className="h-5 w-5 text-red-500" /> Registrar nueva merma
                         </h2>
@@ -187,12 +187,12 @@ export default function MermasPage() {
                                 {isAdmin ? (
                                     <select value={branchId} onChange={e => { setBranchId(e.target.value); setProductId(''); }}
                                         className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
-                                        <option value="" className="text-white/90">Seleccioná</option>
-                                        {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
+                                        <option value="" className="bg-gray-900 text-white">Seleccioná</option>
+                                        {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
                                     </select>
                                 ) : (
                                     <input value={branches.find(b => b.id === branchId)?.name || ''} disabled
-                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm bg-white/5/5/5" />
+                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm bg-white/5" />
                                 )}
                             </div>
 
@@ -251,7 +251,7 @@ export default function MermasPage() {
                                     <select value={reason} onChange={e => setReason(e.target.value)}
                                         className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
                                         {Object.entries(REASON_LABELS).map(([k, v]) => (
-                                            <option key={k} value={k} className="text-white/90">{v}</option>
+                                            <option key={k} value={k} className="bg-gray-900 text-white">{v}</option>
                                         ))}
                                     </select>
                                 </div>
@@ -282,7 +282,7 @@ export default function MermasPage() {
                     </div>
 
                     {/* Historial de hoy */}
-                    <div className="bg-white/5/5 rounded-2xl shadow border border-white/10 p-6">
+                    <div className="bg-white/5 rounded-2xl shadow border border-white/10 p-6">
                         <h2 className="font-bold text-white/90 mb-4 flex items-center gap-2">
                             <ClipboardList className="h-5 w-5 text-white/40" /> Mermas de hoy
                         </h2>

@@ -144,9 +144,7 @@ export default function MermaPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
                     <div>
-                        <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
-                            <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
-                        </Link>
+                        <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
                         <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                             <Trash2 className="h-8 w-8 text-red-500" /> Registro de Merma
                         </h1>
@@ -166,12 +164,12 @@ export default function MermaPage() {
                         <Search className="absolute left-3 top-2.5 h-4 w-4 text-white/40" />
                         <input type="text" placeholder="Buscar producto, SKU o sucursal…"
                             value={searchText} onChange={e => setSearchText(e.target.value)}
-                            className="w-full pl-9 pr-4 py-2.5 border border-white/20 rounded-xl bg-white/5/5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
+                            className="w-full pl-9 pr-4 py-2.5 border border-white/20 rounded-xl bg-white/5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
                     </div>
                     <select value={filterBranch} onChange={e => setFilterBranch(e.target.value)}
-                        className="border border-white/20 rounded-xl px-3 py-2.5 text-sm bg-white/5/5 focus:outline-none focus:ring-2 focus:ring-red-300">
-                        <option value="" className="text-white/90">Todas las sucursales</option>
-                        {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
+                        className="border border-white/20 rounded-xl px-3 py-2.5 text-sm bg-white/5 focus:outline-none focus:ring-2 focus:ring-red-300">
+                        <option value="" className="bg-gray-900 text-white">Todas las sucursales</option>
+                        {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
                     </select>
                 </div>
 
@@ -179,9 +177,9 @@ export default function MermaPage() {
                 {loading ? (
                     <div className="text-center py-20 text-white/40">Cargando registros…</div>
                 ) : (
-                    <div className="bg-white/5/5 rounded-2xl shadow overflow-hidden">
+                    <div className="bg-white/5 rounded-2xl shadow overflow-hidden">
                         <table className="w-full text-sm">
-                            <thead className="bg-white/5/5/5 border-b border-white/20">
+                            <thead className="bg-white/5 border-b border-white/20">
                                 <tr>
                                     <th className="text-left px-5 py-4 font-semibold text-white/70">Producto</th>
                                     <th className="text-left px-5 py-4 font-semibold text-white/70">Sucursal</th>
@@ -193,7 +191,7 @@ export default function MermaPage() {
                             </thead>
                             <tbody>
                                 {filtered.map(m => (
-                                    <tr key={m.id} className="border-b border-white/10 hover:bg-white/5/5/5">
+                                    <tr key={m.id} className="border-b border-white/10 hover:bg-white/5">
                                         <td className="px-5 py-4">
                                             <p className="font-medium text-white/90">{m.product.name}</p>
                                             <p className="text-xs text-white/40 font-mono">{m.product.sku}</p>
@@ -221,7 +219,7 @@ export default function MermaPage() {
                                 )}
                             </tbody>
                         </table>
-                        <div className="px-5 py-3 text-xs text-white/40 bg-white/5/5/5 border-t flex justify-between">
+                        <div className="px-5 py-3 text-xs text-white/40 bg-white/5 border-t flex justify-between">
                             <span>{filtered.length} registro{filtered.length !== 1 ? 's' : ''}</span>
                             {filtered.length > 0 && (
                                 <span className="text-red-500 font-medium">Total baja: {totalUnidades.toFixed(2)} unidades</span>
@@ -234,7 +232,7 @@ export default function MermaPage() {
             {/* Modal registrar merma */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-                    <div className="bg-white/5/5 rounded-2xl shadow-xl w-full max-w-md">
+                    <div className="bg-white/5 rounded-2xl shadow-xl w-full max-w-md">
                         <div className="flex items-center justify-between p-6 border-b border-white/10">
                             <h2 className="text-lg font-bold text-white/90 flex items-center gap-2">
                                 <Trash2 className="h-5 w-5 text-red-500" /> Registrar Merma
@@ -247,16 +245,16 @@ export default function MermaPage() {
                                     <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal *</label>
                                     <select required value={form.branchId} onChange={e => setForm(f => ({ ...f, branchId: e.target.value }))}
                                         className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
-                                        <option value="" className="text-white/90">Seleccionar…</option>
-                                        {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
+                                        <option value="" className="bg-gray-900 text-white">Seleccionar…</option>
+                                        {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
                                     </select>
                                 </div>
                                 <div>
                                     <label className="block text-sm font-semibold text-white/80 mb-1.5">Producto *</label>
                                     <select required value={form.productId} onChange={e => setForm(f => ({ ...f, productId: e.target.value }))}
                                         className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
-                                        <option value="" className="text-white/90">Seleccionar…</option>
-                                        {products.map(p => <option key={p.id} value={p.id} className="text-white/90">{p.name} ({p.sku})</option>)}
+                                        <option value="" className="bg-gray-900 text-white">Seleccionar…</option>
+                                        {products.map(p => <option key={p.id} value={p.id} className="bg-gray-900 text-white">{p.name} ({p.sku})</option>)}
                                     </select>
                                 </div>
                                 <div>
@@ -269,7 +267,7 @@ export default function MermaPage() {
                                     <label className="block text-sm font-semibold text-white/80 mb-1.5">Motivo *</label>
                                     <select required value={form.reason} onChange={e => setForm(f => ({ ...f, reason: e.target.value }))}
                                         className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
-                                        {MERMA_REASONS.map(r => <option key={r.value} value={r.value} className="text-white/90">{r.label}</option>)}
+                                        {MERMA_REASONS.map(r => <option key={r.value} value={r.value} className="bg-gray-900 text-white">{r.label}</option>)}
                                     </select>
                                 </div>
                                 <div className="col-span-2">
@@ -294,7 +292,7 @@ export default function MermaPage() {
                             </p>
                             <div className="flex gap-3">
                                 <button type="button" onClick={() => setShowModal(false)}
-                                    className="flex-1 py-2.5 border border-white/20 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5/5/5 transition">
+                                    className="flex-1 py-2.5 border border-white/20 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 transition">
                                     Cancelar
                                 </button>
                                 <button type="submit" disabled={submitting}
