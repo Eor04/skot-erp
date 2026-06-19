@@ -23,11 +23,10 @@ export async function GET(request: NextRequest) {
         if (paymentMethod) where.paymentMethod = paymentMethod;
         if (from || to) {
             where.createdAt = {};
-            if (from) where.createdAt.gte = new Date(from);
+            // Append local time strings to prevent UTC shift
+            if (from) where.createdAt.gte = new Date(`${from}T00:00:00.000`);
             if (to) {
-                const end = new Date(to);
-                end.setHours(23, 59, 59, 999);
-                where.createdAt.lte = end;
+                where.createdAt.lte = new Date(`${to}T23:59:59.999`);
             }
         }
 

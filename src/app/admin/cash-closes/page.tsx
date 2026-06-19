@@ -278,7 +278,7 @@ export default function CashClosesReportPage() {
 
                                             {/* ── Panel de detalle expandible ── */}
                                             {isExpanded && (
-                                                <tr key={`${c.id}-detail`} className="bg-slate-50/60">
+                                                <tr key={`${c.id}-detail`} className="bg-black/40 shadow-inner border-t border-white/10">
                                                     <td colSpan={9} className="px-6 py-5">
                                                         {detailLoading && !detail ? (
                                                             <div className="flex justify-center py-6">
@@ -290,16 +290,16 @@ export default function CashClosesReportPage() {
                                                                 {/* KPIs del turno */}
                                                                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
                                                                     {[
-                                                                        { label: '💰 Apertura', val: fmt(c.openingAmount), color: 'text-white/80' },
-                                                                        { label: '💵 Efectivo ventas', val: fmt(c.cashSales), color: 'text-green-700' },
-                                                                        { label: '💳 Tarjeta', val: fmt(c.cardSales), color: 'text-blue-700' },
-                                                                        { label: '📲 Transferencia', val: fmt(c.transferSales), color: 'text-purple-700' },
-                                                                        { label: '🧾 Total gastos', val: fmt(c.totalExpenses), color: 'text-red-600' },
-                                                                        { label: '📊 Neto', val: fmt(c.netCash), color: 'text-slate-800' },
-                                                                        { label: '📦 Ventas (#)', val: String(detail.totals.salesCount), color: 'text-indigo-700' },
+                                                                        { label: '💰 Apertura', val: fmt(c.openingAmount), color: 'text-white/90' },
+                                                                        { label: '💵 Efectivo ventas', val: fmt(c.cashSales), color: 'text-green-400' },
+                                                                        { label: '💳 Tarjeta', val: fmt(c.cardSales), color: 'text-blue-400' },
+                                                                        { label: '📲 Transferencia', val: fmt(c.transferSales), color: 'text-purple-400' },
+                                                                        { label: '🧾 Total gastos', val: fmt(c.totalExpenses), color: 'text-red-400' },
+                                                                        { label: '📊 Neto', val: fmt(c.netCash), color: 'text-white/90' },
+                                                                        { label: '📦 Ventas (#)', val: String(detail.totals.salesCount), color: 'text-indigo-400' },
                                                                     ].map(k => (
                                                                         <div key={k.label} className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl border border-white/10 px-3 py-2.5">
-                                                                            <p className="text-xs text-white/40">{k.label}</p>
+                                                                            <p className="text-xs text-white/50">{k.label}</p>
                                                                             <p className={`text-base font-bold mt-0.5 ${k.color}`}>{k.val}</p>
                                                                         </div>
                                                                     ))}
@@ -364,9 +364,9 @@ export default function CashClosesReportPage() {
                                                                         {detail.expenses.length === 0 ? (
                                                                             <p className="text-xs text-white/40 italic py-4 text-center">Sin gastos registrados en este turno</p>
                                                                         ) : (
-                                                                            <div className="rounded-xl border border-red-100 overflow-hidden max-h-72 overflow-y-auto">
+                                                                            <div className="rounded-xl border border-red-500/20 overflow-hidden max-h-72 overflow-y-auto">
                                                                                 {detail.expenses.map(exp => (
-                                                                                    <div key={exp.id} className="border-b border-red-50 last:border-0 px-3 py-2.5 bg-red-50/30 hover:bg-red-50/60">
+                                                                                    <div key={exp.id} className="border-b border-red-500/10 last:border-0 px-3 py-2.5 bg-red-500/5 hover:bg-red-500/10">
                                                                                         <div className="flex items-center gap-2">
                                                                                             <div className="flex-1 min-w-0">
                                                                                                 <p className="font-medium text-white/90 text-xs truncate">{exp.description}</p>
@@ -388,7 +388,7 @@ export default function CashClosesReportPage() {
                                                                                 ))}
                                                                                 {/* Total gastos en efectivo */}
                                                                                 {detail.totals.cashExpenses > 0 && (
-                                                                                    <div className="px-3 py-2 bg-red-100/60 flex justify-between text-xs font-semibold text-red-700">
+                                                                                    <div className="px-3 py-2 bg-red-500/10 flex justify-between text-xs font-semibold text-red-400">
                                                                                         <span>Gastos pagados en efectivo</span>
                                                                                         <span>{fmt(detail.totals.cashExpenses)}</span>
                                                                                     </div>

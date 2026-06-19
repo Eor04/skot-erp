@@ -47,7 +47,7 @@ const ALL_MODULES = [
         href: '/inventory', emoji: '📦', logo: '', title: 'Inventario',
         description: 'Stock en tiempo real, alertas automáticas y transferencias entre sucursales.',
         gradient: 'linear-gradient(135deg,#059669,#0d9488)', badge: 'Multi-sucursal', glow: 'rgba(5,150,105,0.3)',
-        showWhen: (role: string) => ['MANAGER', 'CASHIER'].includes(role),
+        showWhen: (role: string) => ['ADMIN', 'MANAGER', 'CASHIER'].includes(role),
     },
     {
         href: '/admin', emoji: '⚙️', logo: '', title: 'Administración',

@@ -16,13 +16,9 @@ export async function GET(request: NextRequest) {
         const where: any = {};
         if (branchId) where.branchId = branchId;
         if (from || to) {
-            where.closedAt = {};
-            if (from) where.closedAt.gte = new Date(from);
-            if (to) {
-                const toDate = new Date(to);
-                toDate.setHours(23, 59, 59, 999);
-                where.closedAt.lte = toDate;
-            }
+            where.createdAt = {};
+            if (from) where.createdAt.gte = new Date(`${from}T00:00:00-04:00`);
+            if (to) where.createdAt.lte = new Date(`${to}T23:59:59.999-04:00`);
         }
 
         const closes = await prisma.cashRegisterClose.findMany({

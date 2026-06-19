@@ -50,10 +50,11 @@ export function useBurgerSale(branchId: string) {
             });
 
             if (existingIndex !== -1) {
-                // Incrementar cantidad
+                // Incrementar cantidad sin mutar el estado previo
                 const updated = [...prev];
-                updated[existingIndex].quantity += 1;
-                updated[existingIndex].subtotal = calculateItemSubtotal(updated[existingIndex]);
+                const updatedItem = { ...updated[existingIndex], quantity: updated[existingIndex].quantity + 1 };
+                updatedItem.subtotal = calculateItemSubtotal(updatedItem);
+                updated[existingIndex] = updatedItem;
                 return updated;
             }
 
@@ -93,8 +94,9 @@ export function useBurgerSale(branchId: string) {
             if (finalQty <= 0) return prev;
 
             const updated = [...prev];
-            updated[index].quantity = finalQty;
-            updated[index].subtotal = calculateItemSubtotal(updated[index]);
+            const updatedItem = { ...updated[index], quantity: finalQty };
+            updatedItem.subtotal = calculateItemSubtotal(updatedItem);
+            updated[index] = updatedItem;
             return updated;
         });
     }, [removeFromCart]);

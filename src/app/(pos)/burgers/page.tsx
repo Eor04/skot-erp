@@ -39,6 +39,7 @@ interface TurnSale {
     itemCount: number;
     time: string;
     customerName?: string;
+    items: { name: string; quantity: number; subtotal: number }[];
 }
 
 const METHOD_LABEL: Record<string, string> = {
@@ -233,6 +234,7 @@ export default function BurgersPOSPage() {
                     itemCount: cart.reduce((s, i) => s + i.quantity, 0),
                     time: new Date().toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }),
                     customerName: paymentData.customerName,
+                    items: cart.map(item => ({ name: item.product.name, quantity: item.quantity, subtotal: item.subtotal })),
                 }, ...prev].slice(0, 20));
                 clearCart();
                 setShowPaymentModal(false);
@@ -319,7 +321,7 @@ export default function BurgersPOSPage() {
                 </div>
 
                 {/* Contenido del tab con watermark */}
-                <div className="bg-white rounded-xl shadow flex-1 p-4 overflow-hidden relative">
+                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl shadow flex-1 p-4 overflow-hidden relative">
                     {/* Marca de agua */}
                     <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-0">
                         <img src="/logo-burger.png" alt=""
@@ -376,70 +378,76 @@ export default function BurgersPOSPage() {
             {showHistory && (
                 <div className="fixed inset-0 z-40 flex justify-end" onClick={() => setShowHistory(false)}>
                     <div
-                        className="w-80 h-full bg-white shadow-2xl flex flex-col"
+                        className="w-96 h-full bg-[#0a0a0f] border-l border-white/10 shadow-2xl flex flex-col"
                         onClick={e => e.stopPropagation()}
                     >
                         {/* Header del panel */}
-                        <div className="flex items-center justify-between px-4 py-3 border-b border-gray-900 bg-black text-white">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10 bg-black text-white">
                             <div>
-                                <p className="font-bold text-sm">📋 Historial del Turno</p>
-                                <p className="text-xs text-white/60">{turnHistory.length} venta{turnHistory.length !== 1 ? 's' : ''}</p>
+                                <p className="font-bold text-base flex items-center gap-2"><ClipboardList className="h-5 w-5 text-yellow-400" /> Historial del Turno</p>
+                                <p className="text-sm text-white/50">{turnHistory.length} venta{turnHistory.length !== 1 ? 's' : ''}</p>
                             </div>
-                            <button onClick={() => setShowHistory(false)} className="p-1 hover:bg-white/10 rounded-lg">
-                                <X className="h-4 w-4" />
+                            <button onClick={() => setShowHistory(false)} className="p-2 hover:bg-white/10 rounded-xl transition text-white/70 hover:text-white">
+                                <X className="h-5 w-5" />
                             </button>
                         </div>
 
                         {/* Total del turno */}
                         {turnHistory.length > 0 && (
-                            <div className="px-4 py-3 bg-red-50 border-b border-red-100 flex justify-between items-center">
-                                <span className="text-xs font-semibold text-red-700">Total del turno</span>
-                                <span className="text-lg font-black text-red-700">
+                            <div className="px-5 py-4 bg-white/5 border-b border-white/10 flex justify-between items-center shadow-inner">
+                                <span className="text-sm font-semibold text-white/70">Total del turno</span>
+                                <span className="text-2xl font-black text-yellow-400 drop-shadow-md">
                                     Bs. {turnHistory.reduce((s, v) => s + v.total, 0).toFixed(2)}
                                 </span>
                             </div>
                         )}
 
                         {/* Lista */}
-                        <div className="flex-1 overflow-y-auto py-2">
+                        <div className="flex-1 overflow-y-auto py-2 p-3 space-y-3">
                             {turnHistory.length === 0 ? (
-                                <div className="flex flex-col items-center justify-center h-full text-gray-400 py-12">
-                                    <ClipboardList className="h-10 w-10 mb-2 opacity-30" />
-                                    <p className="text-sm">Sin ventas en este turno</p>
+                                <div className="flex flex-col items-center justify-center h-full text-white/30 py-12">
+                                    <ClipboardList className="h-12 w-12 mb-3 opacity-30" />
+                                    <p className="text-base font-medium">Sin ventas en este turno</p>
                                 </div>
                             ) : (
                                 turnHistory.map((sale, i) => (
-                                    <div key={sale.saleNumber} className={`px-4 py-3 border-b border-gray-50 ${i === 0 ? 'bg-green-50' : ''}`}>
-                                        <div className="flex items-center justify-between">
-                                            <span className="font-mono text-xs text-gray-400">{sale.saleNumber}</span>
-                                            <span className="text-xs text-gray-400">{sale.time}</span>
+                                    <div key={sale.saleNumber} className={`bg-white/5 border border-white/10 rounded-xl overflow-hidden ${i === 0 ? 'ring-1 ring-yellow-400/50' : ''}`}>
+                                        <div className="px-4 py-3 border-b border-white/5 bg-black/40 flex items-center justify-between">
+                                            <span className="font-mono text-xs font-semibold text-yellow-400/90">{sale.saleNumber}</span>
+                                            <span className="text-xs text-white/50">{sale.time}</span>
                                         </div>
-                                        {sale.customerName && (
-                                            <div className="mt-0.5">
-                                                <span className="text-xs font-bold text-yellow-700 bg-yellow-100 px-1.5 py-0.5 rounded">👤 {sale.customerName}</span>
+                                        <div className="p-4">
+                                            {sale.customerName && (
+                                                <div className="mb-2">
+                                                    <span className="text-xs font-bold text-black bg-yellow-400 px-2 py-0.5 rounded-md inline-flex items-center gap-1 shadow-sm">
+                                                        <span>👤</span> {sale.customerName}
+                                                    </span>
+                                                </div>
+                                            )}
+                                            
+                                            {/* Detalles de items */}
+                                            {sale.items && sale.items.length > 0 && (
+                                                <div className="mb-3 space-y-1.5 bg-black/20 rounded-lg p-2.5">
+                                                    {sale.items.map((item, idx) => (
+                                                        <div key={idx} className="flex justify-between items-start text-xs">
+                                                            <span className="text-white/80"><span className="text-white/40 mr-1">{item.quantity}x</span>{item.name}</span>
+                                                            <span className="text-white/60 font-mono">Bs. {item.subtotal.toFixed(2)}</span>
+                                                        </div>
+                                                    ))}
+                                                </div>
+                                            )}
+
+                                            <div className="flex items-center justify-between mt-2 pt-2 border-t border-white/10">
+                                                <span className="text-xs font-medium px-2 py-1 bg-white/10 text-white/80 rounded-lg shadow-inner">
+                                                    {METHOD_LABEL[sale.paymentMethod] || sale.paymentMethod}
+                                                </span>
+                                                <span className="font-black text-white text-lg drop-shadow-md">Bs. {sale.total.toFixed(2)}</span>
                                             </div>
-                                        )}
-                                        <div className="flex items-center justify-between mt-1">
-                                            <span className="text-xs text-gray-500">
-                                                {METHOD_LABEL[sale.paymentMethod] || sale.paymentMethod} · {sale.itemCount} ítem{sale.itemCount !== 1 ? 's' : ''}
-                                            </span>
-                                            <span className="font-bold text-gray-800 text-sm">Bs. {sale.total.toFixed(2)}</span>
                                         </div>
                                     </div>
                                 ))
                             )}
                         </div>
-
-                        {/* Limpiar historial */}
-                        {turnHistory.length > 0 && (
-                            <div className="p-3 border-t border-gray-100">
-                                <button
-                                    onClick={() => { setTurnHistory([]); setShowHistory(false); }}
-                                    className="w-full text-xs text-gray-400 hover:text-red-500 py-2 transition font-medium">
-                                    🗑️ Limpiar historial del turno
-                                </button>
-                            </div>
-                        )}
                     </div>
                 </div>
             )}
@@ -479,9 +487,9 @@ function CombosGrid({ combos, onComboSelect }: { combos: Combo[]; onComboSelect:
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto h-full pb-2">
             {combos.map(combo => (
                 <button key={combo.id} onClick={() => onComboSelect(combo)}
-                    className="flex flex-col bg-white border-2 border-gray-200 rounded-xl overflow-hidden hover:border-teal-500 hover:shadow-lg transition group text-left">
+                    className="flex flex-col bg-white/5 border-2 border-white/10 rounded-xl overflow-hidden hover:border-teal-500 hover:shadow-lg transition group text-left">
                     {/* Imagen */}
-                    <div className="relative w-full pt-[70%] bg-teal-50">
+                    <div className="relative w-full h-32 bg-black/40 flex-shrink-0">
                         {combo.imageUrl ? (
                             <Image src={combo.imageUrl} alt={combo.name} fill className="object-cover"
                                 sizes="(max-width: 768px) 50vw, 25vw" />
@@ -497,13 +505,13 @@ function CombosGrid({ combos, onComboSelect }: { combos: Combo[]; onComboSelect:
                     </div>
                     {/* Info */}
                     <div className="p-3 flex flex-col flex-1">
-                        <h3 className="font-bold text-gray-800 line-clamp-1 group-hover:text-teal-700 transition text-sm">
+                        <h3 className="font-bold text-white/90 line-clamp-1 group-hover:text-teal-400 transition text-sm">
                             {combo.name}
                         </h3>
                         {/* Items del combo */}
                         <div className="mt-1.5 space-y-0.5 flex-1">
                             {combo.items.slice(0, 3).map(item => (
-                                <p key={item.id} className="text-xs text-gray-500 line-clamp-1">
+                                <p key={item.id} className="text-xs text-white/60 line-clamp-1">
                                     · {item.quantity}x {item.product.name}
                                 </p>
                             ))}
@@ -512,7 +520,7 @@ function CombosGrid({ combos, onComboSelect }: { combos: Combo[]; onComboSelect:
                             )}
                         </div>
                         {/* Precio */}
-                        <div className="mt-2 text-lg font-black text-teal-600">
+                        <div className="mt-2 text-lg font-black text-teal-400">
                             Bs. {combo.price.toFixed(2)}
                         </div>
                     </div>
@@ -538,9 +546,9 @@ function ExtrasGrid({ modifiers, onExtraAdd }: { modifiers: ProductModifier[]; o
         <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto h-full pb-2">
             {modifiers.map(mod => (
                 <button key={mod.id} onClick={() => onExtraAdd(mod)}
-                    className="flex flex-col bg-white border-2 border-gray-200 rounded-xl overflow-hidden hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-100 transition group text-left">
+                    className="flex flex-col bg-white/5 border-2 border-white/10 rounded-xl overflow-hidden hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-400/20 transition group text-left">
                     {/* Icono decorativo */}
-                    <div className="relative w-full pt-[60%] bg-amber-50">
+                    <div className="relative w-full h-32 bg-black/40 flex-shrink-0">
                         <div className="absolute inset-0 flex items-center justify-center">
                             <ChefHat className="h-14 w-14 text-amber-200 group-hover:text-amber-300 transition" />
                         </div>
@@ -550,13 +558,13 @@ function ExtrasGrid({ modifiers, onExtraAdd }: { modifiers: ProductModifier[]; o
                     </div>
                     {/* Info */}
                     <div className="p-3 flex flex-col flex-1">
-                        <h3 className="font-bold text-gray-800 line-clamp-1 group-hover:text-amber-700 transition text-sm">
+                        <h3 className="font-bold text-white/90 line-clamp-1 group-hover:text-amber-400 transition text-sm">
                             {mod.name}
                         </h3>
                         {mod.description && (
-                            <p className="text-xs text-gray-500 line-clamp-2 mt-0.5 flex-1">{mod.description}</p>
+                            <p className="text-xs text-white/60 line-clamp-2 mt-0.5 flex-1">{mod.description}</p>
                         )}
-                        <div className="mt-2 text-lg font-black text-red-600">
+                        <div className="mt-2 text-lg font-black text-red-400">
                             + Bs. {mod.price.toFixed(2)}
                         </div>
                     </div>
