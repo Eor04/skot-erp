@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Plus, X, Save, AlertCircle, Trash2 } from 'lucide-react';
+import { SearchableSelect } from '@/components/ui/searchable-select';
 
 type Product = {
     id: string;
@@ -153,13 +154,13 @@ export default function NewRecipePage() {
 
                             <div>
                                 <label className="block text-sm font-semibold text-white/80 mb-2">Producto Resultante *</label>
-                                <select required value={form.productId} onChange={e => setForm(f => ({ ...f, productId: e.target.value }))}
-                                    className="w-full bg-black/40 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                    <option value="">Seleccionar producto...</option>
-                                    {products.map(p => (
-                                        <option key={p.id} value={p.id}>{p.name} ({p.unit})</option>
-                                    ))}
-                                </select>
+                                <SearchableSelect 
+                                    options={products.map(p => ({ value: p.id, label: `${p.name} (${p.unit})` }))}
+                                    value={form.productId}
+                                    onChange={val => setForm(f => ({ ...f, productId: val }))}
+                                    placeholder="Seleccionar producto..."
+                                    required
+                                />
                             </div>
 
                             <div className="grid grid-cols-2 gap-4">
@@ -211,13 +212,13 @@ export default function NewRecipePage() {
                                     <div key={i} className="flex gap-4 items-start bg-black/20 p-4 rounded-xl border border-white/5">
                                         <div className="flex-1">
                                             <label className="block text-xs font-semibold text-white/50 mb-1">Insumo / Materia Prima</label>
-                                            <select required value={ing.ingredientId} onChange={e => handleIngredientChange(i, 'ingredientId', e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500">
-                                                <option value="">Seleccionar ingrediente...</option>
-                                                {products.map(p => (
-                                                    <option key={p.id} value={p.id}>{p.name} ({p.unit})</option>
-                                                ))}
-                                            </select>
+                                            <SearchableSelect 
+                                                options={products.map(p => ({ value: p.id, label: `${p.name} (${p.unit})` }))}
+                                                value={ing.ingredientId}
+                                                onChange={val => handleIngredientChange(i, 'ingredientId', val)}
+                                                placeholder="Buscar ingrediente..."
+                                                required
+                                            />
                                         </div>
                                         <div className="w-32">
                                             <label className="block text-xs font-semibold text-white/50 mb-1">Cantidad</label>
