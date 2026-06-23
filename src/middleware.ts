@@ -40,7 +40,7 @@ const PAGE_RULES: { prefix: string; roles: Role[] }[] = [
 const API_RULES: { prefix: string; roles: Role[] }[] = [
     { prefix: '/api/admin/users', roles: ['ADMIN'] },
     { prefix: '/api/admin/branches', roles: ['ADMIN', 'MANAGER', 'WAREHOUSE'] },
-    { prefix: '/api/admin/products', roles: ['ADMIN', 'MANAGER'] },
+    { prefix: '/api/admin/products', roles: ['ADMIN', 'MANAGER', 'WAREHOUSE'] },
     { prefix: '/api/admin/sales', roles: ['ADMIN', 'MANAGER'] },
     { prefix: '/api/admin', roles: ['ADMIN', 'MANAGER'] },
     { prefix: '/api/factory', roles: ['ADMIN', 'MANAGER', 'WAREHOUSE'] },

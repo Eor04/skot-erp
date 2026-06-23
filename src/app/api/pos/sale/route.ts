@@ -57,6 +57,32 @@ export async function POST(request: NextRequest) {
         const stockItems = items.filter((item: any) => item.unitPrice > 0 || item.subtotal > 0);
         const uniqueProductIds = [...new Set(stockItems.map((item: any) => item.productId as string))];
 
+        // ── RECETAS DINÁMICAS (Cocina en Vivo) ──
+        const recipes = await prisma.recipe.findMany({
+            where: { productId: { in: uniqueProductIds } },
+            include: { ingredients: { include: { ingredient: true } } }
+        });
+        const recipeMap = new Map(recipes.map(r => [r.productId, r]));
+
+        const inventoryDeductions: Record<string, { qty: number, name: string }> = {};
+
+        for (const item of stockItems) {
+            const recipe = recipeMap.get(item.productId);
+            if (recipe) {
+                // Producto ensamblado: Descontar insumos
+                for (const ing of recipe.ingredients) {
+                    const ingQty = ing.quantity * item.quantity;
+                    if (!inventoryDeductions[ing.ingredientId]) inventoryDeductions[ing.ingredientId] = { qty: 0, name: ing.ingredient.name };
+                    inventoryDeductions[ing.ingredientId].qty += ingQty;
+                }
+            } else {
+                // Producto directo sin receta
+                if (!inventoryDeductions[item.productId]) inventoryDeductions[item.productId] = { qty: 0, name: 'Producto' };
+                inventoryDeductions[item.productId].qty += item.quantity;
+            }
+        }
+        const idsToDeduct = Object.keys(inventoryDeductions);
+
         // Validación para MIXED
         if (paymentMethod === 'MIXED') {
             const sumParts = (parseFloat(cashAmount) || 0) + (parseFloat(cardAmount) || 0) + (parseFloat(transferAmount) || 0);
@@ -89,20 +115,16 @@ export async function POST(request: NextRequest) {
                     : 1;
                 const saleNumber = `V-${datePrefix}-${String(seq).padStart(4, '0')}`;
 
-                // Validación estricta de stock antes de iniciar la transacción
-                for (const productId of uniqueProductIds) {
-                    const qty = stockItems
-                        .filter((i: any) => i.productId === productId)
-                        .reduce((s: number, i: any) => s + i.quantity, 0);
-
+                // Validación estricta de stock (recetas dinámicas) antes de iniciar la transacción
+                for (const [id, data] of Object.entries(inventoryDeductions)) {
                     const inv = await prisma.inventory.findUnique({
-                        where: { branchId_productId: { branchId, productId } },
+                        where: { branchId_productId: { branchId, productId: id } },
                         include: { product: true }
                     });
 
-                    if (!inv || inv.currentStock < qty) {
+                    if (!inv || inv.currentStock < data.qty) {
                         return NextResponse.json(
-                            { success: false, error: `Stock insuficiente para ${inv?.product.name || 'un producto'}. Solicitado: ${qty.toFixed(2)}, Disponible: ${inv?.currentStock.toFixed(2) || 0}` },
+                            { success: false, error: `Stock insuficiente para ${inv?.product.name || data.name}. Solicitado: ${data.qty.toFixed(2)}, Disponible: ${inv?.currentStock.toFixed(2) || 0}` },
                             { status: 400 }
                         );
                     }
@@ -151,28 +173,26 @@ export async function POST(request: NextRequest) {
                         });
                     }
 
-                    // 3. Descontar stock y generar Kardex
-                    if (uniqueProductIds.length > 0) {
+                    // 3. Descontar stock y generar Kardex (Maneja Recetas Dinámicas)
+                    if (idsToDeduct.length > 0) {
                         await Promise.all(
-                            uniqueProductIds.map(async (productId) => {
-                                const qty = stockItems
-                                    .filter((i: any) => i.productId === productId)
-                                    .reduce((s: number, i: any) => s + i.quantity, 0);
+                            Object.entries(inventoryDeductions).map(async ([id, data]) => {
+                                const qty = data.qty;
 
                                 const inv = await tx.inventory.findUnique({
-                                    where: { branchId_productId: { branchId, productId } }
+                                    where: { branchId_productId: { branchId, productId: id } }
                                 });
 
                                 if (inv) {
                                     const updated = await tx.inventory.update({
-                                        where: { branchId_productId: { branchId, productId } },
+                                        where: { branchId_productId: { branchId, productId: id } },
                                         data: { currentStock: { decrement: qty }, lastUpdated: new Date() },
                                     });
 
                                     await tx.stockMovement.create({
                                         data: {
                                             branchId,
-                                            productId,
+                                            productId: id,
                                             type: 'SALIDA',
                                             quantity: -qty,
                                             previousStock: inv.currentStock,
@@ -181,7 +201,7 @@ export async function POST(request: NextRequest) {
                                             saleId: newSale.id,
                                             inventoryId: inv.id,
                                             createdBy: userId,
-                                            notes: `Venta ${saleNumber}`,
+                                            notes: `Venta ${saleNumber} (Receta Dinámica)`,
                                         }
                                     });
                                 }

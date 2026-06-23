@@ -26,6 +26,7 @@ export default function TransferRequestPage() {
     // Items form state
     const [selectedProduct, setSelectedProduct] = useState('');
     const [qty, setQty] = useState('');
+    const [productSearch, setProductSearch] = useState('');
 
     useEffect(() => {
         loadBranches();
@@ -164,7 +165,7 @@ export default function TransferRequestPage() {
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Sucursales */}
-                    <div className="bg-white/5/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6">
+                    <div className="bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6">
                         <h2 className="font-bold text-white/80 mb-4">Origen y destino</h2>
                         <div className="grid grid-cols-2 gap-4">
                             <div>
@@ -175,10 +176,10 @@ export default function TransferRequestPage() {
                                     value={form.myBranchId}
                                     onChange={e => setForm(f => ({ ...f, myBranchId: e.target.value }))}
                                     disabled={!!(user?.branchIds?.[0] && user.role !== 'ADMIN')}
-                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-white/5/5/5"
+                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-white/5"
                                 >
-                                    <option value="" className="text-white/90">-- Seleccioná --</option>
-                                    {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
+                                    <option value="" className="bg-gray-900 text-white">-- Seleccioná --</option>
+                                    {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
                                 </select>
                             </div>
                             <div>
@@ -190,8 +191,8 @@ export default function TransferRequestPage() {
                                     onChange={e => handleFromBranchChange(e.target.value)}
                                     className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                                 >
-                                    <option value="" className="text-white/90">-- Seleccioná --</option>
-                                    {otherBranches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name} ({b.type})</option>)}
+                                    <option value="" className="bg-gray-900 text-white">-- Seleccioná --</option>
+                                    {otherBranches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name} ({b.type})</option>)}
                                 </select>
                             </div>
                         </div>
@@ -209,13 +210,13 @@ export default function TransferRequestPage() {
                                 value={form.notes}
                                 onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                                 placeholder="Ej: Necesitamos urgente para el fin de semana..."
-                                className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none"
+                                className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none"
                             />
                         </div>
                     </div>
 
                     {/* Agregar productos */}
-                    <div className="bg-white/5/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6">
+                    <div className="bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6">
                         <h2 className="font-bold text-white/80 mb-4">Productos a solicitar</h2>
 
                         {!form.fromBranchId ? (
@@ -223,24 +224,17 @@ export default function TransferRequestPage() {
                         ) : (
                             <>
                                 <div className="flex gap-3 mb-4">
-                                    <select
-                                        value={selectedProduct}
-                                        onChange={e => setSelectedProduct(e.target.value)}
-                                        className="flex-1 border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-                                    >
-                                        <option value="" className="text-white/90">-- Elegí un producto --</option>
-                                        {products.map(p => (
-                                            <option key={p.id} value={p.id} className="text-white/90">
-                                                {p.name} — Stock disponible: {p.currentStock} {p.unit}
-                                            </option>
-                                        ))}
-                                    </select>
+                                    <ProductCombobox 
+                                        products={products} 
+                                        value={selectedProduct} 
+                                        onChange={setSelectedProduct} 
+                                    />
                                     <input
                                         type="number" min="0.01" step="0.01"
                                         value={qty}
                                         onChange={e => setQty(e.target.value)}
                                         placeholder="Cantidad"
-                                        className="w-28 border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                                        className="w-28 bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                                     />
                                     <button
                                         type="button"
@@ -286,6 +280,60 @@ export default function TransferRequestPage() {
                     </button>
                 </form>
             </div>
+        </div>
+    );
+}
+
+function ProductCombobox({ products, value, onChange }: { products: any[], value: string, onChange: (id: string) => void }) {
+    const [search, setSearch] = useState('');
+    const [show, setShow] = useState(false);
+    
+    useEffect(() => {
+        if (value) {
+            const p = products.find(p => p.id === value);
+            if (p) setSearch(`${p.name} ${p.sku ? `(${p.sku})` : ''}`);
+        } else {
+            setSearch('');
+        }
+    }, [value, products]);
+
+    const filtered = products.filter(p => (p.name || '').toLowerCase().includes(search.toLowerCase()) || (p.sku || '').toLowerCase().includes(search.toLowerCase()));
+
+    return (
+        <div className="relative flex-1 min-w-0">
+            <input 
+                type="text"
+                placeholder="🔍 Buscar y seleccionar producto..."
+                value={search}
+                onChange={e => {
+                    setSearch(e.target.value);
+                    setShow(true);
+                    onChange('');
+                }}
+                onFocus={() => setShow(true)}
+                onBlur={() => setTimeout(() => setShow(false), 200)}
+                className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+            />
+            {show && (
+                <div className="absolute z-50 mt-1 w-full bg-gray-900 border border-white/20 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+                    {filtered.length > 0 ? filtered.map(p => (
+                        <div 
+                            key={p.id}
+                            className="px-3 py-2 hover:bg-white/10 cursor-pointer text-sm text-white border-b border-white/5 last:border-0"
+                            onClick={() => {
+                                onChange(p.id);
+                                setSearch(`${p.name} ${p.sku ? `(${p.sku})` : ''}`);
+                                setShow(false);
+                            }}
+                        >
+                            <div className="font-medium">{p.name} {p.sku ? `(${p.sku})` : ''}</div>
+                            <div className="text-xs text-white/50">Stock disponible: {p.currentStock} {p.unit}</div>
+                        </div>
+                    )) : (
+                        <div className="px-3 py-2 text-sm text-white/40">No hay resultados</div>
+                    )}
+                </div>
+            )}
         </div>
     );
 }

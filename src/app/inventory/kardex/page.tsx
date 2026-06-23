@@ -144,17 +144,17 @@ export default function KardexPage() {
                             <label className="text-xs font-semibold text-white/60 mb-1 block">Sucursal</label>
                             <select value={branchId} onChange={e => setBranchId(e.target.value)}
                                 className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                                <option value="">Todas</option>
-                                {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
+                                <option value="" className="bg-gray-900 text-white">Todas</option>
+                                {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
                             </select>
                         </div>
                         <div>
                             <label className="text-xs font-semibold text-white/60 mb-1 block">Tipo</label>
                             <select value={typeFilter} onChange={e => setTypeFilter(e.target.value)}
                                 className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                                <option value="">Todos</option>
+                                <option value="" className="bg-gray-900 text-white">Todos</option>
                                 {Object.entries(TYPE_CONFIG).map(([k, v]) => (
-                                    <option key={k} value={k}>{v.label}</option>
+                                    <option key={k} value={k} className="bg-gray-900 text-white">{v.label}</option>
                                 ))}
                             </select>
                         </div>
@@ -162,8 +162,8 @@ export default function KardexPage() {
                             <label className="text-xs font-semibold text-white/60 mb-1 block">Producto</label>
                             <select value={productId} onChange={e => setProductId(e.target.value)}
                                 className="w-full border border-white/10 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                                <option value="">Todos</option>
-                                {products.map(p => <option key={p.id} value={p.id}>{p.name}</option>)}
+                                <option value="" className="bg-gray-900 text-white">Todos</option>
+                                {products.map(p => <option key={p.id} value={p.id} className="bg-gray-900 text-white">{p.name}</option>)}
                             </select>
                         </div>
                     </div>

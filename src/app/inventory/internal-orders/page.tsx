@@ -55,6 +55,7 @@ export default function InternalOrdersPage() {
     const [submitting, setSubmitting] = useState(false);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [editedQuantities, setEditedQuantities] = useState<Record<string, number>>({});
+    const [productSearch, setProductSearch] = useState('');
 
     const [form, setForm] = useState({
         fromBranchId: '',
@@ -239,9 +240,7 @@ export default function InternalOrdersPage() {
             <div className="max-w-5xl mx-auto">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
-                            <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
-                        </Link>
+                        <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
                         <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                             <Truck className="h-8 w-8 text-blue-400" /> Pedidos Internos
                         </h1>
@@ -270,7 +269,7 @@ export default function InternalOrdersPage() {
                             const canApproveOrDispatch = isSystemAdmin || user?.branchIds?.includes(order.toBranch.id);
                             const canReceive = isSystemAdmin || user?.branchIds?.includes(order.fromBranch.id);
                             return (
-                                <div key={order.id} className="bg-white/5/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10">
+                                <div key={order.id} className="bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10">
                                     <div
                                         className="flex items-center justify-between p-5 cursor-pointer"
                                         onClick={() => setExpanded(isExpanded ? null : order.id)}
@@ -334,10 +333,10 @@ export default function InternalOrdersPage() {
                                                                 value={order.toBranch.id}
                                                                 onChange={e => changeOrderFactory(order.id, e.target.value)}
                                                                 onClick={e => e.stopPropagation()}
-                                                                className="text-xs border border-blue-500/30 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white/5/5"
+                                                                className="text-xs border border-blue-500/30 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white/5"
                                                             >
                                                                 {branches.filter(b => b.type === 'FABRICA').map(b => (
-                                                                    <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>
+                                                                    <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>
                                                                 ))}
                                                             </select>
                                                         </div>
@@ -401,7 +400,7 @@ export default function InternalOrdersPage() {
                                                 </tbody>
                                             </table>
                                             {order.notes && (
-                                                <p className="text-xs text-white/60 mt-3 bg-white/5/5/5 rounded-lg px-3 py-2">📝 {order.notes}</p>
+                                                <p className="text-xs text-white/60 mt-3 bg-white/5 rounded-lg px-3 py-2">📝 {order.notes}</p>
                                             )}
                                         </div>
                                     )}
@@ -415,7 +414,7 @@ export default function InternalOrdersPage() {
             {/* Modal nuevo pedido */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 z-40 flex items-start justify-center p-4 overflow-y-auto pt-10">
-                    <div className="bg-white/5/5 rounded-2xl shadow-xl w-full max-w-lg">
+                    <div className="bg-[#1a0508] rounded-2xl shadow-xl w-full max-w-lg border border-white/10">
                         <div className="flex items-center justify-between p-6 border-b border-white/10">
                             <h2 className="text-lg font-bold text-white/90">Nuevo Pedido Interno</h2>
                             <button onClick={() => setShowModal(false)} className="text-white/40 hover:text-white/70">
@@ -428,12 +427,12 @@ export default function InternalOrdersPage() {
                                     <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal solicitante *</label>
                                     {isAdmin ? (
                                         <select required value={form.fromBranchId} onChange={e => setForm(f => ({ ...f, fromBranchId: e.target.value }))}
-                                            className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                            <option value="" className="text-white/90">Seleccionar...</option>
-                                            {branches.map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
+                                            className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                            <option value="" className="bg-gray-900 text-white">Seleccionar...</option>
+                                            {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
                                         </select>
                                     ) : (
-                                        <div className="w-full border border-white/10 bg-white/5/5/5 rounded-xl px-3 py-2.5 text-sm text-white/80 font-medium">
+                                        <div className="w-full border border-white/10 bg-white/5 rounded-xl px-3 py-2.5 text-sm text-white/80 font-medium">
                                             {branches.find(b => b.id === form.fromBranchId)?.name || 'Mi sucursal'}
                                         </div>
                                     )}
@@ -441,9 +440,9 @@ export default function InternalOrdersPage() {
                                 <div>
                                     <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal receptora (fábrica) *</label>
                                     <select required value={form.toBranchId} onChange={e => setForm(f => ({ ...f, toBranchId: e.target.value }))}
-                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                        <option value="" className="text-white/90">Seleccionar...</option>
-                                        {branches.filter(b => b.type === 'FABRICA').map(b => <option key={b.id} value={b.id} className="text-white/90">{b.name}</option>)}
+                                        className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                        <option value="" className="bg-gray-900 text-white">Seleccionar...</option>
+                                        {branches.filter(b => b.type === 'FABRICA').map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
                                     </select>
                                 </div>
                             </div>
@@ -451,11 +450,11 @@ export default function InternalOrdersPage() {
                                 <label className="block text-sm font-semibold text-white/80 mb-1.5">Solicitado por *</label>
                                 <input required type="text" placeholder="Tu nombre" value={form.requestedBy}
                                     onChange={e => setForm(f => ({ ...f, requestedBy: e.target.value }))}
-                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                                    className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
                             </div>
 
                             <div className="border border-white/20 rounded-xl p-4">
-                                <div className="flex items-center justify-between mb-3">
+                                <div className="flex items-center justify-between mb-2">
                                     <h3 className="text-sm font-semibold text-white/80">Productos solicitados</h3>
                                     <button type="button" onClick={addItem}
                                         className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1">
@@ -464,17 +463,17 @@ export default function InternalOrdersPage() {
                                 </div>
                                 {form.items.map((item, idx) => (
                                     <div key={idx} className="flex gap-2 mb-2 items-center">
-                                        <select required value={item.productId} onChange={e => updateItem(idx, 'productId', e.target.value)}
-                                            className="flex-1 border border-white/20 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300">
-                                            <option value="" className="text-white/90">Producto...</option>
-                                            {products.map(p => <option key={p.id} value={p.id} className="text-white/90">{p.name} ({p.sku})</option>)}
-                                        </select>
+                                        <ProductCombobox 
+                                            products={products} 
+                                            value={item.productId} 
+                                            onChange={val => updateItem(idx, 'productId', val)} 
+                                        />
                                         <input type="number" min="0.01" step="0.01" value={item.requestedQty === 0 ? '' : item.requestedQty}
                                             onChange={e => updateItem(idx, 'requestedQty', parseFloat(e.target.value))}
-                                            className="w-20 border border-white/20 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300" />
+                                            className="w-20 bg-[#1a0508] text-white border border-white/20 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300" />
                                         <select value={item.unit} onChange={e => updateItem(idx, 'unit', e.target.value)}
-                                            className="w-20 border border-white/20 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300">
-                                            {['unit', 'kg', 'gr', 'litro', 'ml', 'bolsa'].map(u => <option key={u}>{u}</option>)}
+                                            className="w-20 bg-[#1a0508] text-white border border-white/20 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300">
+                                            {['unit', 'kg', 'gr', 'litro', 'ml', 'bolsa'].map(u => <option key={u} className="bg-gray-900 text-white">{u}</option>)}
                                         </select>
                                         {form.items.length > 1 && (
                                             <button type="button" onClick={() => removeItem(idx)} className="text-red-400 hover:text-red-400">
@@ -489,12 +488,12 @@ export default function InternalOrdersPage() {
                                 <label className="block text-sm font-semibold text-white/80 mb-1.5">Notas</label>
                                 <textarea rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                                     placeholder="Observaciones opcionales..."
-                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none" />
+                                    className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none" />
                             </div>
 
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowModal(false)}
-                                    className="flex-1 py-2.5 border border-white/20 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5/5/5 transition-colors">
+                                    className="flex-1 py-2.5 border border-white/20 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 transition-colors">
                                     Cancelar
                                 </button>
                                 <button type="submit" disabled={submitting}
@@ -504,6 +503,59 @@ export default function InternalOrdersPage() {
                             </div>
                         </form>
                     </div>
+                </div>
+            )}
+        </div>
+    );
+}
+
+function ProductCombobox({ products, value, onChange }: { products: any[], value: string, onChange: (id: string) => void }) {
+    const [search, setSearch] = useState('');
+    const [show, setShow] = useState(false);
+    
+    useEffect(() => {
+        if (value) {
+            const p = products.find(p => p.id === value);
+            if (p) setSearch(`${p.name} ${p.sku ? `(${p.sku})` : ''}`);
+        } else {
+            setSearch('');
+        }
+    }, [value, products]);
+
+    const filtered = products.filter(p => (p.name || '').toLowerCase().includes(search.toLowerCase()) || (p.sku || '').toLowerCase().includes(search.toLowerCase()));
+
+    return (
+        <div className="relative flex-1 min-w-0">
+            <input 
+                type="text"
+                placeholder="🔍 Buscar y seleccionar producto..."
+                value={search}
+                onChange={e => {
+                    setSearch(e.target.value);
+                    setShow(true);
+                    onChange('');
+                }}
+                onFocus={() => setShow(true)}
+                onBlur={() => setTimeout(() => setShow(false), 200)}
+                className="w-full bg-[#1a0508] text-white border border-white/20 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
+            />
+            {show && (
+                <div className="absolute z-50 mt-1 w-full bg-gray-900 border border-white/20 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                    {filtered.length > 0 ? filtered.map(p => (
+                        <div 
+                            key={p.id}
+                            className="px-2 py-2 hover:bg-white/10 cursor-pointer text-xs text-white border-b border-white/5 last:border-0"
+                            onClick={() => {
+                                onChange(p.id);
+                                setSearch(`${p.name} ${p.sku ? `(${p.sku})` : ''}`);
+                                setShow(false);
+                            }}
+                        >
+                            {p.name} {p.sku ? `(${p.sku})` : ''}
+                        </div>
+                    )) : (
+                        <div className="px-2 py-2 text-xs text-white/40">No hay resultados</div>
+                    )}
                 </div>
             )}
         </div>

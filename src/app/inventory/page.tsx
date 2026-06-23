@@ -69,7 +69,7 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
             <div className="bg-white/5 border-b border-white/20 px-6 py-5">
                 <div className="max-w-6xl mx-auto flex items-center justify-between">
                     <div>
-                        <Link href="/" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver al dashboard</Link>
+                        <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
                         <div className="flex items-center gap-2 text-sm text-white/60 mb-1">
                             <Package className="h-4 w-4" />
                             <span>Inventario</span>
@@ -80,7 +80,7 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
                     </div>
                     <button
                         onClick={loadStock}
-                        className="flex items-center gap-1.5 px-3 py-2 bg-white/5/5 border border-white/10 text-white/70 rounded-xl text-sm hover:bg-white/5/5 transition"
+                        className="flex items-center gap-1.5 px-3 py-2 bg-white/5 border border-white/10 text-white/70 rounded-xl text-sm hover:bg-white/5 transition"
                     >
                         <RefreshCw className="h-4 w-4" /> Actualizar
                     </button>
@@ -93,7 +93,7 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
                 <div className="grid grid-cols-2 gap-4">
                     <Link
                         href="/inventory/transfers"
-                        className="flex items-center gap-4 bg-white/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5 hover:border-blue-300 hover:shadow-md transition group"
+                        className="flex items-center gap-4 bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5 hover:border-blue-300 hover:shadow-md transition group"
                     >
                         <div className="bg-blue-500/20 rounded-xl p-3 group-hover:bg-blue-200 transition">
                             <ArrowLeftRight className="h-6 w-6 text-blue-400" />
@@ -107,7 +107,7 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
 
                     <Link
                         href="/inventory/internal-orders"
-                        className="flex items-center gap-4 bg-white/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5 hover:border-green-300 hover:shadow-md transition group"
+                        className="flex items-center gap-4 bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5 hover:border-green-300 hover:shadow-md transition group"
                     >
                         <div className="bg-green-100 rounded-xl p-3 group-hover:bg-green-200 transition">
                             <Factory className="h-6 w-6 text-green-400" />
@@ -182,7 +182,7 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
                 ) : (
                     <div className="bg-white/5 rounded-2xl shadow-sm overflow-hidden border border-white/10">
                         <table className="w-full text-sm">
-                            <thead className="bg-white/5/5 border-b border-white/20">
+                            <thead className="bg-white/5 border-b border-white/20">
                                 <tr>
                                     <th className="text-left px-5 py-3 font-semibold text-white/70">Producto</th>
                                     <th className="text-left px-5 py-3 font-semibold text-white/70 hidden md:table-cell">SKU</th>
@@ -193,7 +193,7 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
                             </thead>
                             <tbody>
                                 {filtered.map(item => (
-                                    <tr key={item.id} className={`border-b border-white/5 hover:bg-white/5/5 ${item.isCritical ? 'bg-red-500/10/40' : item.isLow ? 'bg-yellow-500/10/40' : ''}`}>
+                                    <tr key={item.id} className={`border-b border-white/5 hover:bg-white/5 ${item.isCritical ? 'bg-red-500/10/40' : item.isLow ? 'bg-yellow-500/10/40' : ''}`}>
                                         <td className="px-5 py-3 font-medium text-white/90">{item.product?.name ?? '—'}</td>
                                         <td className="px-5 py-3 font-mono text-xs text-white/40 hidden md:table-cell">{item.product?.sku ?? '—'}</td>
                                         <td className={`px-5 py-3 text-right font-bold ${item.isCritical ? 'text-red-400' : item.isLow ? 'text-yellow-400' : 'text-green-400'}`}>
@@ -227,7 +227,7 @@ function CashierInventoryView({ branchId, branchName }: { branchId: string; bran
                                 )}
                             </tbody>
                         </table>
-                        <div className="px-5 py-3 bg-white/5/5 border-t text-xs text-white/40">
+                        <div className="px-5 py-3 bg-white/5 border-t text-xs text-white/40">
                             {filtered.length} producto{filtered.length !== 1 ? 's' : ''} · {branchName}
                         </div>
                     </div>
@@ -260,7 +260,7 @@ function AdminInventoryView() {
             <div className="max-w-7xl mx-auto">
                 {/* Header */}
                 <div className="mb-8">
-                    <Link href="/" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2 mt-4"><ArrowLeft className="h-4 w-4" /> Volver al dashboard</Link>
+                    <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2 mt-4"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
                     <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                         <Package className="h-8 w-8 text-green-400" />
                         Gestión de Inventario
@@ -379,7 +379,7 @@ function FactoryInventoryView({ branchName }: { branchName: string }) {
             {/* Header */}
             <div className="bg-white/5 border-b border-white/20 px-6 py-5">
                 <div className="max-w-6xl mx-auto">
-                    <Link href="/" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2 mt-4"><ArrowLeft className="h-4 w-4" /> Volver al dashboard</Link>
+                    <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2 mt-4"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
                     <div className="flex items-center gap-2 text-sm text-white/60 mb-1">
                         <Factory className="h-4 w-4" />
                         <span>Fábrica / Almacén</span>
@@ -480,7 +480,7 @@ function FactoryInventoryView({ branchName }: { branchName: string }) {
                         <Link
                             key={item.href}
                             href={item.href}
-                            className={`flex items-center gap-4 bg-white/5/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5 hover:shadow-md hover:border-white/20 transition group border-l-4 ${item.border}`}
+                            className={`flex items-center gap-4 bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5 hover:shadow-md hover:border-white/20 transition group border-l-4 ${item.border}`}
                         >
                             <div className={`${item.bg} rounded-xl p-3 flex-shrink-0`}>
                                 {item.icon}
@@ -533,7 +533,7 @@ export default function InventoryDashboardPage() {
 
     if (loading) {
         return (
-            <div className="flex items-center justify-center min-h-screen bg-white/5/5">
+            <div className="flex items-center justify-center min-h-screen bg-white/5">
                 <Loader2 className="h-8 w-8 animate-spin text-green-400" />
             </div>
         );
@@ -542,13 +542,11 @@ export default function InventoryDashboardPage() {
     // Sin sucursal asignada
     if (!isAdmin && !branchId) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen bg-white/5/5 text-white/60">
+            <div className="flex flex-col items-center justify-center min-h-screen bg-white/5 text-white/60">
                 <Package className="h-12 w-12 mb-3 opacity-30" />
                 <p className="text-lg font-semibold">Sin sucursal asignada</p>
                 <p className="text-sm mt-1">Contactá a tu administrador para que te asigne una sucursal.</p>
-                <Link href="/" className="mt-4 flex items-center gap-1 text-sm text-blue-400 hover:underline">
-                    <ArrowLeft className="h-4 w-4" /> Volver al dashboard
-                </Link>
+                <button onClick={() => window.history.back()} className="mt-4 flex items-center gap-1 text-sm text-blue-400 hover:underline"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
             </div>
         );
     }

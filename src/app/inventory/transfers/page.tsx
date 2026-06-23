@@ -117,9 +117,7 @@ export default function TransfersPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
-                            <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
-                        </Link>
+                        <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
                         <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                             <ArrowLeftRight className="h-8 w-8 text-blue-400" /> Transferencias
                         </h1>
@@ -148,7 +146,7 @@ export default function TransfersPage() {
                         <button
                             key={s || 'ALL'}
                             onClick={() => setStatusFilter(s)}
-                            className={`px-4 py-1.5 rounded-xl text-sm font-medium transition ${statusFilter === s ? 'bg-blue-600 text-white' : 'bg-white/5/5/5 border border-white/10 text-white/70 hover:bg-white/5/5/5'}`}
+                            className={`px-4 py-1.5 rounded-xl text-sm font-medium transition ${statusFilter === s ? 'bg-blue-600 text-white' : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/5'}`}
                         >
                             {s === '' ? 'Todas' : STATUS_CFG[s]?.label || s}
                         </button>
@@ -159,7 +157,7 @@ export default function TransfersPage() {
                 {loading ? (
                     <div className="text-center py-20 text-white/40">Cargando transferencias…</div>
                 ) : transfers.length === 0 ? (
-                    <div className="text-center py-20 bg-white/5/5 rounded-2xl shadow text-white/40">
+                    <div className="text-center py-20 bg-white/5 rounded-2xl shadow text-white/40">
                         <ArrowLeftRight className="h-12 w-12 mx-auto mb-3 opacity-30" />
                         <p>No hay transferencias{statusFilter ? ` en estado "${STATUS_CFG[statusFilter]?.label}"` : ''}.</p>
                         <Link href="/inventory/transfers/request" className="mt-4 inline-block text-green-400 font-medium hover:underline">
@@ -173,7 +171,7 @@ export default function TransfersPage() {
                             const Icon = cfg.Icon;
                             const isPending = t.status === 'PENDING';
                             return (
-                                <div key={t.id} className={`bg-white/5/5 rounded-2xl shadow p-5 border-l-4 ${isPending ? 'border-yellow-400' : t.status === 'RECEIVED' ? 'border-green-400' : 'border-white/20'}`}>
+                                <div key={t.id} className={`bg-white/5 rounded-2xl shadow p-5 border-l-4 ${isPending ? 'border-yellow-400' : t.status === 'RECEIVED' ? 'border-green-400' : 'border-white/20'}`}>
                                     <div className="flex items-center justify-between gap-4">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-3 mb-1">

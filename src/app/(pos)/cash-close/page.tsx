@@ -333,7 +333,7 @@ export default function CashClosePage() {
                             {[
                                 { label: 'Total ventas', value: shiftSummary.totalSales.toString(), icon: <ShoppingCart className="h-4 w-4 text-indigo-600" />, bg: 'bg-indigo-500/10' },
                                 { label: 'Ingresos', value: fmt(shiftSummary.totalRevenue), icon: <TrendingUp className="h-4 w-4 text-green-600" />, bg: 'bg-green-500/10' },
-                                { label: 'Ticket prom.', value: fmt(shiftSummary.avgTicket), icon: <DollarSign className="h-4 w-4 text-amber-600" />, bg: 'bg-amber-50' },
+                                { label: 'Ticket prom.', value: fmt(shiftSummary.avgTicket), icon: <DollarSign className="h-4 w-4 text-amber-600" />, bg: 'bg-amber-500/10' },
                                 { label: 'Items vendidos', value: shiftSummary.totalItems.toString(), icon: <Package className="h-4 w-4 text-purple-600" />, bg: 'bg-purple-500/10' },
                             ].map(k => (
                                 <div key={k.label} className={`${k.bg} rounded-xl p-3 flex items-center gap-3`}>

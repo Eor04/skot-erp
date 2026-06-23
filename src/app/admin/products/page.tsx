@@ -173,10 +173,10 @@ export default function ProductsPage() {
                         <Search className="absolute left-3 top-2.5 h-5 w-5 text-white/40" />
                         <input type="text" placeholder="Buscar por nombre o SKU…" value={search}
                             onChange={e => setSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-white/10 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-sm focus:outline-none focus:ring-2 focus:ring-orange-300" />
+                            className="w-full pl-10 pr-4 py-2.5 border border-white/10 rounded-xl bg-white/5 backdrop-blur-md text-sm text-white placeholder:text-white/40 focus:outline-none focus:ring-2 focus:ring-orange-300" />
                     </div>
                     <select value={catFilter} onChange={e => setCatFilter(e.target.value)}
-                        className="border border-white/10 rounded-xl px-3 py-2.5 text-sm bg-white/5 border border-white/10 backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-orange-300">
+                        className="border border-white/10 rounded-xl px-3 py-2.5 text-sm bg-[#1a0508] text-white backdrop-blur-md focus:outline-none focus:ring-2 focus:ring-orange-300">
                         <option value="">Todas las categorías</option>
                         {uniqueCategories.map(c => (
                             <option key={c} value={c}>{CAT_LABELS[c] || c}</option>

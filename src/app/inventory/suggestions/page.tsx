@@ -52,15 +52,13 @@ export default function SuggestionsPage() {
             <div className="max-w-5xl mx-auto">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
-                            <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
-                        </Link>
+                        <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
                         <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
                             <TrendingUp className="h-8 w-8 text-green-400" /> Sugerencias de Reabastecimiento
                         </h1>
                         <p className="text-white/60 mt-1">Análisis predictivo basado en promedio de ventas (últimos 7 días)</p>
                     </div>
-                    <button onClick={fetchSuggestions} className="flex items-center gap-2 border border-white/20 bg-white/5/5 px-3 py-2 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5/5/5 transition-colors">
+                    <button onClick={fetchSuggestions} className="flex items-center gap-2 border border-white/20 bg-white/5 px-3 py-2 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 transition-colors">
                         <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar
                     </button>
                 </div>
@@ -82,7 +80,7 @@ export default function SuggestionsPage() {
                 {loading ? (
                     <div className="text-center py-20 text-white/40">Analizando stock…</div>
                 ) : suggestions.length === 0 ? (
-                    <div className="text-center py-20 bg-white/5/5 rounded-2xl shadow">
+                    <div className="text-center py-20 bg-white/5 rounded-2xl shadow">
                         <CheckCircle className="h-14 w-14 text-green-400 mx-auto mb-3" />
                         <p className="text-lg font-semibold text-white/80">¡Stock en buen nivel!</p>
                         <p className="text-sm text-white/40 mt-1">No hay productos que requieran reabastecimiento en este momento.</p>
@@ -93,7 +91,7 @@ export default function SuggestionsPage() {
                             const cfg = urgencyConfig[s.severity] || urgencyConfig['MEDIO'];
                             const suggested = Math.ceil((s.minStock * 3) - s.currentStock);
                             return (
-                                <div key={i} className={`bg-white/5/5 rounded-2xl shadow p-6 border-l-4 ${cfg.border}`}>
+                                <div key={i} className={`bg-white/5 rounded-2xl shadow p-6 border-l-4 ${cfg.border}`}>
                                     <div className="flex items-start justify-between">
                                         <div>
                                             <div className="flex items-center gap-3 mb-1">
@@ -108,11 +106,11 @@ export default function SuggestionsPage() {
                                         </div>
                                     </div>
                                     <div className="mt-4 grid grid-cols-3 gap-3 text-center">
-                                        <div className="bg-white/5/5/5 rounded-xl p-3">
+                                        <div className="bg-white/5 rounded-xl p-3">
                                             <p className="text-xs text-white/60 mb-1">Stock actual</p>
                                             <p className={`font-bold text-lg ${s.currentStock <= 0 ? 'text-red-400' : 'text-white/80'}`}>{s.currentStock}</p>
                                         </div>
-                                        <div className="bg-white/5/5/5 rounded-xl p-3">
+                                        <div className="bg-white/5 rounded-xl p-3">
                                             <p className="text-xs text-white/60 mb-1">Consumo diario</p>
                                             <p className="font-bold text-lg text-white/80">{s.dailyAverage?.toFixed(1) || '—'}</p>
                                         </div>

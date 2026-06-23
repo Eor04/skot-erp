@@ -98,10 +98,10 @@ export default function SalesPage() {
 
     const handleExportCSV = () => {
         const rows = filtered.map(s => ({
-            'N� Venta': s.saleNumber,
+            'N- Venta': s.saleNumber,
             'Sucursal': s.branch.name,
             'Vendedor': s.user.name,
-            'M�todo': fmt.paymentMethod(s.paymentMethod),
+            'M-todo': fmt.paymentMethod(s.paymentMethod),
             'Total (S/)': Number(s.totalAmount).toFixed(2),
             'Fecha': fmt.date(s.createdAt),
         }));
@@ -113,14 +113,14 @@ export default function SalesPage() {
         try {
             await downloadPDF({
                 title: 'Historial de Ventas',
-                subtitle: `Per�odo: ${fmt.dateShort(filters.from + 'T12:00:00')} � ${fmt.dateShort(filters.to + 'T12:00:00')}`,
+                subtitle: `Per-odo: ${fmt.dateShort(filters.from + 'T12:00:00')} - ${fmt.dateShort(filters.to + 'T12:00:00')}`,
                 filename: `ventas_${filters.from}_${filters.to}`,
                 orientation: 'landscape',
                 columns: [
-                    { header: 'N� Venta', dataKey: 'saleNumber' },
+                    { header: 'N- Venta', dataKey: 'saleNumber' },
                     { header: 'Sucursal', dataKey: 'branch' },
                     { header: 'Vendedor', dataKey: 'user' },
-                    { header: 'M�todo', dataKey: 'method' },
+                    { header: 'M-todo', dataKey: 'method' },
                     { header: 'Total (S/)', dataKey: 'total' },
                     { header: 'Fecha', dataKey: 'date' },
                 ],
@@ -156,7 +156,7 @@ export default function SalesPage() {
                             <TrendingUp className="h-8 w-8 text-indigo-600" /> Historial de Ventas
                         </h1>
                     </div>
-                    {/* Botones de exportaci�n */}
+                    {/* Botones de exportaci-n */}
                     <div className="flex gap-2">
                         <button
                             onClick={handleExportCSV}
@@ -171,7 +171,7 @@ export default function SalesPage() {
                             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 text-sm font-semibold disabled:opacity-40 transition"
                         >
                             {exporting
-                                ? <><Loader2 className="h-4 w-4 animate-spin" /> Generando�</>
+                                ? <><Loader2 className="h-4 w-4 animate-spin" /> Generando...-</>
                                 : <><FileText className="h-4 w-4" /> PDF</>
                             }
                         </button>
@@ -207,7 +207,7 @@ export default function SalesPage() {
                             />
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-white/60 mb-1">M�todo de pago</label>
+                            <label className="block text-xs font-semibold text-white/60 mb-1">M-todo de pago</label>
                             <select
                                 value={filters.paymentMethod}
                                 onChange={e => setFilters(f => ({ ...f, paymentMethod: e.target.value }))}
@@ -253,7 +253,7 @@ export default function SalesPage() {
                 <div className="relative mb-4">
                     <Search className="absolute left-3 top-2.5 h-5 w-5 text-white/40" />
                     <input
-                        type="text" placeholder="Buscar por n�mero de venta, sucursal o vendedor�"
+                        type="text" placeholder="Buscar por n-mero de venta, sucursal o vendedor...-"
                         value={search} onChange={e => setSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 border border-white/10 rounded-xl bg-white/5 border border-white/10 backdrop-blur-md text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300"
                     />
@@ -269,10 +269,10 @@ export default function SalesPage() {
                         <table className="w-full text-sm">
                             <thead className="bg-white/5 border-b border-white/10">
                                 <tr>
-                                    <th className="text-left px-6 py-4 font-semibold text-white/70">N� Venta</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-white/70">N- Venta</th>
                                     <th className="text-left px-6 py-4 font-semibold text-white/70">Sucursal</th>
                                     <th className="text-left px-6 py-4 font-semibold text-white/70">Vendedor</th>
-                                    <th className="text-left px-6 py-4 font-semibold text-white/70">M�todo</th>
+                                    <th className="text-left px-6 py-4 font-semibold text-white/70">M-todo</th>
                                     <th className="text-right px-6 py-4 font-semibold text-white/70">Total</th>
                                     <th className="text-left px-6 py-4 font-semibold text-white/70">Fecha</th>
                                 </tr>
@@ -298,25 +298,28 @@ export default function SalesPage() {
                                             <td className="px-6 py-4 text-white/60 text-xs">{new Date(sale.createdAt).toLocaleString('es-PE')}</td>
                                         </tr>
                                         {expanded === sale.id && (
-                                            <tr key={`${sale.id}-detail`} className="bg-indigo-50/50">
-                                                <td colSpan={6} className="px-6 py-4">
-                                                    <p className="text-xs font-semibold text-white/60 mb-2">Detalle de la venta:</p>
-                                                    <div className="space-y-1">
-                                                        {sale.items.map((item, i) => (
-                                                            <div key={i} className="flex justify-between text-xs text-white/80">
-                                                                <span>{item.product.name} � {item.quantity}</span>
-                                                                <span className="font-medium">Bs. {item.subtotal.toFixed(2)}</span>
-                                                            </div>
-                                                        ))}
-                                                        {sale.discounts.length > 0 && (
-                                                            <div className="flex justify-between text-xs text-red-600 font-medium border-t border-red-100 pt-1 mt-1">
-                                                                <span>Descuento ({sale.discounts[0].value}{sale.discounts[0].type === 'PERCENTAGE' ? '%' : ' S/'})</span>
-                                                                <span>-</span>
-                                                            </div>
-                                                        )}
-                                                    </div>
-                                                </td>
-                                            </tr>
+                                            <tr key={`${sale.id}-detail`} className="bg-black/40 shadow-inner border-y border-white/10">
+    <td colSpan={6} className="px-6 py-5">
+        <div className="flex items-center gap-2 mb-3">
+            <ShoppingBag className="h-4 w-4 text-indigo-400" />
+            <h4 className="text-sm font-bold text-white/90">Detalle de los productos</h4>
+        </div>
+        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl p-3 max-w-md">
+            {sale.items.map((item, i) => (
+                <div key={i} className="flex justify-between items-center text-sm py-1.5 border-b border-white/5 last:border-0">
+                    <span className="text-white/80 font-medium">{item.product.name} <span className="text-indigo-400 text-xs ml-1">x{item.quantity}</span></span>
+                    <span className="font-bold text-white/90">Bs. {item.subtotal.toFixed(2)}</span>
+                </div>
+            ))}
+            {sale.discounts.length > 0 && (
+                <div className="flex justify-between items-center text-sm py-1.5 border-t border-red-500/20 mt-1 pt-2">
+                    <span className="text-red-400 font-medium">Descuento ({sale.discounts[0].value}{sale.discounts[0].type === 'PERCENTAGE' ? '%' : ' Bs.'})</span>
+                    <span className="font-bold text-red-400">-</span>
+                </div>
+            )}
+        </div>
+    </td>
+</tr>
                                         )}
                                     </>
                                 ))}

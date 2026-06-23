@@ -51,17 +51,17 @@ export default function ProductGrid({ products, onProductAdd, onOpenModifiers }:
                 ))}
             </div>
 
-            {/* Grid de productos */}
-            <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto flex-1 pb-2">
+            {/* Grid de productos - Formato Lista Horizontal */}
+            <div className="grid grid-cols-1 md:grid-cols-2 2xl:grid-cols-3 gap-3 overflow-y-auto flex-1 pb-2 pr-1">
                 {filteredProducts.map(product => (
                     <div
                         key={product.id}
-                        className="flex flex-col bg-white border-2 border-gray-200 rounded-xl overflow-hidden hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-100 transition group"
+                        className="flex bg-white/5 border border-white/10 rounded-xl overflow-hidden hover:border-yellow-400 hover:bg-white/10 transition group h-28"
                     >
                         {/* Imagen — clic directo agrega al carrito */}
                         <button
                             onClick={() => onProductAdd(product)}
-                            className="relative w-full pt-[70%] bg-gray-100 block"
+                            className="relative w-28 h-full bg-black/40 flex-shrink-0"
                             title="Agregar al carrito"
                         >
                             {product.imageUrl ? (
@@ -70,11 +70,11 @@ export default function ProductGrid({ products, onProductAdd, onOpenModifiers }:
                                     alt={product.name}
                                     fill
                                     className="object-cover"
-                                    sizes="(max-width: 768px) 50vw, 25vw"
+                                    sizes="112px"
                                 />
                             ) : (
                                 <div className="absolute inset-0 flex items-center justify-center">
-                                    <svg className="w-14 h-14 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <svg className="w-10 h-10 text-white/20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2}
                                             d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                                     </svg>
@@ -83,26 +83,26 @@ export default function ProductGrid({ products, onProductAdd, onOpenModifiers }:
                         </button>
 
                         {/* Info + botones */}
-                        <div className="p-3 flex flex-col flex-1">
+                        <div className="p-3 flex flex-col flex-1 min-w-0 justify-between">
                             {/* Nombre */}
                             <button
                                 onClick={() => onProductAdd(product)}
-                                className="text-left"
+                                className="text-left w-full"
                                 title="Agregar al carrito"
                             >
-                                <h3 className="font-semibold text-gray-800 line-clamp-2 mb-1 group-hover:text-black transition text-sm">
+                                <h3 className="font-bold text-white/90 line-clamp-1 group-hover:text-yellow-400 transition text-sm">
                                     {product.name}
                                 </h3>
                                 {product.description && (
-                                    <p className="text-xs text-gray-500 line-clamp-1 mb-2">{product.description}</p>
+                                    <p className="text-xs text-white/50 line-clamp-1 mt-0.5">{product.description}</p>
                                 )}
                             </button>
 
-                            {/* Precio */}
-                            <div className="mt-auto flex items-center justify-between gap-2">
+                            {/* Precio y Extras */}
+                            <div className="flex items-center justify-between mt-1 gap-2">
                                 <button
                                     onClick={() => onProductAdd(product)}
-                                    className="text-lg font-black text-red-600 hover:text-red-700 transition"
+                                    className="text-base font-black text-red-400 hover:text-red-300 transition"
                                     title="Agregar al carrito"
                                 >
                                     Bs. {(product.customPrice || 0).toFixed(2)}
@@ -112,9 +112,9 @@ export default function ProductGrid({ products, onProductAdd, onOpenModifiers }:
                                 <button
                                     onClick={e => { e.stopPropagation(); onOpenModifiers(product); }}
                                     title="Agregar con extras / modificadores"
-                                    className="flex items-center gap-1 px-2 py-1 rounded-lg bg-yellow-400 text-black text-xs font-bold hover:bg-yellow-300 transition flex-shrink-0"
+                                    className="flex items-center gap-1 px-2.5 py-1.5 rounded-lg bg-yellow-400/10 text-yellow-400 text-xs font-bold hover:bg-yellow-400 hover:text-black transition flex-shrink-0"
                                 >
-                                    <ChefHat className="h-3 w-3" />
+                                    <ChefHat className="h-3.5 w-3.5" />
                                     Extras
                                 </button>
                             </div>

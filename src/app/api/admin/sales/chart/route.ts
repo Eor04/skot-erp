@@ -12,13 +12,22 @@ export async function GET(request: NextRequest) {
         const days = parseInt(searchParams.get('days') || '30');
         const branchId = searchParams.get('branchId');
 
-        const startDate = new Date();
-        startDate.setDate(startDate.getDate() - days + 1);
-        startDate.setHours(0, 0, 0, 0);
+        const today = new Date();
+        const dayMap = new Map<string, { date: string; ventas: number; ingresos: number; burger: number; acai: number }>();
+        
+        // Generar los últimos 'days' días en zona horaria UTC-4 (Bolivia)
+        for (let d = days - 1; d >= 0; d--) {
+            const date = new Date(today.getTime() - d * 24 * 3600 * 1000 - 4 * 3600 * 1000);
+            const key = date.toISOString().split('T')[0];
+            dayMap.set(key, { date: key, ventas: 0, ingresos: 0, burger: 0, acai: 0 });
+        }
+        
+        const firstKey = Array.from(dayMap.keys())[0];
+        const startDate = new Date(`${firstKey}T00:00:00-04:00`);
 
         const where: any = {
             createdAt: { gte: startDate },
-            status: { not: 'CANCELLED' },
+            deletedAt: null,
             ...(branchId && { branchId }),
         };
 
@@ -31,29 +40,23 @@ export async function GET(request: NextRequest) {
                 salesChannel: true,
                 createdAt: true,
                 branchId: true,
+                branch: { select: { type: true } }
             },
             orderBy: { createdAt: 'asc' },
         });
 
-        // Agrupar por día
-        const dayMap = new Map<string, { date: string; ventas: number; ingresos: number; burger: number; acai: number }>();
-
-        // Pre-poblar todos los días del rango
-        for (let d = 0; d < days; d++) {
-            const date = new Date(startDate);
-            date.setDate(startDate.getDate() + d);
-            const key = date.toISOString().split('T')[0];
-            dayMap.set(key, { date: key, ventas: 0, ingresos: 0, burger: 0, acai: 0 });
-        }
-
         for (const sale of sales) {
-            const key = sale.createdAt.toISOString().split('T')[0];
+            // Extraer la fecha local (UTC-4) de createdAt para que coincida con el gráfico
+            const localDate = new Date(sale.createdAt.getTime() - 4 * 3600 * 1000);
+            const key = localDate.toISOString().split('T')[0];
+            
             const day = dayMap.get(key);
             if (day) {
                 day.ventas++;
                 day.ingresos += sale.totalAmount;
-                if (sale.salesChannel?.includes('BURGUER') || sale.salesChannel?.includes('BURGER')) day.burger += sale.totalAmount;
-                else if (sale.salesChannel?.includes('ACAI')) day.acai += sale.totalAmount;
+                const bType = sale.branch?.type || '';
+                if (bType.includes('BURGUER') || bType.includes('BURGER')) day.burger += sale.totalAmount;
+                else if (bType.includes('ACAI')) day.acai += sale.totalAmount;
             }
         }
 
