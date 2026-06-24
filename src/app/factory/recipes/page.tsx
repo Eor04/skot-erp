@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { FileText, ArrowLeft, RefreshCw, Plus } from 'lucide-react';
+import { FileText, ArrowLeft, RefreshCw, Plus, Pencil } from 'lucide-react';
 
 type Recipe = {
     id: string;
@@ -52,7 +52,7 @@ export default function RecipesPage() {
                 <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E\")", backgroundSize: '56px 100px' }} />
             </div>
             <div className="relative z-10 h-full w-full">
-            <div className="max-w-5xl mx-auto">
+            <div className="max-w-5xl mx-auto px-4 py-8">
                 <div className="flex items-center justify-between mb-8">
                     <div>
                         <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
@@ -79,7 +79,6 @@ export default function RecipesPage() {
                     <div className="text-center py-20 bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow text-white/40">
                         <FileText className="h-12 w-12 mx-auto mb-3 opacity-30" />
                         <p>No hay recetas registradas.</p>
-                        <p className="text-xs mt-2">Las recetas se crean directamente en la base de datos o vía API POST /api/factory/recipes</p>
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -102,7 +101,7 @@ export default function RecipesPage() {
                                                 {r.description && <p className="text-sm text-white/60">{r.description}</p>}
                                             </div>
                                         </div>
-                                        <div className="text-right flex items-center gap-6">
+                                        <div className="text-right flex items-center gap-4">
                                             <div>
                                                 <p className="text-xs text-white/40">Rendimiento</p>
                                                 <p className="font-bold text-white/90">{r.yield} {r.yieldUnit}</p>
@@ -115,6 +114,14 @@ export default function RecipesPage() {
                                                 <p className="text-xs text-white/40">Merma</p>
                                                 <p className="font-bold text-white/90">{r.merma}%</p>
                                             </div>
+                                            {/* Botón Editar */}
+                                            <Link
+                                                href={`/factory/recipes/${r.id}/edit`}
+                                                onClick={e => e.stopPropagation()}
+                                                className="flex items-center gap-1.5 px-3 py-1.5 bg-amber-500/10 hover:bg-amber-500/25 text-amber-400 border border-amber-500/30 rounded-lg text-xs font-semibold transition"
+                                            >
+                                                <Pencil className="h-3.5 w-3.5" /> Editar
+                                            </Link>
                                             <span className="text-white/40 text-lg">{expandedId === r.id ? '▲' : '▼'}</span>
                                         </div>
                                     </div>
@@ -134,7 +141,7 @@ export default function RecipesPage() {
                                             </thead>
                                             <tbody>
                                                 {r.ingredients.map((ing, i) => (
-                                                    <tr key={i} className="border-b border-white/10 last:border-0 hover:bg-white/5 border border-white/10 backdrop-blur-md">
+                                                    <tr key={i} className="border-b border-white/10 last:border-0 hover:bg-white/5">
                                                         <td className="px-6 py-3 text-white/90">{ing.ingredient?.name}</td>
                                                         <td className="px-6 py-3 text-right font-medium text-white/80">{ing.quantity}</td>
                                                         <td className="px-6 py-3 text-right text-white/60">{ing.unit}</td>
@@ -151,5 +158,5 @@ export default function RecipesPage() {
             </div>
         </div>
         </div>
-        );
+    );
 }
