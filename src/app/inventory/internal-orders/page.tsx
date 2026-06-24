@@ -365,7 +365,7 @@ export default function InternalOrdersPage() {
                                                                             type="number" 
                                                                             min="0" 
                                                                             step="0.01"
-                                                                            className="w-20 border border-gray-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-500"
+                                                                            className="w-20 bg-black/40 text-white border border-blue-400/40 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 placeholder-white/30"
                                                                             value={(editedQuantities[`${order.id}_${item.id}`] ?? item.requestedQty) === 0 ? '' : (editedQuantities[`${order.id}_${item.id}`] ?? item.requestedQty)}
                                                                             onChange={e => setEditedQuantities(prev => ({ ...prev, [`${order.id}_${item.id}`]: parseFloat(e.target.value) || 0 }))}
                                                                             onClick={e => e.stopPropagation()}
@@ -380,7 +380,7 @@ export default function InternalOrdersPage() {
                                                                             type="number" 
                                                                             min="0" 
                                                                             step="0.01"
-                                                                            className="w-20 border border-purple-300 rounded px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-500"
+                                                                            className="w-20 bg-black/40 text-white border border-purple-400/40 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-400 placeholder-white/30"
                                                                             value={(editedQuantities[`${order.id}_${item.id}`] ?? item.approvedQty ?? item.requestedQty) === 0 ? '' : (editedQuantities[`${order.id}_${item.id}`] ?? item.approvedQty ?? item.requestedQty)}
                                                                             onChange={e => setEditedQuantities(prev => ({ ...prev, [`${order.id}_${item.id}`]: parseFloat(e.target.value) || 0 }))}
                                                                             onClick={e => e.stopPropagation()}

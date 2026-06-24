@@ -176,8 +176,8 @@ export default function FactoryDashboardPage() {
                                 {
                                     href: '/factory/materials',
                                     icon: <Package className="h-7 w-7 text-cyan-400" />,
-                                    title: 'Materia Prima',
-                                    desc: 'Verificá existencias, puntos de reorden y escasez',
+                                    title: 'Inventario',
+                                    desc: 'Verificá existencias completas, puntos de reorden y escasez',
                                     bg: 'bg-cyan-500/10 hover:bg-cyan-500/20',
                                     border: 'border-cyan-500/30'
                                 },
