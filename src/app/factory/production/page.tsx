@@ -38,6 +38,8 @@ export default function ProductionPage() {
     const [completingId, setCompletingId] = useState<string | null>(null);
     const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [form, setForm] = useState({ recipeId: '', branchId: '', plannedYield: 1, scheduledDate: '', notes: '', createdBy: '' });
+    const [completingOrder, setCompletingOrder] = useState<Order | null>(null);
+    const [completeForm, setCompleteForm] = useState({ actualYield: 0, completedBy: '' });
 
     useEffect(() => { fetchAll(); }, []);
 
@@ -95,19 +97,26 @@ export default function ProductionPage() {
         finally { setSubmitting(false); }
     }
 
-    async function handleComplete(id: string) {
-        setCompletingId(id);
+    async function handleCompleteSubmit(e: React.FormEvent) {
+        e.preventDefault();
+        if (!completingOrder) return;
+        setSubmitting(true);
         try {
-            const res = await fetch(`/api/factory/production/${id}/complete`, { method: 'POST' });
+            const res = await fetch(`/api/factory/production/${completingOrder.id}/complete`, { 
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(completeForm)
+            });
             const data = await res.json();
             if (data.success) {
                 showToast('success', '✅ Producción completada — stock actualizado en kardex');
+                setCompletingOrder(null);
                 fetchAll();
             } else {
                 showToast('error', data.error || 'Error al completar');
             }
         } catch { showToast('error', 'Error de conexión'); }
-        finally { setCompletingId(null); }
+        finally { setSubmitting(false); }
     }
 
     return (
@@ -185,9 +194,12 @@ export default function ProductionPage() {
                                                 <Icon className="h-3.5 w-3.5" /> {cfg.label}
                                             </span>
                                             {(order.status === 'SCHEDULED' || order.status === 'IN_PROGRESS') && (
-                                                <button onClick={() => handleComplete(order.id)} disabled={completingId === order.id}
+                                                <button onClick={() => {
+                                                    setCompletingOrder(order);
+                                                    setCompleteForm({ actualYield: order.plannedYield, completedBy: '' });
+                                                }}
                                                     className="text-xs font-semibold px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50">
-                                                    {completingId === order.id ? 'Completando…' : '✓ Completar'}
+                                                    ✓ Completar
                                                 </button>
                                             )}
                                         </div>
@@ -275,6 +287,48 @@ export default function ProductionPage() {
                                 <button type="submit" disabled={submitting}
                                     className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
                                     {submitting ? 'Creando…' : 'Crear orden'}
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            )}
+
+            {/* Modal Completar Orden */}
+            {completingOrder && (
+                <div className="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4">
+                    <div className="bg-[#1a0f2e] border border-white/10 rounded-2xl shadow-xl w-full max-w-md">
+                        <div className="flex items-center justify-between p-6 border-b border-white/10">
+                            <div>
+                                <h2 className="text-lg font-bold text-white/90">Completar Producción</h2>
+                                <p className="text-xs text-white/40 mt-0.5">{completingOrder.orderNumber}</p>
+                            </div>
+                            <button onClick={() => setCompletingOrder(null)} className="text-white/40 hover:text-white/70">
+                                <X className="h-5 w-5" />
+                            </button>
+                        </div>
+                        <form onSubmit={handleCompleteSubmit} className="p-6 space-y-4">
+                            <div>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Cantidad Real Producida *</label>
+                                <input type="number" min="0.01" step="0.01" required
+                                    value={completeForm.actualYield === 0 ? '' : completeForm.actualYield}
+                                    onChange={e => setCompleteForm(f => ({ ...f, actualYield: parseFloat(e.target.value) }))}
+                                    className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+                            </div>
+                            <div>
+                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Completado por (Operador) *</label>
+                                <input type="text" required placeholder="Nombre del operador" value={completeForm.completedBy}
+                                    onChange={e => setCompleteForm(f => ({ ...f, completedBy: e.target.value }))}
+                                    className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 placeholder-white/30" />
+                            </div>
+                            <div className="flex gap-3 pt-2">
+                                <button type="button" onClick={() => setCompletingOrder(null)}
+                                    className="flex-1 py-2.5 border border-white/20 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 transition-colors">
+                                    Cancelar
+                                </button>
+                                <button type="submit" disabled={submitting}
+                                    className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
+                                    {submitting ? 'Guardando…' : 'Completar Orden'}
                                 </button>
                             </div>
                         </form>

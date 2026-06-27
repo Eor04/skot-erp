@@ -186,13 +186,13 @@ export default function MermasPage() {
                                 <label className="text-xs font-semibold text-white/70 block mb-1.5">Sucursal *</label>
                                 {isAdmin ? (
                                     <select value={branchId} onChange={e => { setBranchId(e.target.value); setProductId(''); }}
-                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
+                                        className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
                                         <option value="" className="bg-gray-900 text-white">Seleccioná</option>
                                         {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
                                     </select>
                                 ) : (
                                     <input value={branches.find(b => b.id === branchId)?.name || ''} disabled
-                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm bg-white/5" />
+                                        className="w-full bg-white/5 text-white/50 border border-white/20 rounded-xl px-3 py-2.5 text-sm" />
                                 )}
                             </div>
 
@@ -216,13 +216,13 @@ export default function MermasPage() {
                                                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
                                                 <input value={search} onChange={e => setSearch(e.target.value)}
                                                     placeholder="Buscar producto…"
-                                                    className="w-full pl-9 pr-3 py-2.5 border border-white/20 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
+                                                    className="w-full bg-black/30 text-white pl-9 pr-3 py-2.5 border border-white/20 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-red-300 placeholder-white/40" />
                                             </div>
-                                            <div className="max-h-40 overflow-y-auto border border-white/10 rounded-xl divide-y divide-gray-50">
+                                            <div className="max-h-40 overflow-y-auto border border-white/10 rounded-xl divide-y divide-white/10 bg-black/30">
                                                 {filteredStock.slice(0, 10).map(s => (
                                                     <button key={s.product.id} type="button"
                                                         onClick={() => { setProductId(s.product.id); setSearch(''); }}
-                                                        className="w-full text-left px-3 py-2 hover:bg-red-500/10 text-sm flex justify-between items-center">
+                                                        className="w-full text-left px-3 py-2 hover:bg-red-500/10 text-sm flex justify-between items-center text-white/90">
                                                         <span>{s.product.name}</span>
                                                         <span className="text-xs text-white/40">{s.currentStock} {s.product.unit}</span>
                                                     </button>
@@ -244,12 +244,12 @@ export default function MermasPage() {
                                     </label>
                                     <input type="number" min="0.01" step="0.01" value={quantity === 0 ? '' : quantity}
                                         onChange={e => setQuantity(e.target.value)}
-                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
+                                        className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300" />
                                 </div>
                                 <div>
                                     <label className="text-xs font-semibold text-white/70 block mb-1.5">Motivo *</label>
                                     <select value={reason} onChange={e => setReason(e.target.value)}
-                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
+                                        className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300">
                                         {Object.entries(REASON_LABELS).map(([k, v]) => (
                                             <option key={k} value={k} className="bg-gray-900 text-white">{v}</option>
                                         ))}
@@ -262,7 +262,7 @@ export default function MermasPage() {
                                 <label className="text-xs font-semibold text-white/70 block mb-1.5">Observaciones</label>
                                 <textarea value={notes} onChange={e => setNotes(e.target.value)} rows={2}
                                     placeholder="Descripción adicional, lote afectado..."
-                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none" />
+                                    className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-red-300 resize-none placeholder-white/40" />
                             </div>
 
                             {/* Stock warning */}
