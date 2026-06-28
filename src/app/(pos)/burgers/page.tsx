@@ -10,8 +10,9 @@ import { useBurgerSale } from '@/hooks/use-burger-sale';
 import { useSession } from '@/lib/session-context';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, CheckCircle, AlertCircle, Layers, Package, ShoppingBag, ClipboardList, X, ChefHat } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertCircle, Layers, Package, ShoppingBag, ClipboardList, X, ChefHat, Wifi, WifiOff, RefreshCw } from 'lucide-react';
 import CashGate from '@/components/pos/cash-gate';
+import { getOfflineQueue, saveToOfflineQueue, syncOfflineQueue, OfflineSale } from '@/lib/sync-manager';
 
 type ProductWithPrice = Product & { customPrice?: number };
 
@@ -60,6 +61,10 @@ export default function BurgersPOSPage() {
     const [saleResult, setSaleResult] = useState<SaleResult | null>(null);
     const [turnHistory, setTurnHistory] = useState<TurnSale[]>([]);
     const [showHistory, setShowHistory] = useState(false);
+    
+    // Offline State
+    const [offlineQueue, setOfflineQueue] = useState<OfflineSale[]>([]);
+    const [isSyncing, setIsSyncing] = useState(false);
 
     const branchId = user?.branchIds?.[0] || '';
 
@@ -79,6 +84,33 @@ export default function BurgersPOSPage() {
         }
     }, [saleResult]);
 
+    // Offline queue listener
+    useEffect(() => {
+        const updateQueue = () => setOfflineQueue(getOfflineQueue());
+        updateQueue();
+        window.addEventListener('skot-offline-queue-updated', updateQueue);
+        window.addEventListener('online', handleSync);
+        return () => {
+            window.removeEventListener('skot-offline-queue-updated', updateQueue);
+            window.removeEventListener('online', handleSync);
+        };
+    }, []);
+
+    const handleSync = async () => {
+        if (isSyncing) return;
+        setIsSyncing(true);
+        const res = await syncOfflineQueue();
+        setIsSyncing(false);
+        if (res.synced > 0 && res.errors === 0) {
+            setSaleResult({ type: 'success', message: `¡Se sincronizaron ${res.synced} ventas offline exitosamente!` });
+        } else if (res.errors > 0) {
+            const queue = getOfflineQueue();
+            const failedSales = queue.filter(s => s.status === 'failed');
+            const errorMessages = [...new Set(failedSales.map(s => s.errorMessage))].join(' | ');
+            setSaleResult({ type: 'error', message: `No se pudieron sincronizar ${res.errors} ventas. Error: ${errorMessages}` });
+        }
+    };
+
     const loadInitialData = async (silent = false) => {
         try {
             if (!silent) setIsLoading(true);
@@ -90,11 +122,27 @@ export default function BurgersPOSPage() {
             const [productsData, modifiersData, combosData] = await Promise.all([
                 productsRes.json(), modifiersRes.json(), combosRes.json(),
             ]);
-            if (productsData.success) setProducts(productsData.data);
-            if (modifiersData.success) setModifiers(modifiersData.data);
-            if (combosData.success) setCombos(combosData.data);
+            
+            if (productsData.success) {
+                setProducts(productsData.data);
+                localStorage.setItem('pos-burgers-products', JSON.stringify(productsData.data));
+            }
+            if (modifiersData.success) {
+                setModifiers(modifiersData.data);
+                localStorage.setItem('pos-burgers-modifiers', JSON.stringify(modifiersData.data));
+            }
+            if (combosData.success) {
+                setCombos(combosData.data);
+                localStorage.setItem('pos-burgers-combos', JSON.stringify(combosData.data));
+            }
         } catch (error) {
-            console.error('Error cargando datos:', error);
+            console.error('Error cargando datos, intentando desde caché local:', error);
+            const cachedP = localStorage.getItem('pos-burgers-products');
+            const cachedM = localStorage.getItem('pos-burgers-modifiers');
+            const cachedC = localStorage.getItem('pos-burgers-combos');
+            if (cachedP) setProducts(JSON.parse(cachedP));
+            if (cachedM) setModifiers(JSON.parse(cachedM));
+            if (cachedC) setCombos(JSON.parse(cachedC));
         } finally {
             if (!silent) setIsLoading(false);
         }
@@ -207,24 +255,43 @@ export default function BurgersPOSPage() {
                 return;
             }
 
-            const response = await fetch('/api/pos/sale', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    branchId,
-                    userId: user?.userId,
-                    paymentMethod: paymentData.method,
-                    cashAmount: paymentData.cashAmount,
-                    cardAmount: paymentData.cardAmount,
-                    transferAmount: paymentData.transferAmount,
-                    items: expandedItems,
-                    extrasTotal: extrasTotal > 0 ? extrasTotal : undefined,
-                    discount: discount
-                        ? { type: discount.type, value: discount.value, authorizedBy: discount.authorizedBy }
-                        : undefined,
-                }),
-            });
-            const data = await response.json();
+            const payload = {
+                branchId,
+                userId: user?.userId,
+                paymentMethod: paymentData.method,
+                cashAmount: paymentData.cashAmount,
+                cardAmount: paymentData.cardAmount,
+                transferAmount: paymentData.transferAmount,
+                items: expandedItems,
+                extrasTotal: extrasTotal > 0 ? extrasTotal : undefined,
+                discount: discount
+                    ? { type: discount.type, value: discount.value, authorizedBy: discount.authorizedBy }
+                    : undefined,
+            };
+
+            let isOffline = false;
+            let data: any;
+
+            try {
+                const response = await fetch('/api/pos/sale', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                data = await response.json();
+            } catch (fetchErr) {
+                isOffline = true;
+                // Guardar en cola offline
+                const offlineSale = saveToOfflineQueue({
+                    createdAt: new Date().toISOString(),
+                    payload,
+                    type: 'BURGER',
+                    displayTotal: calculateTotal(),
+                    displayItems: cart.map(i => `${i.quantity}x ${i.product.name}`),
+                });
+                data = { success: true, data: { saleNumber: offlineSale.offlineId } };
+            }
+
             if (data.success) {
                 const total = calculateTotal();
                 setTurnHistory(prev => [{
@@ -238,13 +305,17 @@ export default function BurgersPOSPage() {
                 }, ...prev].slice(0, 20));
                 clearCart();
                 setShowPaymentModal(false);
-                setSaleResult({ type: 'success', message: `¡Venta ${data.data.saleNumber}${paymentData.customerName ? ` — ${paymentData.customerName}` : ''} registrada!`, saleNumber: data.data.saleNumber });
+                if (isOffline) {
+                    setSaleResult({ type: 'success', message: `¡Venta OFFLINE ${data.data.saleNumber} guardada y pendiente de sincronización!`, saleNumber: data.data.saleNumber });
+                } else {
+                    setSaleResult({ type: 'success', message: `¡Venta ${data.data.saleNumber}${paymentData.customerName ? ` — ${paymentData.customerName}` : ''} registrada!`, saleNumber: data.data.saleNumber });
+                }
                 loadInitialData(true);
             } else {
                 setSaleResult({ type: 'error', message: data.error || 'Error al procesar la venta' });
             }
-        } catch {
-            setSaleResult({ type: 'error', message: 'Error de conexión. Inténtalo de nuevo.' });
+        } catch (e: any) {
+            setSaleResult({ type: 'error', message: e.message || 'Error desconocido' });
         }
     };
 
@@ -293,7 +364,21 @@ export default function BurgersPOSPage() {
                                 </span>
                             )}
                         </button>
-                        <Link href="/" className="text-sm text-white/50 hover:text-white flex items-center gap-1 transition">
+                        
+                        {/* Offline Indicator */}
+                        {offlineQueue.length > 0 ? (
+                            <button onClick={handleSync} disabled={isSyncing} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 transition">
+                                {isSyncing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <WifiOff className="h-4 w-4" />}
+                                <span className="hidden sm:inline">Offline</span>
+                                <span className="bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-black">{offlineQueue.length}</span>
+                            </button>
+                        ) : (
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold bg-green-500/10 text-green-400 border border-green-500/20" title="Online y sincronizado">
+                                <Wifi className="h-4 w-4" />
+                            </div>
+                        )}
+                        
+                        <Link href="/" className="text-sm text-white/50 hover:text-white flex items-center gap-1 transition ml-2">
                             <ArrowLeft className="h-4 w-4" /> Dashboard
                         </Link>
                     </div>

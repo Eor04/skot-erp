@@ -9,9 +9,10 @@ import {
     ArrowLeft, Scale, ShoppingCart, CreditCard, Banknote,
     ArrowRightLeft, CheckCircle, AlertCircle, Loader2,
     Check, ChevronRight, RotateCcw, Plus, Minus, Trash2,
-    Wifi, WifiOff, Usb, Settings2, X,
+    Wifi, WifiOff, Usb, Settings2, X, RefreshCw
 } from 'lucide-react';
 import CashGate from '@/components/pos/cash-gate';
+import { getOfflineQueue, saveToOfflineQueue, syncOfflineQueue, OfflineSale } from '@/lib/sync-manager';
 
 type Step = 'sabor' | 'balanza' | 'extras';
 type PaymentMethodType = 'CASH' | 'CARD' | 'TRANSFER' | 'MIXED';
@@ -80,6 +81,10 @@ export default function AcaiPOSPage() {
     const [transferGiven, setTransferGiven]     = useState('');
     const [notification, setNotification]       = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [processing, setProcessing]           = useState(false);
+    
+    // Offline State
+    const [offlineQueue, setOfflineQueue]       = useState<OfflineSale[]>([]);
+    const [isSyncing, setIsSyncing]             = useState(false);
 
     const loadProducts = useCallback(async (silent = false) => {
         if (!branchId) return;
@@ -88,11 +93,19 @@ export default function AcaiPOSPage() {
             const r = await fetch(`/api/pos/products?branchId=${branchId}&type=ACAI`);
             const d = await r.json();
             if (d.success) {
-                setFlavors(d.data.filter((p: ApiProduct) => p.type === 'ACAI_BASE'));
-                setBeverages(d.data.filter((p: ApiProduct) => p.type === 'BEVERAGE'));
+                const f = d.data.filter((p: ApiProduct) => p.type === 'ACAI_BASE');
+                const b = d.data.filter((p: ApiProduct) => p.type === 'BEVERAGE');
+                setFlavors(f);
+                setBeverages(b);
+                localStorage.setItem('pos-acai-flavors', JSON.stringify(f));
+                localStorage.setItem('pos-acai-beverages', JSON.stringify(b));
             }
         } catch (e) {
-            console.error(e);
+            console.error('Error cargando Açaí, usando caché:', e);
+            const cachedF = localStorage.getItem('pos-acai-flavors');
+            const cachedB = localStorage.getItem('pos-acai-beverages');
+            if (cachedF) setFlavors(JSON.parse(cachedF));
+            if (cachedB) setBeverages(JSON.parse(cachedB));
         } finally {
             if (!silent) setIsLoading(false);
         }
@@ -113,6 +126,30 @@ export default function AcaiPOSPage() {
     const notify = useCallback((type: 'success' | 'error', msg: string) => {
         setNotification({ type, msg });
     }, []);
+
+    // Offline queue listener
+    useEffect(() => {
+        const updateQueue = () => setOfflineQueue(getOfflineQueue());
+        updateQueue();
+        window.addEventListener('skot-offline-queue-updated', updateQueue);
+        window.addEventListener('online', handleSync);
+        return () => {
+            window.removeEventListener('skot-offline-queue-updated', updateQueue);
+            window.removeEventListener('online', handleSync);
+        };
+    }, []);
+
+    const handleSync = async () => {
+        if (isSyncing) return;
+        setIsSyncing(true);
+        const res = await syncOfflineQueue();
+        setIsSyncing(false);
+        if (res.synced > 0) {
+            notify('success', `¡Se sincronizaron ${res.synced} ventas offline exitosamente!`);
+        } else if (res.errors > 0) {
+            notify('error', `Hubo ${res.errors} errores al sincronizar ventas offline.`);
+        }
+    };
 
     // ¿Se puede cobrar?
     // Reglas:
@@ -174,19 +211,37 @@ export default function AcaiPOSPage() {
             const changeVal = Math.max(0, cashVal + cardVal + transferVal - cart.total);
             const actualCash = Math.max(0, cashVal - changeVal);
 
-            const res = await fetch('/api/pos/sale', {
-                method:  'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    branchId, userId,
-                    paymentMethod: selectedPayment,
-                    cashAmount: selectedPayment === 'CASH' || selectedPayment === 'MIXED' ? actualCash || (selectedPayment === 'CASH' ? cart.total : 0) : undefined,
-                    cardAmount: selectedPayment === 'CARD' || selectedPayment === 'MIXED' ? cardVal || (selectedPayment === 'CARD' ? cart.total : 0) : undefined,
-                    transferAmount: selectedPayment === 'TRANSFER' || selectedPayment === 'MIXED' ? transferVal || (selectedPayment === 'TRANSFER' ? cart.total : 0) : undefined,
-                    items,
-                }),
-            });
-            const data = await res.json();
+            const payload = {
+                branchId, userId,
+                paymentMethod: selectedPayment,
+                cashAmount: selectedPayment === 'CASH' || selectedPayment === 'MIXED' ? actualCash || (selectedPayment === 'CASH' ? cart.total : 0) : undefined,
+                cardAmount: selectedPayment === 'CARD' || selectedPayment === 'MIXED' ? cardVal || (selectedPayment === 'CARD' ? cart.total : 0) : undefined,
+                transferAmount: selectedPayment === 'TRANSFER' || selectedPayment === 'MIXED' ? transferVal || (selectedPayment === 'TRANSFER' ? cart.total : 0) : undefined,
+                items,
+            };
+
+            let isOffline = false;
+            let data: any;
+
+            try {
+                const res = await fetch('/api/pos/sale', {
+                    method:  'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload),
+                });
+                data = await res.json();
+            } catch (err) {
+                isOffline = true;
+                const offlineSale = saveToOfflineQueue({
+                    createdAt: new Date().toISOString(),
+                    payload,
+                    type: 'ACAI',
+                    displayTotal: cart.total,
+                    displayItems: items.map(i => `${i.quantity}x`),
+                });
+                data = { success: true, data: { saleNumber: offlineSale.offlineId, totalAmount: cart.total } };
+            }
+
             if (data.success) {
                 clearCart();
                 setShowPayment(false);
@@ -195,12 +250,16 @@ export default function AcaiPOSPage() {
                 setCardGiven('');
                 setTransferGiven('');
                 loadProducts(true);
-                notify('success', `✅ Venta ${data.data.saleNumber} — Bs. ${data.data.totalAmount.toFixed(2)}`);
+                if (isOffline) {
+                    notify('success', `✅ Venta OFFLINE guardada: ${data.data.saleNumber} — Pendiente de sincronización`);
+                } else {
+                    notify('success', `✅ Venta ${data.data.saleNumber} — Bs. ${data.data.totalAmount.toFixed(2)}`);
+                }
             } else {
                 notify('error', data.error || 'Error al registrar la venta');
             }
-        } catch {
-            notify('error', 'Error de conexión');
+        } catch (e: any) {
+            notify('error', e.message || 'Error desconocido');
         } finally {
             setProcessing(false);
         }
@@ -268,8 +327,21 @@ export default function AcaiPOSPage() {
                         </div>
                     </div>
 
-                    {/* ── Balanza: botones duales USB / Red ── */}
+                    {/* Offline / Online status y Balanza */}
                     <div className="flex items-center gap-2 relative">
+                        
+                        {/* Indicador Offline */}
+                        {offlineQueue.length > 0 ? (
+                            <button onClick={handleSync} disabled={isSyncing} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 transition mr-2">
+                                {isSyncing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <WifiOff className="h-4 w-4" />}
+                                <span className="hidden md:inline">Offline</span>
+                                <span className="bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-black">{offlineQueue.length}</span>
+                            </button>
+                        ) : (
+                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold bg-green-500/10 text-green-400 border border-green-500/20 mr-2" title="Online y sincronizado">
+                                <Wifi className="h-4 w-4" />
+                            </div>
+                        )}
 
                         {/* Estado cuando está conectado */}
                         {scaleStatus === 'connected' || scaleStatus === 'reading' ? (
@@ -794,7 +866,7 @@ export default function AcaiPOSPage() {
                             {(selectedPayment === 'CASH' || selectedPayment === 'MIXED') && (
                                 <div className="bg-white/5 rounded-xl p-4 space-y-2">
                                     <label className="block text-sm font-medium text-white/70">💵 Efectivo</label>
-                                    <input type="number" step="0.01" value={cashGiven === 0 ? '' : cashGiven}
+                                    <input type="number" step="0.01" value={cashGiven === '0' ? '' : cashGiven}
                                         onChange={e => setCashGiven(e.target.value)}
                                         placeholder={cart.total.toFixed(2)}
                                         className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-white/20" />
@@ -804,7 +876,7 @@ export default function AcaiPOSPage() {
                             {(selectedPayment === 'CARD' || selectedPayment === 'MIXED') && (
                                 <div className="bg-white/5 rounded-xl p-4 space-y-2">
                                     <label className="block text-sm font-medium text-white/70">💳 Tarjeta</label>
-                                    <input type="number" step="0.01" value={cardGiven === 0 ? '' : cardGiven}
+                                    <input type="number" step="0.01" value={cardGiven === '0' ? '' : cardGiven}
                                         onChange={e => setCardGiven(e.target.value)}
                                         placeholder=""
                                         className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-white/20" />
@@ -814,7 +886,7 @@ export default function AcaiPOSPage() {
                             {(selectedPayment === 'TRANSFER' || selectedPayment === 'MIXED') && (
                                 <div className="bg-white/5 rounded-xl p-4 space-y-2">
                                     <label className="block text-sm font-medium text-white/70">📲 QR</label>
-                                    <input type="number" step="0.01" value={transferGiven === 0 ? '' : transferGiven}
+                                    <input type="number" step="0.01" value={transferGiven === '0' ? '' : transferGiven}
                                         onChange={e => setTransferGiven(e.target.value)}
                                         placeholder=""
                                         className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-white/20" />

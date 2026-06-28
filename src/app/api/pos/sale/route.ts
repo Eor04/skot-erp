@@ -26,6 +26,7 @@ export async function POST(request: NextRequest) {
             items,
             discount,
             extrasTotal = 0,   // monto de extras (modificadores sueltos sin productId real)
+            createdAt,         // fecha original si viene de cola offline
         } = body;
 
         // Validaciones
@@ -123,10 +124,14 @@ export async function POST(request: NextRequest) {
                     });
 
                     if (!inv || inv.currentStock < data.qty) {
-                        return NextResponse.json(
-                            { success: false, error: `Stock insuficiente para ${inv?.product.name || data.name}. Solicitado: ${data.qty.toFixed(2)}, Disponible: ${inv?.currentStock.toFixed(2) || 0}` },
-                            { status: 400 }
-                        );
+                        // Si es una venta offline (tiene createdAt), permitimos que pase a negativo
+                        // para no bloquear la sincronización de una venta que ya ocurrió.
+                        if (!createdAt) {
+                            return NextResponse.json(
+                                { success: false, error: `Stock insuficiente para ${inv?.product.name || data.name}. Solicitado: ${data.qty.toFixed(2)}, Disponible: ${inv?.currentStock.toFixed(2) || 0}` },
+                                { status: 400 }
+                            );
+                        }
                     }
                 }
 
@@ -136,6 +141,7 @@ export async function POST(request: NextRequest) {
                     const newSale = await tx.sale.create({
                         data: {
                             branchId, userId, saleNumber, totalAmount,
+                            createdAt: createdAt ? new Date(createdAt) : undefined,
                             paymentMethod: paymentMethod as any,
                             salesChannel: salesChannel as any,
                             cashAmount: cashAmount ?? null,

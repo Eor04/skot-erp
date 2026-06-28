@@ -144,7 +144,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                     {(selectedMethod === PaymentMethod.CASH || selectedMethod === PaymentMethod.MIXED) && (
                         <div>
                             <label className="block text-sm font-medium text-gray-600 mb-1">💵 Efectivo</label>
-                            <input type="number" step="0.01" value={cashAmount === 0 ? '' : cashAmount}
+                            <input type="number" step="0.01" value={cashAmount === '0' ? '' : cashAmount}
                                 onChange={e => setCashAmount(e.target.value)}
                                 className={inputClass} placeholder="" />
                         </div>
@@ -152,7 +152,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                     {(selectedMethod === PaymentMethod.CARD || selectedMethod === PaymentMethod.MIXED) && (
                         <div>
                             <label className="block text-sm font-medium text-gray-600 mb-1">💳 Tarjeta</label>
-                            <input type="number" step="0.01" value={cardAmount === 0 ? '' : cardAmount}
+                            <input type="number" step="0.01" value={cardAmount === '0' ? '' : cardAmount}
                                 onChange={e => setCardAmount(e.target.value)}
                                 className={inputClass} placeholder="" />
                         </div>
@@ -160,7 +160,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                     {(selectedMethod === PaymentMethod.TRANSFER || selectedMethod === PaymentMethod.MIXED) && (
                         <div>
                             <label className="block text-sm font-medium text-gray-600 mb-1">📲 QR</label>
-                            <input type="number" step="0.01" value={transferAmount === 0 ? '' : transferAmount}
+                            <input type="number" step="0.01" value={transferAmount === '0' ? '' : transferAmount}
                                 onChange={e => setTransferAmount(e.target.value)}
                                 className={inputClass} placeholder="" />
                         </div>
