@@ -1,16 +1,22 @@
+// Datos actuales por petición; no generar respuestas de API durante el build.
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma, withRetry } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
 
 // GET: Obtener alertas de stock activas
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const branchId = searchParams.get('branchId');
+        const access = await requireBranchAccess(request, branchId);
+        if (access instanceof NextResponse) return access;
 
         // 1. Obtener todo el inventario disponible con sus productos
         const allInventory = await withRetry(() => prisma.inventory.findMany({
             where: {
-                ...(branchId && { branchId }),
+                branchId: branchId || { in: access.allowedBranchIds },
                 status: 'AVAILABLE',
             },
             include: {
@@ -34,7 +40,7 @@ export async function GET(request: NextRequest) {
             const movements = await withRetry(() => prisma.stockMovement.findMany({
                 where: {
                     productId: { in: lowStockItems.map(i => i.productId) },
-                    ...(branchId && { branchId }),
+                    branchId: branchId || { in: access.allowedBranchIds },
                     type: 'SALIDA',
                     createdAt: { gte: sevenDaysAgo },
                 },
@@ -73,7 +79,7 @@ export async function GET(request: NextRequest) {
 
         const expiringItems = await prisma.inventory.findMany({
             where: {
-                ...(branchId && { branchId }),
+                branchId: branchId || { in: access.allowedBranchIds },
                 expirationDate: { lte: thirtyDaysFromNow, gte: new Date() },
             },
             include: {
@@ -86,7 +92,7 @@ export async function GET(request: NextRequest) {
         const pendingOrders = await prisma.internalOrder.findMany({
             where: {
                 status: 'PENDING',
-                ...(branchId && { toBranchId: branchId }),
+                toBranchId: branchId || { in: access.allowedBranchIds },
             },
             include: {
                 fromBranch: { select: { name: true } },
@@ -98,7 +104,7 @@ export async function GET(request: NextRequest) {
         const pendingTransfers = await prisma.stockTransfer.findMany({
             where: {
                 status: 'PENDING',
-                ...(branchId && { fromBranchId: branchId }),
+                fromBranchId: branchId || { in: access.allowedBranchIds },
             },
             include: {
                 fromBranch: { select: { name: true } },

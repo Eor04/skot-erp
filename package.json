@@ -13,7 +13,7 @@
     "prisma:seed": "tsx prisma/seed.ts",
     "prisma:studio": "prisma studio",
     "prisma:reset": "prisma migrate reset",
-    "test:connection": "tsx src/lib/test-connection.ts"
+    "test:connection": "tsx scripts/diagnostics/test-connection.ts"
   },
   "keywords": [
     "erp",

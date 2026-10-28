@@ -1,11 +1,17 @@
+// Datos actuales por petición; no generar respuestas de API durante el build.
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
 
 // GET: Obtener historial de movimientos (Kardex)
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const branchId = searchParams.get('branchId');
+        const access = await requireBranchAccess(request, branchId);
+        if (access instanceof NextResponse) return access;
         const productId = searchParams.get('productId');
         const type = searchParams.get('type');
         const startDate = searchParams.get('startDate');
@@ -13,7 +19,7 @@ export async function GET(request: NextRequest) {
 
         const movements = await prisma.stockMovement.findMany({
             where: {
-                ...(branchId && { branchId }),
+                branchId: branchId || { in: access.allowedBranchIds },
                 ...(productId && { productId }),
                 ...(type && { type }),
                 ...(startDate && { createdAt: { gte: new Date(startDate) } }),

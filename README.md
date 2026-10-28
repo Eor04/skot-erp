@@ -365,6 +365,8 @@ vercel --prod
 
 ## Scripts Disponibles
 
+La organización y el uso de las herramientas auxiliares se describen en [docs/scripts.md](docs/scripts.md).
+
 ```bash
 # Desarrollo
 npm run dev                    # Servidor de desarrollo (http://localhost:3000)

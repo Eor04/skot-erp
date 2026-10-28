@@ -39,3 +39,6 @@ next-env.d.ts
 # OS
 .DS_Store
 Thumbs.db
+
+# Local test PostgreSQL data and credentials
+.local/test-db/

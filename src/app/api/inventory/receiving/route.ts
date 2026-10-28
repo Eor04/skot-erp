@@ -1,5 +1,9 @@
+// Datos actuales por petición; no generar respuestas de API durante el build.
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
 
 /**
  * POST /api/inventory/receiving
@@ -106,13 +110,15 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const branchId = searchParams.get('branchId');
+        const access = await requireBranchAccess(request, branchId);
+        if (access instanceof NextResponse) return access;
         const limit = parseInt(searchParams.get('limit') || '50');
 
         const movements = await prisma.stockMovement.findMany({
             where: {
                 type: 'ENTRADA',
                 reference: { startsWith: 'REC-' },
-                ...(branchId && { branchId }),
+                branchId: branchId || { in: access.allowedBranchIds },
             },
             include: {
                 product: { select: { id: true, name: true, sku: true, unit: true } },

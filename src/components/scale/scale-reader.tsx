@@ -152,7 +152,7 @@ export function ScaleReader({
             <div className={styles.controls}>
                 {status === 'disconnected' || status === 'error' ? (
                     <button
-                        onClick={connect}
+                        onClick={() => connect()}
                         className={`${styles.button} ${styles.buttonConnect}`}
                         disabled={!isSupported}
                     >

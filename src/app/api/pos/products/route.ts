@@ -1,5 +1,9 @@
+// Datos actuales por petición; no generar respuestas de API durante el build.
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
 
 /**
  * GET /api/pos/products?branchId=xxx&type=BURGER|ACAI
@@ -17,6 +21,9 @@ export async function GET(request: NextRequest) {
                 { status: 400 }
             );
         }
+
+        const access = await requireBranchAccess(request, branchId);
+        if (access instanceof NextResponse) return access;
 
         // Construir filtro de tipos
         const typeFilter: string[] = [];

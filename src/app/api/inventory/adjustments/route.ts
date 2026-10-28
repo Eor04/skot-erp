@@ -1,5 +1,10 @@
+// Datos actuales por petición; no generar respuestas de API durante el build.
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
+import { serializableTransaction, OperationError } from '@/lib/transaction';
 
 /**
  * POST /api/inventory/adjustments
@@ -8,10 +13,12 @@ import { prisma } from '@/lib/prisma';
  */
 export async function POST(request: NextRequest) {
     try {
+        const actor = await requireBranchAccess(request, null, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
+        if (actor instanceof NextResponse) return actor;
         const body = await request.json();
         const { branchId, productId, type, quantity, reason, createdBy } = body;
 
-        if (!branchId || !productId || !type || !quantity || !createdBy) {
+        if (!branchId || !productId || !type || quantity === undefined || quantity === null || quantity === '' || !createdBy) {
             return NextResponse.json(
                 { success: false, error: 'Faltan campos requeridos: branchId, productId, type, quantity, createdBy' },
                 { status: 400 }
@@ -25,42 +32,41 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const qty = parseFloat(quantity);
-        if (isNaN(qty) || qty === 0) {
+        if (!actor.allowedBranchIds.includes(branchId)) throw new OperationError('Sucursal no permitida', 403);
+        const qty = Number(quantity);
+        if (!Number.isFinite(qty) || qty < 0 || (type !== 'AJUSTE' && qty === 0) || (typeof quantity === 'string' && !quantity.trim())) {
             return NextResponse.json(
-                { success: false, error: 'La cantidad debe ser un número distinto de cero' },
+                { success: false, error: 'La cantidad debe ser positiva; solo AJUSTE permite cero' },
                 { status: 400 }
             );
         }
 
-        // Buscar inventario actual
-        const inventory = await prisma.inventory.findUnique({
-            where: { branchId_productId: { branchId, productId } },
-        });
-
-        const previousStock = inventory?.currentStock ?? 0;
-        let newStock: number;
-
-        if (type === 'AJUSTE') {
-            // Corrección: qty es el stock nuevo absoluto
-            newStock = qty;
-        } else if (type === 'ENTRADA') {
-            newStock = previousStock + Math.abs(qty);
-        } else {
-            // SALIDA
-            newStock = previousStock - Math.abs(qty);
-            if (newStock < 0) {
-                return NextResponse.json(
-                    { success: false, error: `Stock insuficiente. Actual: ${previousStock}, solicitado: ${Math.abs(qty)}` },
-                    { status: 400 }
-                );
-            }
-        }
-
-        const movementQty = type === 'AJUSTE' ? newStock - previousStock : (type === 'ENTRADA' ? Math.abs(qty) : -Math.abs(qty));
-
         // Transacción atómica: actualizar inventario + crear movimiento kardex
-        const result = await prisma.$transaction(async (tx) => {
+        const result = await serializableTransaction(async (tx) => {
+            // Buscar inventario actual
+            const inventory = await tx.inventory.findUnique({
+                where: { branchId_productId: { branchId, productId } },
+            });
+
+            const previousStock = inventory?.currentStock ?? 0;
+            let newStock: number;
+
+            if (type === 'AJUSTE') {
+                // Corrección: qty es el stock nuevo absoluto
+                newStock = qty;
+            } else if (type === 'ENTRADA') {
+                newStock = previousStock + Math.abs(qty);
+            } else {
+                // SALIDA
+                newStock = previousStock - Math.abs(qty);
+                if (newStock < 0) {
+                    throw new OperationError(`Stock insuficiente. Actual: ${previousStock}, solicitado: ${qty}`);
+                }
+            }
+
+            const movementQty = type === 'AJUSTE' ? newStock - previousStock : (type === 'ENTRADA' ? Math.abs(qty) : -Math.abs(qty));
+
+
             // Upsert del inventario
             const inv = await tx.inventory.upsert({
                 where: { branchId_productId: { branchId, productId } },
@@ -89,7 +95,7 @@ export async function POST(request: NextRequest) {
                     newStock,
                     reference: `ADJ-${Date.now()}`,
                     notes: reason || 'Ajuste manual de stock',
-                    createdBy,
+                    createdBy: actor.userId,
                 },
                 include: {
                     product: { select: { name: true, unit: true } },
@@ -103,9 +109,10 @@ export async function POST(request: NextRequest) {
         return NextResponse.json({
             success: true,
             data: result,
-            message: `Stock ajustado: ${previousStock} → ${newStock}`,
+            message: `Stock ajustado: ${result.movement.previousStock} → ${result.inventory.currentStock}`,
         }, { status: 201 });
     } catch (error) {
+        if (error instanceof OperationError) return NextResponse.json({ success: false, error: error.message }, { status: error.status });
         console.error('POST /api/inventory/adjustments:', error);
         return NextResponse.json({ success: false, error: 'Error al ajustar el stock' }, { status: 500 });
     }
@@ -119,13 +126,15 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const branchId = searchParams.get('branchId');
+        const access = await requireBranchAccess(request, branchId);
+        if (access instanceof NextResponse) return access;
         const limit = parseInt(searchParams.get('limit') || '50');
 
         const movements = await prisma.stockMovement.findMany({
             where: {
                 type: { in: ['ENTRADA', 'SALIDA', 'AJUSTE'] },
                 reference: { startsWith: 'ADJ-' },
-                ...(branchId && { branchId }),
+                branchId: branchId || { in: access.allowedBranchIds },
             },
             include: {
                 product: { select: { id: true, name: true, sku: true, unit: true } },

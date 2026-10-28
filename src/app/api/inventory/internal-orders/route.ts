@@ -1,14 +1,20 @@
+// Datos actuales por petición; no generar respuestas de API durante el build.
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
 
 // GET: Listar pedidos internos
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const branchId = searchParams.get('branchId');
+        const access = await requireBranchAccess(request, branchId);
+        if (access instanceof NextResponse) return access;
         const status = searchParams.get('status');
 
-        const where: any = {};
+        const where: any = { AND: [{ OR: [{ fromBranchId: { in: access.allowedBranchIds } }, { toBranchId: { in: access.allowedBranchIds } }] }] };
         if (branchId) where.OR = [{ fromBranchId: branchId }, { toBranchId: branchId }];
         if (status) where.status = status;
 

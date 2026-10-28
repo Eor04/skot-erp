@@ -61,18 +61,29 @@ export default function PurchaseOrdersPage() {
     async function loadAll(branchId?: string) {
         setLoading(true);
         const bid = branchId || form.branchId || '';
-        const [ordRes, brRes, prodRes] = await Promise.all([
-            fetch(`/api/admin/purchase-orders${bid ? `?branchId=${bid}` : ''}&limit=50`).then(r => r.json()),
-            fetch('/api/admin/branches').then(r => r.json()),
-            fetch('/api/admin/products').then(r => r.json()),
-        ]);
-        if (ordRes.success) setOrders(ordRes.data);
-        if (brRes.success) setBranches(brRes.data);
-        if (prodRes.success) setProducts(prodRes.data);
-        setLoading(false);
+        const query = new URLSearchParams({ limit: '50' });
+        if (bid) query.set('branchId', bid);
+        try {
+            const [ordRes, brRes, prodRes] = await Promise.all([
+                fetch(`/api/admin/purchase-orders?${query}`).then(r => r.json()),
+                fetch('/api/admin/branches').then(r => r.json()),
+                fetch('/api/admin/products').then(r => r.json()),
+            ]);
+            if (!ordRes.success || !brRes.success || !prodRes.success) {
+                throw new Error(ordRes.error || brRes.error || prodRes.error || 'Error al cargar compras');
+            }
+            setOrders(ordRes.data);
+            setBranches(brRes.data);
+            setProducts(prodRes.data);
+        } catch (error) {
+            showToast('error', error instanceof Error ? error.message : 'Error de conexión');
+        } finally {
+            setLoading(false);
+        }
     }
 
     useEffect(() => {
+        if (!user) return;
         if (!isAdmin && user?.branchIds?.[0]) setForm(f => ({ ...f, branchId: user!.branchIds![0] }));
         loadAll();
         // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -412,13 +423,13 @@ export default function PurchaseOrdersPage() {
                                             <div className="grid grid-cols-3 gap-2">
                                                 <div>
                                                     <label className="text-xs text-white/60">Cantidad *</label>
-                                                    <input type="number" min="0.01" step="0.01" value={item.quantity === 0 ? '' : item.quantity}
+                                                    <input type="number" min="0.01" step="0.01" value={item.quantity}
                                                         onChange={e => updateItem(i, 'quantity', e.target.value)}
                                                         className="w-full border border-white/10 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300" />
                                                 </div>
                                                 <div>
                                                     <label className="text-xs text-white/60">Costo unit. (Bs.)</label>
-                                                    <input type="number" min="0" step="0.01" value={item.unitCost === 0 ? '' : item.unitCost}
+                                                    <input type="number" min="0" step="0.01" value={item.unitCost}
                                                         onChange={e => updateItem(i, 'unitCost', e.target.value)}
                                                         placeholder=""
                                                         className="w-full border border-white/10 rounded-lg px-2 py-1.5 text-sm focus:outline-none focus:ring-1 focus:ring-indigo-300" />

@@ -1,5 +1,9 @@
+// Datos actuales por petición; no generar respuestas de API durante el build.
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
 
 /**
  * POST /api/cash-close — Registrar cierre de caja
@@ -148,10 +152,12 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const branchId = searchParams.get('branchId');
+        const access = await requireBranchAccess(request, branchId);
+        if (access instanceof NextResponse) return access;
         const limit = parseInt(searchParams.get('limit') || '30');
 
         const cashCloses = await prisma.cashRegisterClose.findMany({
-            where: branchId ? { branchId } : {},
+            where: { branchId: branchId || { in: access.allowedBranchIds } },
             include: {
                 branch: { select: { name: true, type: true } },
                 user: { select: { name: true } },

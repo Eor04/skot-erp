@@ -1,5 +1,9 @@
+// Datos actuales por petición; no generar respuestas de API durante el build.
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
 
 // GET: Listar transferencias
 export async function GET(request: NextRequest) {
@@ -8,10 +12,13 @@ export async function GET(request: NextRequest) {
         const fromBranchId = searchParams.get('fromBranchId');
         const toBranchId = searchParams.get('toBranchId');
         const branchId = searchParams.get('branchId');
+        const access = await requireBranchAccess(request, branchId);
+        if (access instanceof NextResponse) return access;
         const status = searchParams.get('status');
 
         const transfers = await prisma.stockTransfer.findMany({
             where: {
+                AND: [{ OR: [{ fromBranchId: { in: access.allowedBranchIds } }, { toBranchId: { in: access.allowedBranchIds } }] }],
                 ...(fromBranchId && { fromBranchId }),
                 ...(toBranchId && { toBranchId }),
                 ...(branchId && {
@@ -88,6 +95,12 @@ export async function POST(request: NextRequest) {
                 },
                 { status: 400 }
             );
+        }
+
+        const access = await requireBranchAccess(request, fromBranchId, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
+        if (access instanceof NextResponse) return access;
+        if (items.some((item: any) => !Number.isFinite(item.requestedQty) || item.requestedQty <= 0)) {
+            return NextResponse.json({ success: false, error: 'Cantidad de transferencia inválida' }, { status: 400 });
         }
 
         // Validar disponibilidad de stock

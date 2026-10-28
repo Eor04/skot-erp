@@ -60,9 +60,22 @@ export default function AcaiPOSPage() {
         addExtra, decrementExtra, removeExtra, clearCart,
     } = useAcaiSale(branchId, userId);
 
-    const [scaleIp,      setScaleIp]      = useState(() => localStorage.getItem('skot_scale_ip') || '192.168.1.100');
+    const [scaleIp,      setScaleIp]      = useState('192.168.1.100');
     const [showNetCfg,   setShowNetCfg]   = useState(false);
     const [scaleIpInput, setScaleIpInput] = useState(scaleIp);
+
+    // Leer la configuración guardada después del montaje, solo en el navegador.
+    useEffect(() => {
+        try {
+            const savedIp = localStorage.getItem('skot_scale_ip');
+            if (savedIp) {
+                setScaleIp(savedIp);
+                setScaleIpInput(savedIp);
+            }
+        } catch {
+            // Mantener la IP predeterminada si el navegador bloquea el almacenamiento.
+        }
+    }, []);
 
     const wsUrl = `ws://localhost:8765`;
 

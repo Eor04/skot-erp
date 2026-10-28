@@ -1,132 +1,70 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
-import { requireAdminOrManager } from '@/lib/require-role';
+import { requireBranchAccess } from '@/lib/branch-access';
+import { serializableTransaction, OperationError } from '@/lib/transaction';
 
-/**
- * PATCH /api/admin/purchase-orders/[id]
- * Actualiza el estado de un pedido (SENT, RECEIVED, CANCELLED)
- * Body: { status, receivedDate?, notes? }
- *
- * Si status === 'RECEIVED': actualiza items.receivedQty y puede ajustar stock.
- */
-export async function PATCH(
-    request: NextRequest,
-    { params }: { params: { id: string } }
-) {
+const include = {
+    branch: { select: { id: true, name: true } },
+    user: { select: { id: true, name: true } },
+    items: { include: { product: { select: { name: true, unit: true } } } },
+};
+
+/** Los estados terminales no pueden reabrirse ni aplicar existencias otra vez. */
+export async function PATCH(request: NextRequest, { params }: { params: { id: string } }) {
     try {
-        // Solo ADMIN y MANAGER pueden actualizar pedidos
-        const authCheck = await requireAdminOrManager(request);
-        if (authCheck instanceof NextResponse) return authCheck;
-
-        const body = await request.json();
-        const { status, receivedDate, notes, itemsReceived } = body;
-        // itemsReceived: [{ id: purchaseOrderItemId, receivedQty: number }]
-
-        if (!status) {
-            return NextResponse.json(
-                { success: false, error: 'status es requerido' },
-                { status: 400 }
-            );
+        const access = await requireBranchAccess(request, null, ['ADMIN', 'MANAGER']);
+        if (access instanceof NextResponse) return access;
+        const { status, receivedDate, notes, itemsReceived } = await request.json();
+        if (!['SENT', 'RECEIVED', 'CANCELLED'].includes(status)) {
+            return NextResponse.json({ success: false, error: 'Estado inválido' }, { status: 400 });
         }
-
-        const existing = await prisma.purchaseOrder.findUnique({
-            where: { id: params.id },
-            include: { items: true },
-        });
-
-        if (!existing) {
-            return NextResponse.json({ success: false, error: 'Pedido no encontrado' }, { status: 404 });
+        if (receivedDate && !Number.isFinite(Date.parse(receivedDate))) {
+            return NextResponse.json({ success: false, error: 'Fecha de recepción inválida' }, { status: 400 });
         }
-
-        // Actualizar el pedido
-        const updated = await prisma.$transaction(async (tx) => {
-            // Actualizar items recibidos si se proporcionan
-            if (itemsReceived?.length) {
-                for (const ir of itemsReceived) {
-                    await tx.purchaseOrderItem.update({
-                        where: { id: ir.id },
-                        data: { receivedQty: ir.receivedQty },
-                    });
-                }
+        const updated = await serializableTransaction(async tx => {
+            const order = await tx.purchaseOrder.findUnique({ where: { id: params.id }, include });
+            if (!order) throw new OperationError('Pedido no encontrado', 404);
+            if (!access.allowedBranchIds.includes(order.branchId)) throw new OperationError('Sucursal no permitida', 403);
+            if (order.status === status) return order;
+            if (['RECEIVED', 'CANCELLED'].includes(order.status)) throw new OperationError('No se puede modificar un pedido finalizado', 409);
+            if (itemsReceived !== undefined && (!Array.isArray(itemsReceived) || status !== 'RECEIVED')) {
+                throw new OperationError('Los ítems recibidos requieren el estado RECEIVED');
             }
-
-            // Si el pedido es RECEIVED, actualizar stock de los items
+            const quantities = new Map<string, number>();
+            for (const item of itemsReceived ?? []) {
+                const original = order.items.find(i => i.id === item.id);
+                if (!original || quantities.has(item.id) || typeof item.receivedQty !== 'number' ||
+                    !Number.isFinite(item.receivedQty) || item.receivedQty < 0 || item.receivedQty > original.quantity) {
+                    throw new OperationError('Ítem o cantidad recibida inválidos');
+                }
+                quantities.set(item.id, item.receivedQty);
+            }
             if (status === 'RECEIVED') {
-                const items = itemsReceived?.length
-                    ? existing.items.map(i => ({
-                        ...i,
-                        receivedQty: itemsReceived.find((ir: any) => ir.id === i.id)?.receivedQty ?? i.receivedQty,
-                    }))
-                    : existing.items;
-
-                for (const item of items) {
-                    const qty = (item as any).receivedQty || item.quantity;
-                    if (qty <= 0) continue;
-
-                    // Buscar inventario existente en la sucursal
-                    const inv = await tx.inventory.findFirst({
-                        where: { branchId: existing.branchId, productId: item.productId },
-                    });
-
-                    if (inv) {
-                        // Actualizar stock existente
-                        await tx.inventory.update({
-                            where: { id: inv.id },
-                            data: { currentStock: { increment: qty }, lastUpdated: new Date() },
-                        });
-                    } else {
-                        // Crear nueva entrada de inventario
-                        await tx.inventory.create({
-                            data: {
-                                branchId: existing.branchId,
-                                productId: item.productId,
-                                currentStock: qty,
-                                minStock: 0,
-                                lastUpdated: new Date(),
-                            },
-                        });
-                    }
-
-                    // Registrar movimiento en kardex
-                    const prevStock = inv?.currentStock ?? 0;
-                    await tx.stockMovement.create({
-                        data: {
-                            branchId:      existing.branchId,
-                            productId:     item.productId,
-                            type:          'IN',
-                            quantity:      qty,
-                            previousStock: prevStock,
-                            newStock:      prevStock + qty,
-                            notes:         `Recepción pedido ${existing.orderNumber}`,
-                            reference:     existing.id,
-                            createdBy:     existing.userId,
-                        },
-                    });
+                for (const item of order.items) {
+                    // Cero explícito significa que no llegó ese ítem.
+                    const qty = quantities.get(item.id) ?? item.quantity;
+                    await tx.purchaseOrderItem.update({ where: { id: item.id }, data: { receivedQty: qty } });
+                    if (qty === 0) continue;
+                    const key = { branchId: order.branchId, productId: item.productId };
+                    const inv = await tx.inventory.findUnique({ where: { branchId_productId: key } });
+                    const after = await tx.inventory.upsert({ where: { branchId_productId: key },
+                        create: { ...key, currentStock: qty, minStock: 0 },
+                        update: { currentStock: { increment: qty }, lastUpdated: new Date() } });
+                    await tx.stockMovement.create({ data: {
+                        ...key, inventoryId: after.id, type: 'ENTRADA', quantity: qty,
+                        previousStock: inv?.currentStock ?? 0, newStock: after.currentStock,
+                        reference: order.id, createdBy: access.userId, notes: `Recepción pedido ${order.orderNumber}`,
+                    } });
                 }
             }
-
-            // Actualizar el pedido
-            return tx.purchaseOrder.update({
-                where: { id: params.id },
-                data: {
-                    status: status as any,
-                    ...(receivedDate ? { receivedDate: new Date(receivedDate) } : {}),
-                    ...(notes !== undefined ? { notes } : {}),
-                },
-                include: {
-                    branch: { select: { id: true, name: true } },
-                    user: { select: { id: true, name: true } },
-                    items: { include: { product: { select: { name: true, unit: true } } } },
-                },
-            });
+            return tx.purchaseOrder.update({ where: { id: order.id }, data: {
+                status, ...(status === 'RECEIVED' ? { receivedDate: receivedDate ? new Date(receivedDate) : new Date() } : {}),
+                ...(notes !== undefined ? { notes } : {}),
+            }, include });
         });
-
         return NextResponse.json({ success: true, data: updated });
-    } catch (error: any) {
-        console.error('PATCH /api/admin/purchase-orders/[id]:', error);
-        return NextResponse.json(
-            { success: false, error: error.message || 'Error al actualizar pedido' },
-            { status: 500 }
-        );
+    } catch (error) {
+        if (error instanceof OperationError) return NextResponse.json({ success: false, error: error.message }, { status: error.status });
+        console.error('Error al actualizar pedido:', error);
+        return NextResponse.json({ success: false, error: 'Error al actualizar pedido' }, { status: 500 });
     }
 }

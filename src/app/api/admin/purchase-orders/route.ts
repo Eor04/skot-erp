@@ -1,5 +1,9 @@
+// Datos actuales por petición; no generar respuestas de API durante el build.
+export const dynamic = 'force-dynamic';
+
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
 
 /**
  * GET /api/admin/purchase-orders
@@ -9,12 +13,14 @@ export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const branchId = searchParams.get('branchId');
+        const access = await requireBranchAccess(request, branchId, ['ADMIN', 'MANAGER']);
+        if (access instanceof NextResponse) return access;
         const status = searchParams.get('status');
         const limit = parseInt(searchParams.get('limit') || '50');
 
         const orders = await prisma.purchaseOrder.findMany({
             where: {
-                ...(branchId && { branchId }),
+                branchId: branchId || { in: access.allowedBranchIds },
                 ...(status && { status: status as any }),
                 deletedAt: null,
             },
@@ -47,6 +53,8 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { branchId, userId, supplier, expectedDate, notes, items } = body;
+        const access = await requireBranchAccess(request, branchId, ['ADMIN', 'MANAGER']);
+        if (access instanceof NextResponse) return access;
 
         if (!branchId || !userId || !supplier || !items?.length) {
             return NextResponse.json(
