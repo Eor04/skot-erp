@@ -1,6 +1,11 @@
 import type { Metadata } from 'next';
 import './globals.css';
+import './pase-de-cocina.css';
 import { SessionProvider } from '@/lib/session-context';
+import localFont from 'next/font/local';
+
+const lexend = localFont({ src: '../assets/fonts/lexend-latin.woff2', variable: '--font-lexend', display: 'swap', weight: '100 900' });
+const sourceSans = localFont({ src: '../assets/fonts/source-sans-3-latin.woff2', variable: '--font-source-sans', display: 'swap', weight: '200 900' });
 
 export const metadata: Metadata = {
     title: 'Skot ERP',
@@ -37,7 +42,7 @@ export default function RootLayout({
                     }}
                 />
             </head>
-            <body>
+            <body className={`${lexend.variable} ${sourceSans.variable}`}>
                 <SessionProvider>
                     {children}
                 </SessionProvider>

@@ -1,135 +1,42 @@
-/**
- * Componente: Modal de Selección de Modificadores
- * Permite seleccionar modificadores para un producto con checkbox múltiple
- */
-
 'use client';
 
-import { ProductModifier } from '@prisma/client';
 import { useState } from 'react';
+import type { ProductModifier } from '@prisma/client';
+import { Dialog } from '@/components/ui/dialog';
+import { Button } from '@/components/ui/button';
 
 interface ModifierModalProps {
     isOpen: boolean;
     onClose: () => void;
     productName: string;
+    basePrice: number;
     availableModifiers: ProductModifier[];
     onConfirm: (selectedModifiers: ProductModifier[]) => void;
 }
 
-export default function ModifierModal({
-    isOpen,
-    onClose,
-    productName,
-    availableModifiers,
-    onConfirm,
-}: ModifierModalProps) {
+export default function ModifierModal({ isOpen, onClose, productName, basePrice, availableModifiers, onConfirm }: ModifierModalProps) {
     const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
-
-    if (!isOpen) return null;
-
-    const toggleModifier = (modifierId: string) => {
-        const newSelected = new Set(selectedIds);
-        if (newSelected.has(modifierId)) {
-            newSelected.delete(modifierId);
-        } else {
-            newSelected.add(modifierId);
-        }
-        setSelectedIds(newSelected);
-    };
-
-    const handleConfirm = () => {
-        const selected = availableModifiers.filter((mod) => selectedIds.has(mod.id));
-        onConfirm(selected);
+    const close = () => { setSelectedIds(new Set()); onClose(); };
+    const toggle = (id: string) => setSelectedIds(previous => {
+        const next = new Set(previous);
+        if (next.has(id)) next.delete(id); else next.add(id);
+        return next;
+    });
+    const additional = availableModifiers.reduce((total, modifier) => total + (selectedIds.has(modifier.id) ? modifier.price : 0), 0);
+    const confirm = () => {
+        onConfirm(availableModifiers.filter(modifier => selectedIds.has(modifier.id)));
         setSelectedIds(new Set());
     };
 
-    const handleCancel = () => {
-        setSelectedIds(new Set());
-        onClose();
-    };
-
-    const totalAdditional = Array.from(selectedIds).reduce((sum, id) => {
-        const modifier = availableModifiers.find((m) => m.id === id);
-        return sum + (modifier?.price || 0);
-    }, 0);
-
-    return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-50">
-            <div className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4">
-                {/* Header */}
-                <div className="px-6 py-4 border-b border-gray-200">
-                    <h2 className="text-xl font-bold text-gray-800">
-                        Modificadores: {productName}
-                    </h2>
-                    <p className="text-sm text-gray-500 mt-1">
-                        Selecciona los modificadores que deseas agregar
-                    </p>
-                </div>
-
-                {/* Lista de modificadores */}
-                <div className="px-6 py-4 max-h-96 overflow-y-auto">
-                    {availableModifiers.length === 0 ? (
-                        <p className="text-gray-500 text-center py-8">
-                            No hay modificadores disponibles para este producto
-                        </p>
-                    ) : (
-                        <div className="space-y-3">
-                            {availableModifiers.map((modifier) => (
-                                <label
-                                    key={modifier.id}
-                                    className="flex items-center gap-3 p-3 border border-gray-200 rounded-lg cursor-pointer hover:bg-gray-50 transition"
-                                >
-                                    <input
-                                        type="checkbox"
-                                        checked={selectedIds.has(modifier.id)}
-                                        onChange={() => toggleModifier(modifier.id)}
-                                        className="w-5 h-5 text-orange-600 border-gray-300 rounded focus:ring-orange-500"
-                                    />
-                                    <div className="flex-1">
-                                        <div className="font-medium text-gray-800">
-                                            {modifier.name}
-                                        </div>
-                                        {modifier.description && (
-                                            <div className="text-sm text-gray-500">
-                                                {modifier.description}
-                                            </div>
-                                        )}
-                                    </div>
-                                    <div className="font-bold text-orange-600">
-                                        +Bs. {modifier.price.toFixed(2)}
-                                    </div>
-                                </label>
-                            ))}
-                        </div>
-                    )}
-                </div>
-
-                {/* Footer */}
-                <div className="px-6 py-4 border-t border-gray-200 bg-gray-50">
-                    <div className="flex items-center justify-between mb-4">
-                        <span className="text-sm text-gray-600">
-                            Total adicional:
-                        </span>
-                        <span className="text-lg font-bold text-orange-600">
-                            Bs. {totalAdditional.toFixed(2)}
-                        </span>
-                    </div>
-                    <div className="flex gap-3">
-                        <button
-                            onClick={handleCancel}
-                            className="flex-1 px-4 py-2 border border-gray-300 rounded-lg font-medium text-gray-700 hover:bg-gray-100 transition"
-                        >
-                            Cancelar
-                        </button>
-                        <button
-                            onClick={handleConfirm}
-                            className="flex-1 px-4 py-2 bg-orange-600 text-white rounded-lg font-medium hover:bg-orange-700 transition"
-                        >
-                            Confirmar
-                        </button>
-                    </div>
-                </div>
-            </div>
+    return <Dialog open={isOpen} onClose={close} labelledBy="burger-modifier-title">
+        <div className="border-b border-line-subtle p-5"><h2 id="burger-modifier-title" className="text-xl font-semibold">Personalizar {productName}</h2><p className="mt-1 text-sm text-muted">Precio base: <span className="tabular-nums">Bs. {basePrice.toFixed(2)}</span></p></div>
+        <div className="max-h-[50dvh] space-y-2 overflow-y-auto p-5">
+            {availableModifiers.length === 0 ? <p className="text-muted">No hay modificadores disponibles para este producto.</p> : availableModifiers.map(modifier => <label key={modifier.id} className="flex min-h-12 cursor-pointer items-center gap-3 rounded-lg border border-line-subtle p-3 hover:bg-canvas">
+                <input type="checkbox" checked={selectedIds.has(modifier.id)} onChange={() => toggle(modifier.id)} className="h-5 w-5 accent-brand" />
+                <span className="min-w-0 flex-1"><strong className="block break-words">{modifier.name}</strong>{modifier.description && <span className="block text-sm text-muted">{modifier.description}</span>}</span>
+                <span className="shrink-0 font-semibold tabular-nums text-brand">+ Bs. {modifier.price.toFixed(2)}</span>
+            </label>)}
         </div>
-    );
+        <div className="space-y-3 border-t border-line-subtle bg-canvas p-5"><div className="flex justify-between text-sm text-muted"><span>Modificadores</span><span className="tabular-nums">+ Bs. {additional.toFixed(2)}</span></div><div className="flex justify-between font-semibold"><span>Total por unidad</span><span className="font-display text-xl tabular-nums text-brand">Bs. {(basePrice + additional).toFixed(2)}</span></div><div className="flex gap-2"><Button variant="secondary" onClick={close} className="flex-1">Cancelar</Button><Button onClick={confirm} className="flex-1">Agregar al pedido</Button></div></div>
+    </Dialog>;
 }

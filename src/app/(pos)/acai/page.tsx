@@ -12,6 +12,8 @@ import {
     Wifi, WifiOff, Usb, Settings2, X, RefreshCw, Printer
 } from 'lucide-react';
 import CashGate from '@/components/pos/cash-gate';
+import { AcaiOrderSummary } from '@/components/pos/acai/order-summary';
+import { Dialog } from '@/components/ui/dialog';
 import { getOfflineQueue, saveToOfflineQueue, syncOfflineQueue, OfflineSale } from '@/lib/sync-manager';
 import { Comanda, printComanda } from '@/lib/pos/print-comanda';
 
@@ -329,15 +331,12 @@ export default function AcaiPOSPage() {
     // ── Render ───────────────────────────────────────────────────────────────
     return (
         <CashGate branchId={branchId} userId={userId} theme="acai">
-        <div className="flex h-screen bg-gradient-to-br from-purple-950 via-purple-900 to-indigo-900 relative overflow-hidden">
+        <div data-brand="acai" className="skot-experience skot-acai relative flex min-h-dvh min-w-0 flex-col lg:h-dvh lg:flex-row lg:overflow-hidden">
 
-            {/* Decoración de fondo */}
-            <div className="pointer-events-none absolute -top-32 -left-32 w-96 h-96 bg-purple-600/20 rounded-full blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-32 -right-32 w-96 h-96 bg-pink-600/20 rounded-full blur-3xl" />
 
             {/* Toast */}
             {notification && (
-                <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-6 py-3 rounded-2xl shadow-2xl text-white font-semibold text-sm backdrop-blur-sm border ${notification.type === 'success' ? 'bg-green-600/90 border-green-400/30' : 'bg-red-600/90 border-red-400/30'}`}>
+                <div role="status" className={`fixed left-4 right-4 top-4 z-50 flex items-center gap-2 rounded-xl px-5 py-3 text-sm font-semibold text-white shadow-lg sm:left-1/2 sm:right-auto sm:-translate-x-1/2 ${notification.type === 'success' ? 'bg-success' : 'bg-danger'}`}>
                     {notification.type === 'success' ? <CheckCircle className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
                     {notification.msg}
                 </div>
@@ -346,20 +345,20 @@ export default function AcaiPOSPage() {
             {/* ═══════════════════════════════════
                 PANEL IZQUIERDO – Pasos
             ═══════════════════════════════════ */}
-            <div className="flex-1 flex flex-col min-w-0">
+            <div className="acai-workspace flex min-w-0 min-h-0 flex-1 flex-col pb-24 lg:pb-0">
 
                 {/* Header */}
-                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
+                <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line-subtle bg-surface px-4 py-3 sm:px-6">
                     <div className="flex items-center gap-3">
-                        <Link href="/" className="text-purple-300 hover:text-white transition">
+                        <Link href="/" aria-label="Volver al dashboard" className="grid h-12 w-12 place-items-center rounded-lg border border-line text-brand hover:bg-canvas">
                             <ArrowLeft className="h-5 w-5" />
                         </Link>
                         <img src="/logo-acai.png" alt="Açaí"
                             className="h-8 w-auto object-contain"
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                         <div>
-                            <h1 className="text-white font-bold text-lg leading-tight">POS Açaí</h1>
-                            {user?.name && <p className="text-purple-300 text-xs">{user.name}</p>}
+                            <h1 className="text-lg font-semibold leading-tight text-ink">POS Açaí</h1>
+                            {user?.name && <p className="text-xs text-muted">{user.name}</p>}
                         </div>
                     </div>
 
@@ -368,32 +367,32 @@ export default function AcaiPOSPage() {
                         
                         {/* Indicador Offline */}
                         {offlineQueue.length > 0 ? (
-                            <button onClick={handleSync} disabled={isSyncing} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 transition mr-2">
-                                {isSyncing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <WifiOff className="h-4 w-4" />}
-                                <span className="hidden md:inline">Offline</span>
-                                <span className="bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-black">{offlineQueue.length}</span>
+                            <button onClick={handleSync} disabled={isSyncing} aria-label={`${offlineQueue.length} ventas pendientes. Reintentar sincronización`} className="mr-2 flex min-h-12 items-center gap-1.5 rounded-lg border border-line px-3 text-sm font-semibold text-warning hover:bg-[var(--status-warning-bg)] disabled:opacity-50">
+                                <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                                <span className="hidden md:inline">{isSyncing ? 'Sincronizando' : 'Ventas pendientes'}</span>
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-warning text-xs font-bold text-white">{offlineQueue.length}</span>
                             </button>
                         ) : (
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold bg-green-500/10 text-green-400 border border-green-500/20 mr-2" title="Online y sincronizado">
-                                <Wifi className="h-4 w-4" />
+                            <div className="mr-2 flex min-h-12 items-center gap-1.5 rounded-lg border border-line px-3 text-sm font-semibold text-muted" title="Sin ventas pendientes" aria-label="Sin ventas pendientes">
+                                <CheckCircle className="h-4 w-4" />
                             </div>
                         )}
 
                         {/* Estado cuando está conectado */}
                         {scaleStatus === 'connected' || scaleStatus === 'reading' ? (
                             <div className="flex items-center gap-2">
-                                <div className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold border ${
+                                <div className={`flex min-h-12 items-center gap-1.5 rounded-lg border border-line px-3 text-sm font-semibold ${
                                     scaleMode === 'network'
-                                        ? 'bg-blue-500/20 border-blue-400/40 text-blue-300'
-                                        : 'bg-green-500/20 border-green-400/40 text-green-300'
+                                        ? 'bg-[var(--status-info-bg)] text-info'
+                                        : 'bg-[var(--status-success-bg)] text-success'
                                 }`}>
                                     {scaleMode === 'network' ? <Wifi className="h-4 w-4" /> : <Scale className="h-4 w-4" />}
-                                    <span>{weight.toFixed(3)} kg{isStable ? ' ✓' : ' …'}</span>
+                                    <span>{cart.weightConfirmed ? `Peso confirmado: ${cart.totalWeight.toFixed(3)} kg` : `Lectura: ${weight.toFixed(3)} kg · ${isStable ? 'estable sin confirmar' : 'en curso'}`}</span>
                                     {isMockMode && <span className="text-xs opacity-60">(demo)</span>}
                                 </div>
                                 <button onClick={() => disconnect()}
-                                    className="p-1.5 rounded-lg bg-white/10 hover:bg-red-500/30 text-white/60 hover:text-red-300 transition border border-white/10"
-                                    title="Desconectar">
+                                    className="grid h-12 w-12 place-items-center rounded-lg border border-line text-danger hover:bg-[var(--status-error-bg)]"
+                                    aria-label="Desconectar balanza">
                                     <X className="h-3.5 w-3.5" />
                                 </button>
                             </div>
@@ -402,7 +401,7 @@ export default function AcaiPOSPage() {
                                 {/* Botón USB */}
                                 <button
                                     onClick={() => connect('serial')}
-                                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition border bg-white/10 border-white/20 text-white hover:bg-white/20"
+                                    className="flex min-h-12 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-semibold text-brand hover:bg-canvas"
                                     title="Conectar por cable USB (Web Serial)"
                                 >
                                     <Usb className="h-3.5 w-3.5" />
@@ -412,7 +411,7 @@ export default function AcaiPOSPage() {
                                 {/* Botón Red */}
                                 <button
                                     onClick={() => connect('network')}
-                                    className="flex items-center gap-1.5 px-3 py-2 rounded-xl text-xs font-medium transition border bg-blue-500/20 border-blue-400/30 text-blue-200 hover:bg-blue-500/30"
+                                    className="flex min-h-12 items-center gap-1.5 rounded-lg border border-line bg-surface px-3 text-sm font-semibold text-brand hover:bg-canvas"
                                     title="Conectar por red Wi-Fi/Ethernet (requiere bridge corriendo)"
                                 >
                                     <Wifi className="h-3.5 w-3.5" />
@@ -422,8 +421,8 @@ export default function AcaiPOSPage() {
                                 {/* Config IP */}
                                 <button
                                     onClick={() => { setScaleIpInput(scaleIp); setShowNetCfg(v => !v); }}
-                                    className="p-2 rounded-xl bg-white/5 border border-white/15 text-white/50 hover:text-white hover:bg-white/10 transition"
-                                    title="Configurar IP de la balanza"
+                                    className="grid h-12 w-12 place-items-center rounded-lg border border-line bg-surface text-brand hover:bg-canvas"
+                                    aria-label="Configurar IP de la balanza"
                                 >
                                     <Settings2 className="h-3.5 w-3.5" />
                                 </button>
@@ -432,27 +431,28 @@ export default function AcaiPOSPage() {
 
                         {/* Panel config IP */}
                         {showNetCfg && (
-                            <div className="absolute top-full right-0 mt-2 z-50 bg-gray-900 border border-white/15 rounded-2xl shadow-2xl p-4 w-72">
+                            <div className="absolute right-0 top-full z-50 mt-2 w-72 rounded-xl border border-line-subtle bg-surface p-4 text-ink shadow-xl">
                                 <div className="flex items-center justify-between mb-3">
-                                    <p className="text-white text-sm font-bold">⚙️ Config. Bridge TCP/IP</p>
-                                    <button onClick={() => setShowNetCfg(false)} className="text-white/40 hover:text-white"><X className="h-4 w-4" /></button>
+                                    <p className="text-sm font-semibold">Configurar balanza en red</p>
+                                    <button onClick={() => setShowNetCfg(false)} aria-label="Cerrar configuración de balanza" className="grid h-11 w-11 place-items-center rounded-lg text-muted hover:bg-canvas"><X className="h-4 w-4" /></button>
                                 </div>
-                                <p className="text-white/50 text-xs mb-3">El bridge (<code className="text-purple-300">bridge.js</code>) escucha en <code className="text-blue-300">localhost:8765</code> y se conecta a la balanza.</p>
-                                <label className="block text-white/60 text-xs mb-1">IP de la balanza Toledo:</label>
+                                <p className="mb-3 text-sm text-muted">Configuración de conexión TCP/IP de la balanza.</p>
+                                <label htmlFor="scale-ip-input" className="mb-1 block text-sm font-semibold">IP de la balanza</label>
                                 <input
+                                    id="scale-ip-input"
                                     value={scaleIpInput}
                                     onChange={e => setScaleIpInput(e.target.value)}
                                     placeholder="192.168.1.100"
-                                    className="w-full bg-white/10 border border-white/20 rounded-xl px-3 py-2 text-white text-sm font-mono mb-3 outline-none focus:border-purple-400"
+                                    className="mb-3 min-h-12 w-full rounded-lg border border-line bg-surface px-3 font-mono text-sm text-ink"
                                 />
-                                <p className="text-white/40 text-xs mb-3">Editá también <code className="text-yellow-300">SCALE_IP</code> en <code className="text-green-300">scale-bridge/bridge.js</code></p>
+                                <p className="mb-3 text-xs text-muted">El puente de red también debe estar configurado con esta IP.</p>
                                 <button
                                     onClick={() => {
                                         setScaleIp(scaleIpInput);
                                         localStorage.setItem('skot_scale_ip', scaleIpInput);
                                         setShowNetCfg(false);
                                     }}
-                                    className="w-full py-2 bg-purple-600 hover:bg-purple-700 text-white text-sm font-semibold rounded-xl transition"
+                                    className="min-h-12 w-full rounded-lg bg-brand px-4 text-sm font-semibold text-white hover:brightness-90"
                                 >
                                     Guardar
                                 </button>
@@ -462,19 +462,20 @@ export default function AcaiPOSPage() {
                 </div>
 
                 {/* Tabs / pasos */}
-                <div className="flex gap-1 px-6 py-3 border-b border-white/10">
+                <div className="flex gap-2 overflow-x-auto border-b border-line-subtle bg-surface px-4 py-3 sm:px-6" aria-label="Pasos de la venta">
                     {STEPS.map((s, i) => {
                         const isActive = s.key === step;
                         const isDone   = i < stepIndex;
                         return (
                             <button key={s.key} onClick={() => setStep(s.key)}
-                                className={`flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition flex-1 justify-center ${isActive
-                                    ? 'bg-white text-purple-900 shadow-lg'
+                                aria-current={isActive ? 'step' : undefined}
+                                className={`flex min-h-12 shrink-0 items-center justify-center gap-2 rounded-lg px-4 text-sm font-semibold ${isActive
+                                    ? 'bg-brand text-white'
                                     : isDone
-                                        ? 'bg-purple-500/30 text-purple-200 hover:bg-purple-500/40'
-                                        : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+                                        ? 'bg-[var(--status-neutral-bg)] text-brand hover:bg-canvas'
+                                        : 'border border-line-subtle bg-surface text-muted hover:bg-canvas'}`}
                             >
-                                {isDone ? <Check className="h-3.5 w-3.5 text-green-400" /> : <span>{s.emoji}</span>}
+                                {isDone ? <Check className="h-4 w-4" /> : <span aria-hidden="true">{i + 1}</span>}
                                 {s.label}
                             </button>
                         );
@@ -482,7 +483,7 @@ export default function AcaiPOSPage() {
                 </div>
 
                 {/* Contenido del paso */}
-                <div className="flex-1 overflow-y-auto p-6">
+                <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
 
                     {/* ── PASO 1: SABOR ──────────────────────────────── */}
                     {step === 'sabor' && (
@@ -491,32 +492,32 @@ export default function AcaiPOSPage() {
                             <div className="flex items-center gap-3 mb-5">
                                 <button
                                     onClick={() => setMixtoMode(false)}
-                                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition ${!cart.isMixto
-                                        ? 'bg-white text-purple-900 border-white'
-                                        : 'bg-white/5 text-white/60 border-white/15 hover:border-white/30'}`}
+                                    aria-pressed={!cart.isMixto} className={`min-h-12 flex-1 rounded-lg border px-3 text-sm font-semibold ${!cart.isMixto
+                                        ? 'border-brand bg-brand text-white'
+                                        : 'border-line bg-surface text-ink hover:bg-canvas'}`}
                                 >
-                                    🍨 Un sabor
+                                    Un sabor
                                 </button>
                                 <button
                                     onClick={() => setMixtoMode(true)}
-                                    className={`flex-1 py-2.5 rounded-xl text-sm font-semibold border-2 transition ${cart.isMixto
-                                        ? 'bg-gradient-to-r from-purple-500 to-pink-500 text-white border-transparent shadow-lg'
-                                        : 'bg-white/5 text-white/60 border-white/15 hover:border-white/30'}`}
+                                    aria-pressed={cart.isMixto} className={`min-h-12 flex-1 rounded-lg border px-3 text-sm font-semibold ${cart.isMixto
+                                        ? 'border-brand bg-brand text-white'
+                                        : 'border-line bg-surface text-ink hover:bg-canvas'}`}
                                 >
-                                    🍨🍓 Mixto (varios sabores)
+                                    Mixto (varios sabores)
                                 </button>
                             </div>
 
                             {cart.isMixto && (
-                                <p className="text-purple-200/70 text-xs mb-4">
+                                <p className="mb-4 text-sm text-muted">
                                     Seleccioná todos los sabores que lleva el bowl. El precio/kg será el promedio de los sabores elegidos.
                                 </p>
                             )}
 
                             {flavors.length === 0 ? (
-                                <div className="text-center py-16 text-white/40">No hay sabores configurados para esta sucursal.</div>
+                                <div className="py-16 text-center text-muted">No hay sabores configurados para esta sucursal.</div>
                             ) : (
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4">
+                                <div className="skot-catalog-grid">
                                     {flavors.map(p => {
                                         const isSelected = cart.isMixto
                                             ? cart.flavors.some(f => f.product.id === p.id)
@@ -527,6 +528,7 @@ export default function AcaiPOSPage() {
                                             <button
                                                 key={p.id}
                                                 disabled={isOut}
+                                                aria-pressed={isSelected}
                                                 onClick={() => {
                                                     if (cart.isMixto) {
                                                         toggleFlavor({ id: p.id, name: p.name, type: p.type }, p.pricePerKg);
@@ -535,26 +537,25 @@ export default function AcaiPOSPage() {
                                                         setStep('balanza');
                                                     }
                                                 }}
-                                                className={`relative rounded-2xl p-5 text-left transition-all border-2 overflow-hidden ${isOut ? 'opacity-60 grayscale cursor-not-allowed bg-black/20 border-white/5' : 'hover:scale-[1.03]'} ${isSelected
-                                                    ? 'bg-white border-white text-purple-900 shadow-xl shadow-white/20'
-                                                    : 'bg-white/10 border-white/20 text-white hover:bg-white/20 hover:border-white/40'}`}
+                                                className={`relative min-h-36 min-w-0 overflow-hidden rounded-xl border p-5 text-left disabled:cursor-not-allowed disabled:opacity-60 ${isSelected
+                                                    ? 'border-brand bg-[var(--status-neutral-bg)] text-ink'
+                                                    : 'border-line-subtle bg-surface text-ink hover:border-brand'}`}
                                             >
                                                 {isOut && (
-                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px] z-10">
-                                                        <span className="text-red-400 font-black bg-black/80 px-3 py-1 rounded-full text-sm tracking-wider animate-pulse border border-red-500/50 shadow-lg shadow-red-900/50">AGOTADO</span>
+                                                    <div className="absolute right-3 top-3">
+                                                        <span className="rounded-full bg-[var(--status-error-bg)] px-3 py-1 text-sm font-semibold text-danger">Sin stock</span>
                                                     </div>
                                                 )}
                                                 {isSelected && (
-                                                    <div className="absolute top-3 right-3 bg-purple-600 rounded-full p-0.5">
+                                                    <div className="absolute right-3 top-3 rounded-full bg-brand p-0.5">
                                                         <Check className="h-3 w-3 text-white" />
                                                     </div>
                                                 )}
-                                                <div className="text-4xl mb-3">🍨</div>
-                                                <h3 className="font-bold text-base leading-tight">{p.name}</h3>
+                                                <h3 className="break-words text-lg font-semibold leading-tight">{p.name}</h3>
                                                 {p.description && (
-                                                    <p className={`text-xs mt-1 ${isSelected ? 'text-purple-600' : 'text-white/50'}`}>{p.description}</p>
+                                                    <p className="mt-1 text-sm text-muted">{p.description}</p>
                                                 )}
-                                                <p className={`font-bold text-lg mt-2 ${isSelected ? 'text-purple-700' : 'text-purple-300'}`}>
+                                                <p className="mt-3 font-display text-xl font-semibold tabular-nums text-brand">
                                                     Bs. {p.pricePerKg.toFixed(2)}/kg
                                                 </p>
                                             </button>
@@ -565,19 +566,19 @@ export default function AcaiPOSPage() {
 
                             {/* En mixto: preview del precio promedio + botón continuar */}
                             {cart.isMixto && cart.flavors.length > 0 && (
-                                <div className="mt-6 bg-white/10 border border-white/20 rounded-2xl p-4 flex items-center justify-between gap-4">
+                                <div className="mt-6 flex flex-wrap items-center justify-between gap-4 rounded-xl border border-line-subtle bg-surface p-4">
                                     <div>
-                                        <p className="text-white/60 text-xs mb-1">Sabores seleccionados</p>
-                                        <p className="text-white font-semibold text-sm">
+                                        <p className="mb-1 text-sm text-muted">Sabores seleccionados</p>
+                                        <p className="text-sm font-semibold text-ink">
                                             {cart.flavors.map(f => f.product.name).join(' + ')}
                                         </p>
-                                        <p className="text-purple-300 text-xs mt-0.5">
+                                        <p className="mt-0.5 text-sm text-brand tabular-nums">
                                             Precio promedio: Bs. {cart.effectivePricePerKg.toFixed(2)}/kg
                                         </p>
                                     </div>
                                     <button
                                         onClick={() => setStep('balanza')}
-                                        className="flex items-center gap-2 px-5 py-2.5 bg-purple-500 hover:bg-purple-400 text-white rounded-xl font-semibold transition flex-shrink-0"
+                                        className="flex min-h-12 shrink-0 items-center gap-2 rounded-lg bg-brand px-5 font-semibold text-white hover:brightness-90"
                                     >
                                         Continuar <ChevronRight className="h-4 w-4" />
                                     </button>
@@ -588,9 +589,9 @@ export default function AcaiPOSPage() {
                             <div className="mt-4">
                                 <button
                                     onClick={() => setStep('extras')}
-                                    className="w-full py-3 rounded-xl border border-dashed border-white/25 text-white/50 hover:text-white hover:border-white/50 text-sm transition"
+                                    className="min-h-12 w-full rounded-lg border border-dashed border-line bg-surface px-3 text-sm font-semibold text-brand hover:bg-canvas"
                                 >
-                                    🥤 Solo quiero vender bebidas / extras (sin bowl)
+                                    Vender bebidas o extras sin bowl
                                 </button>
                             </div>
                         </div>
@@ -598,23 +599,23 @@ export default function AcaiPOSPage() {
 
                     {/* ── PASO 3: BALANZA ────────────────────────────── */}
                     {step === 'balanza' && (
-                        <div className="flex flex-col items-center max-w-md mx-auto">
-                            <p className="text-purple-200 text-sm mb-8 text-center">
+                        <div className="mx-auto flex w-full max-w-2xl flex-col gap-4">
+                            <p className="text-center text-sm text-muted">
                                 Colocá el bowl completo (helado + toppings) en la balanza.<br/>
                                 El peso aparece automáticamente.
                             </p>
 
-                            {scaleStatus !== 'connected' ? (
-                                <div className="w-full bg-white/5 border-2 border-dashed border-white/20 rounded-3xl p-10 text-center">
-                                    <Scale className="h-16 w-16 mx-auto mb-4 text-white/30" />
-                                    <p className="text-white/60 mb-6">Conectá la balanza Prix 4</p>
-                                    <div className="flex items-center justify-center gap-3">
+                            {scaleStatus !== 'connected' && scaleStatus !== 'reading' ? (
+                                <div className="w-full rounded-xl border border-dashed border-line bg-surface p-8 text-center">
+                                    <Scale className="mx-auto mb-4 h-12 w-12 text-brand" />
+                                    <p className="mb-6 text-muted">Conectá la balanza Prix 4</p>
+                                    <div className="flex flex-wrap items-center justify-center gap-3">
                                         <button onClick={() => connect('serial')}
-                                            className="flex items-center gap-2 px-5 py-3 bg-purple-500 hover:bg-purple-400 text-white rounded-xl font-semibold transition">
+                                            className="flex min-h-12 items-center gap-2 rounded-lg bg-brand px-5 font-semibold text-white hover:brightness-90">
                                             <Usb className="h-4 w-4" /> USB
                                         </button>
                                         <button onClick={() => connect('network')}
-                                            className="flex items-center gap-2 px-5 py-3 bg-blue-500 hover:bg-blue-400 text-white rounded-xl font-semibold transition">
+                                            className="flex min-h-12 items-center gap-2 rounded-lg border border-line bg-surface px-5 font-semibold text-brand hover:bg-canvas">
                                             <Wifi className="h-4 w-4" /> Red (TCP/IP)
                                         </button>
                                     </div>
@@ -622,49 +623,45 @@ export default function AcaiPOSPage() {
                             ) : (
                                 <div className="w-full space-y-4">
                                     {/* Display grande del peso */}
-                                    <div className={`rounded-3xl p-8 text-center border-2 transition-all ${isStable && weight > 0.05
-                                        ? 'bg-green-500/20 border-green-400/60 shadow-lg shadow-green-500/10'
-                                        : 'bg-white/10 border-white/20'}`}>
-                                        <p className="text-white/60 text-sm mb-2">Peso del bowl</p>
-                                        <p className={`text-8xl font-black tracking-tight tabular-nums transition-colors ${isStable && weight > 0.05 ? 'text-green-300' : 'text-white'}`}>
+                                    <div className="rounded-xl border border-line-subtle bg-[var(--scale-display)] p-6 text-center text-white sm:p-8">
+                                        <p className="mb-2 text-sm text-white/80">Lectura de balanza · peso del bowl</p>
+                                        <p className="font-display text-5xl font-semibold tracking-tight tabular-nums text-white sm:text-7xl">
                                             {weight.toFixed(3)}
                                         </p>
-                                        <p className="text-white/40 text-xl mt-1">kg</p>
-                                        <div className={`mt-4 inline-flex items-center gap-2 px-4 py-1.5 rounded-full text-sm font-medium ${isStable && weight > 0.05
-                                            ? 'bg-green-500/30 text-green-200'
-                                            : 'bg-yellow-500/20 text-yellow-300'}`}>
+                                        <p className="mt-1 text-lg text-white/80">kg</p>
+                                        <div className={`mt-4 inline-flex items-center gap-2 rounded-full border border-white/40 px-4 py-2 text-sm font-semibold ${isStable && weight > 0.05 ? 'text-white' : 'text-white/80'}`}>
                                             {isStable && weight > 0.05
-                                                ? <><Check className="h-4 w-4" /> Peso estable — listo</>
-                                                : <><Loader2 className="h-4 w-4 animate-spin" /> Estabilizando…</>}
+                                                ? <><Check className="h-4 w-4" /> Lectura estable · sin confirmar</>
+                                                : <><Loader2 className="h-4 w-4 animate-spin" /> Esperando lectura estable</>}
                                         </div>
                                     </div>
 
                                     {/* Preview precio */}
                                     {cart.flavors.length > 0 && weight > 0.05 && (
-                                        <div className="bg-white/10 rounded-2xl p-4 text-center border border-white/20">
-                                            <p className="text-white/50 text-xs">Vista previa del precio</p>
-                                            <p className="text-white/70 text-sm mt-0.5">
+                                        <div className="rounded-xl border border-line-subtle bg-surface p-4 text-center">
+                                            <p className="text-sm text-muted">Vista previa del precio</p>
+                                            <p className="mt-0.5 text-sm text-muted tabular-nums">
                                                 {weight.toFixed(3)} kg × Bs. {cart.effectivePricePerKg.toFixed(2)}/kg
-                                                {cart.isMixto && <span className="text-purple-300 ml-1">(promedio mixto)</span>}
+                                                {cart.isMixto && <span className="ml-1 text-brand">(promedio mixto)</span>}
                                             </p>
-                                            <p className="text-white font-black text-3xl mt-1">
+                                            <p className="mt-1 font-display text-2xl font-semibold tabular-nums text-brand">
                                                 Bs. {(weight * cart.effectivePricePerKg).toFixed(2)}
                                             </p>
                                         </div>
                                     )}
 
                                     {/* Botones */}
-                                    <div className="flex gap-3">
+                                    <div className="flex flex-wrap gap-3">
                                         {cart.weightConfirmed && (
                                             <button onClick={resetWeight}
-                                                className="flex items-center gap-2 px-4 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium transition text-sm">
+                                                className="flex min-h-12 items-center gap-2 rounded-lg border border-line bg-surface px-4 text-sm font-semibold text-brand hover:bg-canvas">
                                                 <RotateCcw className="h-4 w-4" /> Volver a pesar
                                             </button>
                                         )}
                                         <button
                                             onClick={handleConfirmWeight}
                                             disabled={!isStable || weight <= 0.05}
-                                            className="flex-1 flex items-center justify-center gap-2 py-3 rounded-xl bg-green-500 hover:bg-green-400 disabled:bg-white/10 disabled:text-white/30 disabled:cursor-not-allowed text-white font-bold text-lg transition shadow-lg shadow-green-500/20"
+                                            className="hidden min-h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-brand px-4 text-lg font-semibold text-white hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-50 lg:flex"
                                         >
                                             <Check className="h-5 w-5" />
                                             {cart.weightConfirmed ? 'Confirmar nuevo peso' : 'Confirmar peso'}
@@ -672,7 +669,7 @@ export default function AcaiPOSPage() {
                                     </div>
 
                                     {cart.weightConfirmed && (
-                                        <div className="bg-green-500/20 border border-green-400/40 rounded-xl px-4 py-3 flex items-center gap-2 text-green-200 text-sm">
+                                        <div className="flex items-center gap-2 rounded-xl border border-line-subtle bg-[var(--status-success-bg)] px-4 py-3 text-sm text-success">
                                             <CheckCircle className="h-4 w-4 flex-shrink-0" />
                                             <span>
                                                 Confirmado: <strong>{cart.totalWeight.toFixed(3)} kg</strong>
@@ -689,19 +686,19 @@ export default function AcaiPOSPage() {
                     {step === 'extras' && (
                         <div>
                             <div className="flex items-center justify-between mb-1">
-                                <p className="text-purple-200 text-sm">Agregá bebidas u otros extras.</p>
+                                <p className="text-sm text-muted">Agregá bebidas u otros extras.</p>
                                 {!hasBowl && (
-                                    <span className="text-xs bg-indigo-500/30 text-indigo-200 px-2 py-0.5 rounded-full border border-indigo-400/30">
+                                    <span className="rounded-full bg-[var(--status-neutral-bg)] px-2 py-1 text-xs font-semibold text-brand">
                                         Venta directa sin bowl
                                     </span>
                                 )}
                             </div>
-                            <p className="text-white/40 text-xs mb-5">Podés vender extras solos, sin necesidad de un bowl.</p>
+                            <p className="mb-5 text-sm text-muted">Podés vender extras solos, sin necesidad de un bowl.</p>
 
                             {beverages.length === 0 ? (
-                                <div className="text-center py-12 text-white/40">No hay extras configurados.</div>
+                                <div className="py-12 text-center text-muted">No hay extras configurados.</div>
                             ) : (
-                                <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
+                                <div className="skot-catalog-grid">
                                     {beverages.map(p => {
                                         const inCart = cart.extras.find(e => e.product.id === p.id);
                                         const isOut = p.currentStock <= 0;
@@ -711,24 +708,24 @@ export default function AcaiPOSPage() {
                                             <button
                                                 key={p.id}
                                                 disabled={isDisabled}
+                                                aria-pressed={Boolean(inCart)}
                                                 onClick={() => addExtra({ id: p.id, name: p.name, type: p.type, price: p.customPrice, currentStock: p.currentStock })}
-                                                className={`relative rounded-2xl p-4 text-left transition-all border-2 overflow-hidden ${isDisabled ? 'opacity-60 grayscale cursor-not-allowed bg-black/20 border-white/5' : 'hover:scale-[1.03]'} ${inCart
-                                                    ? 'bg-indigo-500/30 border-indigo-400 text-white'
-                                                    : 'bg-white/5 border-white/15 text-white/70 hover:bg-white/10 hover:border-white/30'}`}
+                                                className={`relative min-h-32 min-w-0 overflow-hidden rounded-xl border p-4 text-left disabled:cursor-not-allowed disabled:opacity-60 ${inCart
+                                                    ? 'border-brand bg-[var(--status-neutral-bg)] text-ink'
+                                                    : 'border-line-subtle bg-surface text-ink hover:border-brand'}`}
                                             >
                                                 {isOut && (
-                                                    <div className="absolute inset-0 flex items-center justify-center bg-black/40 backdrop-blur-[2px] z-10">
-                                                        <span className="text-red-400 font-black bg-black/80 px-2 py-1 rounded-full text-xs tracking-wider animate-pulse border border-red-500/50 shadow-lg shadow-red-900/50">AGOTADO</span>
+                                                    <div className="absolute right-3 top-3">
+                                                        <span className="rounded-full bg-[var(--status-error-bg)] px-2 py-1 text-xs font-semibold text-danger">Sin stock</span>
                                                     </div>
                                                 )}
                                                 {inCart && (
-                                                    <div className="absolute top-2.5 right-2.5 bg-indigo-500 text-white text-xs rounded-full min-w-[20px] h-5 flex items-center justify-center px-1 font-bold">
+                                                    <div className="absolute right-2.5 top-2.5 flex h-6 min-w-6 items-center justify-center rounded-full bg-brand px-1 text-xs font-bold text-white">
                                                         {inCart.quantity}
                                                     </div>
                                                 )}
-                                                <div className="text-3xl mb-2">🥤</div>
-                                                <h3 className="font-semibold text-sm">{p.name}</h3>
-                                                <p className="text-indigo-300 font-bold text-base mt-1">Bs. {p.customPrice.toFixed(2)}</p>
+                                                <h3 className="break-words text-lg font-semibold">{p.name}</h3>
+                                                <p className="mt-3 font-display text-xl font-semibold tabular-nums text-brand">Bs. {p.customPrice.toFixed(2)}</p>
                                             </button>
                                         );
                                     })}
@@ -739,10 +736,10 @@ export default function AcaiPOSPage() {
                 </div>
 
                 {/* Footer navegación */}
-                <div className="px-6 pb-6 pt-3 border-t border-white/10 flex items-center gap-3">
+                <div className="flex flex-wrap items-center gap-3 border-t border-line-subtle bg-surface px-4 py-3 sm:px-6 lg:pb-6">
                     {stepIndex > 0 && (
                         <button onClick={() => setStep(STEPS[stepIndex - 1].key)}
-                            className="px-5 py-3 rounded-xl bg-white/10 hover:bg-white/20 text-white border border-white/20 font-medium transition">
+                            className="min-h-12 rounded-lg border border-line bg-surface px-5 font-semibold text-brand hover:bg-canvas">
                             ← Atrás
                         </button>
                     )}
@@ -751,7 +748,7 @@ export default function AcaiPOSPage() {
                     {stepIndex < STEPS.length - 1 && (
                         <button
                             onClick={() => setStep(STEPS[stepIndex + 1].key)}
-                            className="ml-auto flex items-center gap-2 px-6 py-3 rounded-xl bg-purple-500/80 hover:bg-purple-500 text-white font-semibold transition"
+                            className="ml-auto flex min-h-12 items-center gap-2 rounded-lg border border-line bg-surface px-6 font-semibold text-brand hover:bg-canvas"
                         >
                             {STEPS[stepIndex + 1].label} <ChevronRight className="h-4 w-4" />
                         </button>
@@ -761,7 +758,7 @@ export default function AcaiPOSPage() {
                     {canCobrar && (
                         <button
                             onClick={() => setShowPayment(true)}
-                            className="ml-auto flex items-center gap-2 px-8 py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-bold text-lg transition shadow-xl shadow-purple-500/30"
+                            className="ml-auto hidden min-h-12 items-center gap-2 rounded-lg bg-brand px-8 text-lg font-semibold text-white hover:brightness-90 lg:flex"
                         >
                             <ShoppingCart className="h-5 w-5" />
                             Cobrar — Bs. {cart.total.toFixed(2)}
@@ -770,124 +767,32 @@ export default function AcaiPOSPage() {
                 </div>
             </div>
 
-            {/* ═══════════════════════════════════
-                PANEL DERECHO – Resumen
-            ═══════════════════════════════════ */}
-            <div className="w-80 bg-black/30 backdrop-blur-sm border-l border-white/10 flex flex-col">
-                <div className="p-4 border-b border-white/10">
-                    <h2 className="text-white font-bold flex items-center gap-2">
-                        <ShoppingCart className="h-5 w-5 text-purple-300" />
-                        Orden actual
-                    </h2>
-                </div>
-
-                <div className="flex-1 overflow-y-auto p-4 space-y-3">
-
-                    {/* Sabores */}
-                    {cart.flavors.length > 0 ? (
-                        <div className="bg-purple-500/20 border border-purple-400/30 rounded-xl p-3">
-                            <p className="text-xs text-purple-300 mb-1">{cart.isMixto ? '🍨🍓 Sabor Mixto' : '🍨 Sabor'}</p>
-                            <div className="space-y-0.5">
-                                {cart.flavors.map(f => (
-                                    <p key={f.product.id} className="text-white font-semibold text-sm">{f.product.name}</p>
-                                ))}
-                            </div>
-                            {cart.isMixto && cart.flavors.length > 1 && (
-                                <p className="text-purple-300 text-xs mt-1">Promedio: Bs. {cart.effectivePricePerKg.toFixed(2)}/kg</p>
-                            )}
-                        </div>
-                    ) : (
-                        <div className="bg-white/5 border border-dashed border-white/15 rounded-xl p-3 text-center">
-                            <p className="text-white/30 text-xs">Sin bowl — solo extras</p>
-                        </div>
-                    )}
-
-                    {/* Peso */}
-                    {hasBowl && (
-                        cart.weightConfirmed ? (
-                            <div className="bg-green-500/15 border border-green-400/30 rounded-xl p-3">
-                                <p className="text-xs text-green-300 mb-0.5">⚖️ Bowl pesado</p>
-                                <p className="text-white font-semibold">{cart.totalWeight.toFixed(3)} kg</p>
-                                <p className="text-green-300 font-bold text-lg">Bs. {cart.bowlSubtotal.toFixed(2)}</p>
-                            </div>
-                        ) : (
-                            <div className="bg-white/5 border border-dashed border-white/15 rounded-xl p-3 text-center">
-                                <p className="text-white/30 text-xs">⚖️ Pendiente de pesaje</p>
-                            </div>
-                        )
-                    )}
-
-                    {/* Extras */}
-                    {cart.extras.map(e => (
-                        <div key={e.id} className="bg-indigo-500/15 border border-indigo-400/20 rounded-xl p-3 flex items-center justify-between">
-                            <div>
-                                <p className="text-white text-sm font-medium">🥤 {e.product.name}</p>
-                                <p className="text-indigo-300 text-xs">×{e.quantity} — Bs. {e.unitPrice.toFixed(2)} c/u</p>
-                            </div>
-                            <div className="flex items-center gap-0.5">
-                                <button onClick={() => decrementExtra(e.id)} className="text-white/40 hover:text-white p-1 transition">
-                                    <Minus className="h-3.5 w-3.5" />
-                                </button>
-                                <span className="text-white font-bold text-sm w-5 text-center">{e.quantity}</span>
-                                <button onClick={() => addExtra(e.product, 1)} disabled={e.quantity >= e.product.currentStock!} className="text-white/40 hover:text-white disabled:opacity-30 disabled:cursor-not-allowed p-1 transition">
-                                    <Plus className="h-3.5 w-3.5" />
-                                </button>
-                                <button onClick={() => removeExtra(e.id)} className="text-red-400 hover:text-red-300 p-1 ml-1 transition">
-                                    <Trash2 className="h-3.5 w-3.5" />
-                                </button>
-                            </div>
-                        </div>
-                    ))}
-
-                    {cart.flavors.length === 0 && cart.extras.length === 0 && (
-                        <div className="text-center py-10 text-white/20">
-                            <ShoppingCart className="h-10 w-10 mx-auto mb-2 opacity-30" />
-                            <p className="text-sm">Seleccioná un sabor o agregá extras</p>
-                        </div>
-                    )}
-                </div>
-
-                {/* Total y acciones */}
-                <div className="p-4 border-t border-white/10 space-y-3">
-                    <div className="flex justify-between items-center">
-                        <span className="text-white/60 font-medium">Total</span>
-                        <span className="text-3xl font-black text-white">Bs. {cart.total.toFixed(2)}</span>
-                    </div>
-                    {canCobrar && (
-                        <button onClick={() => setShowPayment(true)}
-                            className="w-full py-3.5 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 text-white font-bold transition shadow-lg">
-                            Cobrar
-                        </button>
-                    )}
-                    <button onClick={clearCart} disabled={cart.total <= 0}
-                        className="w-full py-2.5 rounded-xl border border-white/20 text-white/60 hover:text-white hover:border-white/40 disabled:opacity-30 text-sm transition">
-                        Limpiar orden
-                    </button>
-                    {lastComanda && (
-                        <button type="button" onClick={() => printComanda(lastComanda)}
-                            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-purple-300/50 text-purple-100 font-semibold hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-purple-200">
-                            <Printer className="h-4 w-4" /> Reimprimir última comanda
-                        </button>
-                    )}
-                </div>
+            <div className="lg:h-full lg:w-[340px] lg:shrink-0">
+                <AcaiOrderSummary
+                    cart={cart} hasBowl={hasBowl} canCheckout={canCobrar} step={step}
+                    confirmEnabled={isStable && weight > 0.05}
+                    onConfirmWeight={handleConfirmWeight}
+                    onCheckout={() => setShowPayment(true)} onClear={clearCart}
+                    onDecrementExtra={decrementExtra} onAddExtra={addExtra} onRemoveExtra={removeExtra}
+                    onReprint={lastComanda ? () => printComanda(lastComanda) : undefined}
+                />
             </div>
 
             {/* ═══════════════════════════════════
                 MODAL DE PAGO
             ═══════════════════════════════════ */}
-            {showPayment && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm">
-                    <div className="bg-gray-900 border border-white/10 rounded-3xl shadow-2xl w-full max-w-md mx-4 overflow-hidden">
-                        <div className="bg-gradient-to-r from-purple-600 to-pink-600 px-6 py-5 text-white">
-                            <h2 className="text-xl font-bold">Procesar pago</h2>
+            <Dialog open={showPayment} onClose={() => { if (!processing) setShowPayment(false); }} labelledBy="acai-payment-title">
+                    <div className="flex max-h-[min(90dvh,800px)] flex-col overflow-hidden bg-surface">
+                        <div className="bg-brand px-6 py-5 text-white">
+                            <h2 id="acai-payment-title" className="text-xl font-semibold">Procesar pago</h2>
                             <p className="text-white/80 mt-1">
                                 Total: <span className="font-black text-2xl">Bs. {cart.total.toFixed(2)}</span>
                             </p>
                         </div>
 
-                        <div className="p-6 space-y-4">
+                        <div className="space-y-4 overflow-y-auto p-6">
                             <div>
-                                <p className="text-white/60 text-xs font-semibold uppercase tracking-wide mb-2">Método de pago</p>
+                                <p className="mb-2 text-sm font-semibold text-ink">Método de pago</p>
                                 <div className="grid grid-cols-2 gap-2">
                                     {([
                                         { method: 'CASH'     as const, label: 'Efectivo',       icon: Banknote       },
@@ -895,10 +800,10 @@ export default function AcaiPOSPage() {
                                         { method: 'TRANSFER' as const, label: 'QR',              icon: ArrowRightLeft  },
                                         { method: 'MIXED'    as const, label: 'Mixto',           icon: ShoppingCart   },
                                     ]).map(({ method, label, icon: Icon }) => (
-                                        <button key={method} onClick={() => handleMethodChange(method)}
-                                            className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 font-medium text-sm transition ${selectedPayment === method
-                                                ? 'border-purple-400 bg-purple-500/20 text-white'
-                                                : 'border-white/10 text-white/50 hover:border-white/30 hover:text-white/80'}`}>
+                                        <button key={method} onClick={() => handleMethodChange(method)} aria-pressed={selectedPayment === method}
+                                            className={`flex min-h-12 items-center gap-2 rounded-lg border px-4 py-3 text-sm font-semibold ${selectedPayment === method
+                                                ? 'border-brand bg-brand text-white'
+                                                : 'border-line bg-surface text-ink hover:bg-canvas'}`}>
                                             <Icon className="h-4 w-4" />{label}
                                         </button>
                                     ))}
@@ -906,58 +811,57 @@ export default function AcaiPOSPage() {
                             </div>
 
                             {(selectedPayment === 'CASH' || selectedPayment === 'MIXED') && (
-                                <div className="bg-white/5 rounded-xl p-4 space-y-2">
-                                    <label className="block text-sm font-medium text-white/70">💵 Efectivo</label>
-                                    <input type="number" step="0.01" value={cashGiven === '0' ? '' : cashGiven}
+                                <div className="space-y-2 rounded-xl bg-canvas p-4">
+                                    <label htmlFor="acai-payment-cash" className="block text-sm font-semibold text-ink">Efectivo</label>
+                                    <input id="acai-payment-cash" type="number" step="0.01" value={cashGiven === '0' ? '' : cashGiven}
                                         onChange={e => setCashGiven(e.target.value)}
                                         placeholder={cart.total.toFixed(2)}
-                                        className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-white/20" />
+                                        className="min-h-12 w-full rounded-lg border border-line bg-surface px-4 text-xl font-semibold tabular-nums text-ink" />
                                 </div>
                             )}
 
                             {(selectedPayment === 'CARD' || selectedPayment === 'MIXED') && (
-                                <div className="bg-white/5 rounded-xl p-4 space-y-2">
-                                    <label className="block text-sm font-medium text-white/70">💳 Tarjeta</label>
-                                    <input type="number" step="0.01" value={cardGiven === '0' ? '' : cardGiven}
+                                <div className="space-y-2 rounded-xl bg-canvas p-4">
+                                    <label htmlFor="acai-payment-card" className="block text-sm font-semibold text-ink">Tarjeta</label>
+                                    <input id="acai-payment-card" type="number" step="0.01" value={cardGiven === '0' ? '' : cardGiven}
                                         onChange={e => setCardGiven(e.target.value)}
                                         placeholder=""
-                                        className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-white/20" />
+                                        className="min-h-12 w-full rounded-lg border border-line bg-surface px-4 text-xl font-semibold tabular-nums text-ink" />
                                 </div>
                             )}
 
                             {(selectedPayment === 'TRANSFER' || selectedPayment === 'MIXED') && (
-                                <div className="bg-white/5 rounded-xl p-4 space-y-2">
-                                    <label className="block text-sm font-medium text-white/70">📲 QR</label>
-                                    <input type="number" step="0.01" value={transferGiven === '0' ? '' : transferGiven}
+                                <div className="space-y-2 rounded-xl bg-canvas p-4">
+                                    <label htmlFor="acai-payment-transfer" className="block text-sm font-semibold text-ink">QR</label>
+                                    <input id="acai-payment-transfer" type="number" step="0.01" value={transferGiven === '0' ? '' : transferGiven}
                                         onChange={e => setTransferGiven(e.target.value)}
                                         placeholder=""
-                                        className="w-full bg-white/10 border border-white/20 text-white rounded-xl px-4 py-3 text-xl font-bold focus:outline-none focus:ring-2 focus:ring-purple-400 placeholder:text-white/20" />
+                                        className="min-h-12 w-full rounded-lg border border-line bg-surface px-4 text-xl font-semibold tabular-nums text-ink" />
                                 </div>
                             )}
 
                             {(selectedPayment === 'CASH' || selectedPayment === 'MIXED') && change > 0 && (
                                 <div className="flex justify-between items-center px-2 py-1">
-                                    <span className="text-white/60 text-sm">Vuelto</span>
-                                    <span className="text-green-400 font-black text-2xl">Bs. {change.toFixed(2)}</span>
+                                    <span className="text-sm text-muted">Vuelto</span>
+                                    <span className="font-display text-2xl font-semibold tabular-nums text-success">Bs. {change.toFixed(2)}</span>
                                 </div>
                             )}
                         </div>
 
-                        <div className="px-6 pb-6 flex gap-3">
+                        <div className="flex gap-3 border-t border-line-subtle px-6 py-4">
                             <button onClick={() => setShowPayment(false)}
-                                className="flex-1 py-3 rounded-xl border border-white/20 text-white/60 hover:text-white hover:border-white/40 font-semibold transition">
+                                className="min-h-12 flex-1 rounded-lg border border-line bg-surface px-3 font-semibold text-ink hover:bg-canvas">
                                 Cancelar
                             </button>
                             <button onClick={handleProcessSale} disabled={processing || paid < cart.total}
-                                className="flex-[2] py-3 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 hover:from-purple-400 hover:to-pink-400 disabled:from-gray-600 disabled:to-gray-600 disabled:cursor-not-allowed text-white font-bold text-lg transition shadow-lg">
+                                className="min-h-12 flex-[2] rounded-lg bg-brand px-3 text-lg font-semibold text-white hover:brightness-90 disabled:cursor-not-allowed disabled:opacity-50">
                                 {processing
                                     ? <span className="flex items-center justify-center gap-2"><Loader2 className="h-5 w-5 animate-spin" /> Procesando…</span>
                                     : paid < cart.total ? 'Monto insuficiente' : 'Confirmar pago'}
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
+            </Dialog>
         </div>
         </CashGate>
     );

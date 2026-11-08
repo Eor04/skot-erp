@@ -358,34 +358,34 @@ export default function BurgersPOSPage() {
 
     return (
         <CashGate branchId={branchId} userId={user?.userId || ''} theme="burger">
-        <div className="flex h-screen bg-black relative">
+        <div data-brand="burger" className="skot-experience relative flex min-h-dvh min-w-0 flex-col lg:h-dvh lg:flex-row lg:overflow-hidden">
             {/* Toast de resultado */}
             {saleResult && (
-                <div className={`absolute top-4 left-1/2 -translate-x-1/2 z-50 flex items-center gap-2 px-6 py-3 rounded-xl shadow-xl text-white font-semibold animate-bounce ${saleResult.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+                <div role="status" className={`fixed left-4 right-4 top-4 z-50 flex items-center gap-2 rounded-xl px-5 py-3 font-semibold text-white shadow-lg sm:left-1/2 sm:right-auto sm:-translate-x-1/2 ${saleResult.type === 'success' ? 'bg-success' : 'bg-danger'}`}>
                     {saleResult.type === 'success' ? <CheckCircle className="h-5 w-5" /> : <AlertCircle className="h-5 w-5" />}
                     {saleResult.message}
                 </div>
             )}
 
             {/* Lado izquierdo */}
-            <div className="flex-1 p-4 overflow-hidden flex flex-col">
+            <div className="flex min-h-0 min-w-0 flex-1 flex-col p-4 pb-28 lg:overflow-hidden lg:pb-4">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-3 bg-black rounded-xl px-4 py-3 border border-white/10">
+                <div className="mb-3 flex flex-wrap items-center justify-between gap-3 rounded-xl border border-line-subtle bg-surface px-4 py-3">
                     <div className="flex items-center gap-3">
                         {/* Logo Burger */}
                         <img src="/logo-burger.png" alt="Skot Burger"
                             className="h-10 w-auto object-contain"
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
-                        <h1 className="text-2xl font-bold text-white">POS Hamburguesas</h1>
+                        <h1 className="text-xl font-semibold text-ink sm:text-2xl">POS Hamburguesas</h1>
                     </div>
                     <div className="flex items-center gap-2">
                         <button
                             onClick={() => setShowHistory(v => !v)}
-                            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold transition ${showHistory ? 'bg-yellow-400 text-black' : 'bg-white/10 text-white hover:bg-white/20'}`}>
+                            className={`flex min-h-12 items-center gap-1.5 rounded-lg px-3 text-sm font-semibold ${showHistory ? 'bg-brand text-white' : 'border border-line bg-surface text-ink hover:bg-canvas'}`}>
                             <ClipboardList className="h-4 w-4" />
                             Turno
                             {turnHistory.length > 0 && (
-                                <span className="bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-black">
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-danger text-xs font-bold text-white">
                                     {turnHistory.length}
                                 </span>
                             )}
@@ -393,48 +393,48 @@ export default function BurgersPOSPage() {
                         
                         {/* Offline Indicator */}
                         {offlineQueue.length > 0 ? (
-                            <button onClick={handleSync} disabled={isSyncing} className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold bg-orange-500/20 text-orange-400 border border-orange-500/30 hover:bg-orange-500/30 transition">
-                                {isSyncing ? <RefreshCw className="h-4 w-4 animate-spin" /> : <WifiOff className="h-4 w-4" />}
-                                <span className="hidden sm:inline">Offline</span>
-                                <span className="bg-orange-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-black">{offlineQueue.length}</span>
+                            <button onClick={handleSync} disabled={isSyncing} aria-label={`${offlineQueue.length} ventas pendientes. Reintentar sincronización`} className="flex min-h-12 items-center gap-1.5 rounded-lg border border-line px-3 text-sm font-semibold text-warning hover:bg-[var(--status-warning-bg)] disabled:opacity-50">
+                                <RefreshCw className={`h-4 w-4 ${isSyncing ? 'animate-spin' : ''}`} />
+                                <span className="hidden sm:inline">{isSyncing ? 'Sincronizando' : 'Ventas pendientes'}</span>
+                                <span className="flex h-5 w-5 items-center justify-center rounded-full bg-warning text-xs font-bold text-white">{offlineQueue.length}</span>
                             </button>
                         ) : (
-                            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-sm font-semibold bg-green-500/10 text-green-400 border border-green-500/20" title="Online y sincronizado">
-                                <Wifi className="h-4 w-4" />
+                            <div className="flex min-h-12 items-center gap-1.5 rounded-lg border border-line px-3 text-sm font-semibold text-muted" aria-label="Sin ventas pendientes" title="Sin ventas pendientes">
+                                <CheckCircle className="h-4 w-4" />
                             </div>
                         )}
                         
-                        <Link href="/" className="text-sm text-white/50 hover:text-white flex items-center gap-1 transition ml-2">
+                        <Link href="/" className="ml-2 flex min-h-12 items-center gap-1 text-sm font-semibold text-brand hover:underline">
                             <ArrowLeft className="h-4 w-4" /> Dashboard
                         </Link>
                     </div>
                 </div>
 
                 {/* Tabs */}
-                <div className="flex gap-1 mb-3 bg-black rounded-xl p-1 w-fit">
+                <div className="mb-3 flex max-w-full gap-1 overflow-x-auto rounded-xl border border-line-subtle bg-surface p-1" aria-label="Secciones del catálogo">
                     <button onClick={() => setActiveTab('productos')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'productos' ? 'bg-yellow-400 text-black shadow' : 'text-white/70 hover:text-white'}`}>
+                        aria-pressed={activeTab === 'productos'} className={`flex min-h-12 shrink-0 items-center gap-2 rounded-lg px-4 text-sm font-semibold ${activeTab === 'productos' ? 'bg-brand text-white' : 'text-ink hover:bg-canvas'}`}>
                         <Package className="h-4 w-4" /> Productos ({products.length})
                     </button>
                     <button onClick={() => setActiveTab('combos')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'combos' ? 'bg-yellow-400 text-black shadow' : 'text-white/70 hover:text-white'}`}>
+                        aria-pressed={activeTab === 'combos'} className={`flex min-h-12 shrink-0 items-center gap-2 rounded-lg px-4 text-sm font-semibold ${activeTab === 'combos' ? 'bg-brand text-white' : 'text-ink hover:bg-canvas'}`}>
                         <Layers className="h-4 w-4" />
                         Combos ({combos.length})
                         {combos.length > 0 && activeTab !== 'combos' && (
-                            <span className="ml-1 bg-red-500 text-white text-xs rounded-full w-4 h-4 flex items-center justify-center font-bold">{combos.length}</span>
+                            <span className="ml-1 flex h-5 w-5 items-center justify-center rounded-full bg-danger text-xs font-bold text-white">{combos.length}</span>
                         )}
                     </button>
                     <button onClick={() => setActiveTab('extras')}
-                        className={`flex items-center gap-2 px-4 py-2 rounded-lg text-sm font-bold transition ${activeTab === 'extras' ? 'bg-yellow-400 text-black shadow' : 'text-white/70 hover:text-white'}`}>
+                        aria-pressed={activeTab === 'extras'} className={`flex min-h-12 shrink-0 items-center gap-2 rounded-lg px-4 text-sm font-semibold ${activeTab === 'extras' ? 'bg-brand text-white' : 'text-ink hover:bg-canvas'}`}>
                         <ChefHat className="h-4 w-4" />
                         Extras ({modifiers.length})
                     </button>
                 </div>
 
                 {/* Contenido del tab con watermark */}
-                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-xl shadow flex-1 p-4 overflow-hidden relative">
+                <div className="relative min-h-0 flex-1 rounded-xl border border-line-subtle bg-surface p-4 lg:overflow-hidden">
                     {/* Marca de agua */}
-                    <div className="pointer-events-none absolute inset-0 flex items-center justify-center z-0">
+                    <div className="hidden">
                         <img src="/logo-burger.png" alt=""
                             className="w-[90%] h-[90%] object-contain opacity-[0.05] select-none"
                             onError={e => { (e.target as HTMLImageElement).style.display = 'none'; }} />
@@ -471,7 +471,7 @@ export default function BurgersPOSPage() {
             </div>
 
             {/* Lado derecho: Carrito */}
-            <div className="w-96">
+            <div className="lg:h-full lg:w-[360px] lg:shrink-0">
                 <Cart
                     items={cart} discount={discount}
                     onUpdateQuantity={updateQuantity}
@@ -572,6 +572,7 @@ export default function BurgersPOSPage() {
                 isOpen={showModifierModal}
                 onClose={() => { setShowModifierModal(false); setSelectedProduct(null); }}
                 productName={selectedProduct?.name || ''}
+                basePrice={selectedProduct?.customPrice || 0}
                 availableModifiers={modifiers}
                 onConfirm={handleModifiersConfirm}
             />
@@ -590,52 +591,52 @@ export default function BurgersPOSPage() {
 function CombosGrid({ combos, onComboSelect }: { combos: Combo[]; onComboSelect: (c: Combo) => void }) {
     if (combos.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400 py-16">
+            <div className="flex flex-col items-center justify-center py-16 text-muted">
                 <Layers className="h-14 w-14 mb-3 opacity-30" />
                 <p className="text-lg font-medium">No hay combos activos</p>
-                <p className="text-sm text-gray-400 mt-1">Creá combos desde Admin → Combos</p>
+                <p className="mt-1 text-sm">Creá combos desde Administración → Combos</p>
             </div>
         );
     }
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto h-full pb-2">
+        <div className="skot-catalog-grid max-h-full overflow-y-auto pb-2">
             {combos.map(combo => (
                 <button key={combo.id} onClick={() => onComboSelect(combo)}
-                    className="flex flex-col bg-white/5 border-2 border-white/10 rounded-xl overflow-hidden hover:border-teal-500 hover:shadow-lg transition group text-left">
+                    className="group flex min-h-[206px] min-w-0 flex-col overflow-hidden rounded-xl border border-line-subtle bg-surface text-left hover:border-brand">
                     {/* Imagen */}
-                    <div className="relative w-full h-32 bg-black/40 flex-shrink-0">
+                    <div className="relative h-28 w-full shrink-0 bg-canvas">
                         {combo.imageUrl ? (
-                            <Image src={combo.imageUrl} alt={combo.name} fill className="object-cover"
-                                sizes="(max-width: 768px) 50vw, 25vw" />
+                            <Image src={combo.imageUrl} alt="" fill className="object-cover"
+                                sizes="(max-width: 768px) 100vw, 290px" />
                         ) : (
                             <div className="absolute inset-0 flex items-center justify-center">
-                                <ShoppingBag className="h-12 w-12 text-teal-200" />
+                                <ShoppingBag className="h-12 w-12 text-muted" />
                             </div>
                         )}
                         {/* Badge */}
-                        <div className="absolute top-2 left-2 bg-teal-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        <div className="absolute left-2 top-2 rounded-full bg-[var(--status-neutral-bg)] px-2 py-0.5 text-xs font-semibold text-brand">
                             COMBO
                         </div>
                     </div>
                     {/* Info */}
                     <div className="p-3 flex flex-col flex-1">
-                        <h3 className="font-bold text-white/90 line-clamp-1 group-hover:text-teal-400 transition text-sm">
+                        <h3 className="break-words text-lg font-semibold text-ink">
                             {combo.name}
                         </h3>
                         {/* Items del combo */}
                         <div className="mt-1.5 space-y-0.5 flex-1">
                             {combo.items.slice(0, 3).map(item => (
-                                <p key={item.id} className="text-xs text-white/60 line-clamp-1">
+                                <p key={item.id} className="line-clamp-2 text-sm text-muted">
                                     · {item.quantity}x {item.product.name}
                                 </p>
                             ))}
                             {combo.items.length > 3 && (
-                                <p className="text-xs text-gray-400">+{combo.items.length - 3} más…</p>
+                                <p className="text-sm text-muted">+{combo.items.length - 3} más…</p>
                             )}
                         </div>
                         {/* Precio */}
-                        <div className="mt-2 text-lg font-black text-teal-400">
+                        <div className="mt-2 border-t border-line-subtle pt-3 font-display text-xl font-semibold tabular-nums text-brand">
                             Bs. {combo.price.toFixed(2)}
                         </div>
                     </div>
@@ -649,37 +650,37 @@ function CombosGrid({ combos, onComboSelect }: { combos: Combo[]; onComboSelect:
 function ExtrasGrid({ modifiers, onExtraAdd }: { modifiers: ProductModifier[]; onExtraAdd: (m: ProductModifier) => void }) {
     if (modifiers.length === 0) {
         return (
-            <div className="flex flex-col items-center justify-center h-full text-gray-400 py-16">
+            <div className="flex flex-col items-center justify-center py-16 text-muted">
                 <ChefHat className="h-14 w-14 mb-3 opacity-30" />
                 <p className="text-lg font-medium">No hay extras disponibles</p>
-                <p className="text-sm text-gray-400 mt-1">Creá modificadores desde Admin</p>
+                <p className="mt-1 text-sm">Creá modificadores desde Administración</p>
             </div>
         );
     }
 
     return (
-        <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 overflow-y-auto h-full pb-2">
+        <div className="skot-catalog-grid max-h-full overflow-y-auto pb-2">
             {modifiers.map(mod => (
                 <button key={mod.id} onClick={() => onExtraAdd(mod)}
-                    className="flex flex-col bg-white/5 border-2 border-white/10 rounded-xl overflow-hidden hover:border-yellow-400 hover:shadow-lg hover:shadow-yellow-400/20 transition group text-left">
+                    className="group flex min-h-[206px] min-w-0 flex-col overflow-hidden rounded-xl border border-line-subtle bg-surface text-left hover:border-brand">
                     {/* Icono decorativo */}
-                    <div className="relative w-full h-32 bg-black/40 flex-shrink-0">
+                    <div className="relative h-24 w-full shrink-0 bg-canvas">
                         <div className="absolute inset-0 flex items-center justify-center">
-                            <ChefHat className="h-14 w-14 text-amber-200 group-hover:text-amber-300 transition" />
+                            <ChefHat className="h-11 w-11 text-muted" />
                         </div>
-                        <div className="absolute top-2 left-2 bg-amber-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">
+                        <div className="absolute left-2 top-2 rounded-full bg-[var(--status-neutral-bg)] px-2 py-0.5 text-xs font-semibold text-brand">
                             EXTRA
                         </div>
                     </div>
                     {/* Info */}
                     <div className="p-3 flex flex-col flex-1">
-                        <h3 className="font-bold text-white/90 line-clamp-1 group-hover:text-amber-400 transition text-sm">
+                        <h3 className="break-words text-lg font-semibold text-ink">
                             {mod.name}
                         </h3>
                         {mod.description && (
-                            <p className="text-xs text-white/60 line-clamp-2 mt-0.5 flex-1">{mod.description}</p>
+                            <p className="mt-1 line-clamp-2 flex-1 text-sm text-muted">{mod.description}</p>
                         )}
-                        <div className="mt-2 text-lg font-black text-red-400">
+                        <div className="mt-2 border-t border-line-subtle pt-3 font-display text-xl font-semibold tabular-nums text-brand">
                             + Bs. {mod.price.toFixed(2)}
                         </div>
                     </div>

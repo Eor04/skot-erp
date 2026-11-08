@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { PaymentMethod } from '@prisma/client';
 import { Banknote, CreditCard, ArrowRightLeft, Shuffle, X, Loader2, User } from 'lucide-react';
+import { Dialog } from '@/components/ui/dialog';
 
 interface PaymentModalProps {
     isOpen: boolean;
@@ -32,7 +33,13 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
     const [isProcessing,   setIsProcessing]   = useState(false);
     const [customerName,   setCustomerName]   = useState<string>('');
 
-    if (!isOpen) return null;
+    useEffect(() => {
+        if (!isOpen) return;
+        setSelectedMethod(PaymentMethod.CASH);
+        setCashAmount(total.toFixed(2));
+        setCardAmount('0.00');
+        setTransferAmount('0.00');
+    }, [isOpen]);
 
     const handleMethodChange = (method: PaymentMethod) => {
         setSelectedMethod(method);
@@ -69,7 +76,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
         }
     };
 
-    const inputClass = 'w-full px-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-red-500 focus:border-red-500 text-lg font-semibold outline-none transition';
+    const inputClass = 'w-full min-h-12 rounded-lg border border-line bg-surface px-4 py-2 text-lg font-semibold text-ink tabular-nums';
 
     const handleClose = () => {
         setCustomerName('');
@@ -77,13 +84,13 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
     };
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
-            <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md mx-auto overflow-hidden max-h-[95vh] flex flex-col">
+        <Dialog open={isOpen} onClose={handleClose} labelledBy="burger-payment-title">
+            <div className="flex max-h-[min(90dvh,800px)] flex-col overflow-hidden">
 
                 {/* Header — rojo con letras blancas */}
-                <div className="bg-red-600 px-6 py-5 text-white flex items-start justify-between shrink-0">
+                <div className="flex shrink-0 items-start justify-between bg-brand px-6 py-5 text-white">
                     <div>
-                        <h2 className="text-xl font-bold">Procesar Pago</h2>
+                        <h2 id="burger-payment-title" className="text-xl font-semibold">Procesar pago</h2>
                         <p className="text-white/80 mt-0.5 text-sm">
                             Total a pagar: <span className="font-black text-2xl text-white">Bs. {total.toFixed(2)}</span>
                         </p>
@@ -93,7 +100,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                             </p>
                         )}
                     </div>
-                    <button onClick={handleClose} className="p-1 hover:bg-white/20 rounded-lg transition mt-0.5">
+                    <button onClick={handleClose} aria-label="Cerrar pago" className="mt-0.5 grid h-11 w-11 place-items-center rounded-lg hover:bg-white/20">
                         <X className="h-5 w-5" />
                     </button>
                 </div>
@@ -101,7 +108,7 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                 <div className="flex-1 overflow-y-auto">
                     {/* Campo nombre del cliente / número de ticket */}
                     <div className="px-6 pt-4 pb-0">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-2">Cliente / Ticket</p>
+                    <label htmlFor="customer-name-input" className="mb-2 block text-sm font-semibold text-muted">Cliente / ticket (opcional)</label>
                     <div className="relative">
                         <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none">
                             <User className="h-4 w-4 text-gray-400" />
@@ -113,23 +120,24 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                             onChange={e => setCustomerName(e.target.value)}
                             placeholder="Nombre o Nº de ticket (opcional)"
                             maxLength={40}
-                            className="w-full pl-9 pr-4 py-2.5 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-yellow-400 focus:border-yellow-400 text-sm font-semibold outline-none transition placeholder:text-gray-300"
+                            className="min-h-12 w-full rounded-lg border border-line bg-surface pl-9 pr-4 text-sm font-semibold text-ink"
                         />
                     </div>
                 </div>
 
                 {/* Métodos de pago */}
                 <div className="px-6 py-4">
-                    <p className="text-xs font-bold text-gray-400 uppercase tracking-wider mb-3">Método de pago</p>
+                    <p className="mb-3 text-sm font-semibold text-ink">Método de pago</p>
                     <div className="grid grid-cols-2 gap-2">
                         {METHOD_CONFIG.map(({ method, label, Icon }) => (
                             <button
                                 key={method}
                                 onClick={() => handleMethodChange(method)}
-                                className={`flex items-center gap-2 px-4 py-3 rounded-xl border-2 font-semibold text-sm transition ${
+                                aria-pressed={selectedMethod === method}
+                                className={`flex min-h-12 items-center gap-2 rounded-lg border px-4 py-3 text-sm font-semibold ${
                                     selectedMethod === method
-                                        ? 'border-yellow-400 bg-yellow-400 text-black shadow-lg shadow-yellow-200'
-                                        : 'border-gray-200 bg-white text-gray-700 hover:border-yellow-300 hover:bg-yellow-50'
+                                        ? 'border-brand bg-brand text-white'
+                                        : 'border-line bg-surface text-ink hover:bg-canvas'
                                 }`}
                             >
                                 <Icon className="h-4 w-4" />
@@ -143,24 +151,24 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                 <div className="px-6 pb-4 space-y-3 border-t border-gray-100 pt-4">
                     {(selectedMethod === PaymentMethod.CASH || selectedMethod === PaymentMethod.MIXED) && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-1">💵 Efectivo</label>
-                            <input type="number" step="0.01" value={cashAmount === '0' ? '' : cashAmount}
+                            <label htmlFor="burger-payment-cash" className="mb-1 block text-sm font-semibold text-ink">Efectivo</label>
+                            <input id="burger-payment-cash" type="number" step="0.01" value={cashAmount === '0' ? '' : cashAmount}
                                 onChange={e => setCashAmount(e.target.value)}
                                 className={inputClass} placeholder="" />
                         </div>
                     )}
                     {(selectedMethod === PaymentMethod.CARD || selectedMethod === PaymentMethod.MIXED) && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-1">💳 Tarjeta</label>
-                            <input type="number" step="0.01" value={cardAmount === '0' ? '' : cardAmount}
+                            <label htmlFor="burger-payment-card" className="mb-1 block text-sm font-semibold text-ink">Tarjeta</label>
+                            <input id="burger-payment-card" type="number" step="0.01" value={cardAmount === '0' ? '' : cardAmount}
                                 onChange={e => setCardAmount(e.target.value)}
                                 className={inputClass} placeholder="" />
                         </div>
                     )}
                     {(selectedMethod === PaymentMethod.TRANSFER || selectedMethod === PaymentMethod.MIXED) && (
                         <div>
-                            <label className="block text-sm font-medium text-gray-600 mb-1">📲 QR</label>
-                            <input type="number" step="0.01" value={transferAmount === '0' ? '' : transferAmount}
+                            <label htmlFor="burger-payment-transfer" className="mb-1 block text-sm font-semibold text-ink">QR</label>
+                            <input id="burger-payment-transfer" type="number" step="0.01" value={transferAmount === '0' ? '' : transferAmount}
                                 onChange={e => setTransferAmount(e.target.value)}
                                 className={inputClass} placeholder="" />
                         </div>
@@ -210,6 +218,6 @@ export default function PaymentModal({ isOpen, onClose, total, onConfirm }: Paym
                     </button>
                 </div>
             </div>
-        </div>
+        </Dialog>
     );
 }

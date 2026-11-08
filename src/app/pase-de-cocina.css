@@ -1,0 +1,44 @@
+/* Tokens scoped to migrated experiences; legacy routes keep their existing styles. */
+.skot-experience {
+    --brand-primary: #54294f;
+    --brand-secondary: #a6262b;
+    --brand-accent: #e1b528;
+    --background: #f4f2f0;
+    --surface: #fff;
+    --foreground: #2d2528;
+    --muted: #5d5358;
+    --border: #867a80;
+    --line-subtle: #ded8d9;
+    --success: #1e6849;
+    --warning: #805208;
+    --error: #a52d2d;
+    --info: #1f5f80;
+    --focus: #174b78;
+    --status-neutral-bg: #f0e9ef;
+    --status-success-bg: #e8f1ea;
+    --status-warning-bg: #f8edc9;
+    --status-error-bg: #f9e8e7;
+    --status-info-bg: #e6f0f6;
+    --scale-display: #302139;
+    color: var(--foreground);
+    background: var(--background);
+    font-family: var(--font-source-sans), sans-serif;
+    min-height: 100vh;
+}
+.skot-experience[data-brand="burger"] { --brand-primary: #a6262b; --brand-secondary: #a6262b; }
+.skot-experience[data-brand="acai"] { --brand-primary: #632a62; --brand-secondary: #8b4b82; }
+.skot-experience :where(h1, h2, h3, .skot-display) { font-family: var(--font-lexend), sans-serif; }
+.skot-experience :where(button, a, input, select, textarea):focus-visible { outline: 3px solid var(--focus); outline-offset: 2px; }
+.skot-experience :where(button, a, input, select, textarea) { touch-action: manipulation; }
+.skot-experience .tabular-nums { font-variant-numeric: tabular-nums; }
+.skot-catalog-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(min(100%, 226px), 290px)); align-content: start; gap: 12px; }
+@media (max-width: 639px) { .skot-catalog-grid { grid-template-columns: minmax(0, 1fr); } }
+.skot-mobile-dock { padding-bottom: max(8px, env(safe-area-inset-bottom)); }
+.skot-order-sheet { margin: auto auto 0; max-width: 100%; width: 100%; border-radius: 16px 16px 0 0; }
+@media (prefers-reduced-motion: reduce) {
+    .skot-experience *, .skot-experience *::before, .skot-experience *::after {
+        scroll-behavior: auto !important;
+        animation-duration: 0.01ms !important;
+        transition-duration: 0.01ms !important;
+    }
+}
