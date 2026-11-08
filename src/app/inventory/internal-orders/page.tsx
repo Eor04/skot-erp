@@ -47,6 +47,8 @@ export default function InternalOrdersPage() {
     const isAdmin = isSystemAdmin || isManager;
     const [orders, setOrders] = useState<InternalOrder[]>([]);
     const [branches, setBranches] = useState<Branch[]>([]);
+    const [factories, setFactories] = useState<Branch[]>([]);
+    const [factoriesError, setFactoriesError] = useState('');
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
     const [showModal, setShowModal] = useState(false);
@@ -74,10 +76,17 @@ export default function InternalOrdersPage() {
         Promise.all([
             fetch(ordersUrl).then(r => r.json()),
             fetch('/api/branches').then(r => r.json()),
+            fetch('/api/branches/factories').then(r => r.json()).catch(() => ({ success: false, error: 'No se pudieron cargar las fábricas' })),
             fetch('/api/products').then(r => r.json()),
-        ]).then(([ordersData, branchesData, productsData]) => {
+        ]).then(([ordersData, branchesData, factoriesData, productsData]) => {
             if (ordersData.success) setOrders(ordersData.data);
             if (branchesData.success) setBranches(branchesData.data);
+            if (factoriesData.success) {
+                setFactories(factoriesData.data);
+                setFactoriesError('');
+            } else {
+                setFactoriesError(factoriesData.error || 'No se pudieron cargar las fábricas');
+            }
             if (productsData.success) setProducts(productsData.data);
             // Pre-rellenar formulario para cajeros
             if (!isAdmin && branchId) {
@@ -215,7 +224,7 @@ export default function InternalOrdersPage() {
                 setOrders(prev => [data.data, ...prev]);
                 showToast('success', `Pedido ${data.data.orderNumber} creado`);
                 setShowModal(false);
-                setForm({ fromBranchId: '', toBranchId: '', requestedBy: '', notes: '', items: [{ productId: '', requestedQty: 1, unit: 'unit' }] });
+                setForm({ fromBranchId: !isAdmin ? user?.branchIds?.[0] || '' : '', toBranchId: '', requestedBy: !isAdmin ? user?.name || '' : '', notes: '', items: [{ productId: '', requestedQty: 1, unit: 'unit' }] });
             } else {
                 showToast('error', data.error || 'Error al crear pedido');
             }
@@ -325,7 +334,7 @@ export default function InternalOrdersPage() {
                                     </div>
                                             {isExpanded && (
                                                 <div className="border-t border-white/10 p-5">
-                                                    {canApproveOrDispatch && order.status === 'PENDING' && (
+                                                    {(isSystemAdmin || (isManager && user?.branchIds?.includes(order.fromBranch.id))) && order.status === 'PENDING' && (
                                                         <div className="mb-4 flex items-center gap-2 bg-blue-500/10 p-3 rounded-xl border border-blue-100">
                                                             <Truck className="h-4 w-4 text-blue-400" />
                                                             <span className="text-sm font-semibold text-blue-900">Reasignar Fábrica:</span>
@@ -335,7 +344,7 @@ export default function InternalOrdersPage() {
                                                                 onClick={e => e.stopPropagation()}
                                                                 className="text-xs border border-blue-500/30 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white/5"
                                                             >
-                                                                {branches.filter(b => b.type === 'FABRICA').map(b => (
+                                                                {factories.map(b => (
                                                                     <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>
                                                                 ))}
                                                             </select>
@@ -429,7 +438,7 @@ export default function InternalOrdersPage() {
                                         <select required value={form.fromBranchId} onChange={e => setForm(f => ({ ...f, fromBranchId: e.target.value }))}
                                             className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
                                             <option value="" className="bg-gray-900 text-white">Seleccionar...</option>
-                                            {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
+                                            {branches.filter(b => b.type !== 'FABRICA').map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
                                         </select>
                                     ) : (
                                         <div className="w-full border border-white/10 bg-white/5 rounded-xl px-3 py-2.5 text-sm text-white/80 font-medium">
@@ -442,8 +451,10 @@ export default function InternalOrdersPage() {
                                     <select required value={form.toBranchId} onChange={e => setForm(f => ({ ...f, toBranchId: e.target.value }))}
                                         className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
                                         <option value="" className="bg-gray-900 text-white">Seleccionar...</option>
-                                        {branches.filter(b => b.type === 'FABRICA').map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
+                                        {factories.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
                                     </select>
+                                    {factoriesError && <p className="text-xs text-red-400 mt-1">{factoriesError}</p>}
+                                    {!factoriesError && factories.length === 0 && <p className="text-xs text-amber-400 mt-1">No hay fábricas activas disponibles.</p>}
                                 </div>
                             </div>
                             <div>

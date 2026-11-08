@@ -71,6 +71,26 @@ export async function POST(request: NextRequest) {
             );
         }
 
+        const access = await requireBranchAccess(request, fromBranchId);
+        if (access instanceof NextResponse) return access;
+        const source = await prisma.branch.findFirst({
+            where: { id: fromBranchId, type: { not: 'FABRICA' }, active: true, deletedAt: null },
+            select: { id: true },
+        });
+        if (!source) {
+            return NextResponse.json({ success: false, error: 'Seleccioná una sucursal solicitante activa' }, { status: 400 });
+        }
+        if (fromBranchId === toBranchId) {
+            return NextResponse.json({ success: false, error: 'La sucursal solicitante y la fábrica deben ser diferentes' }, { status: 400 });
+        }
+        const factory = await prisma.branch.findFirst({
+            where: { id: toBranchId, type: 'FABRICA', active: true, deletedAt: null },
+            select: { id: true },
+        });
+        if (!factory) {
+            return NextResponse.json({ success: false, error: 'Seleccioná una fábrica activa' }, { status: 400 });
+        }
+
         // Generar número de pedido secuencial
         const year = new Date().getFullYear();
         const count = await prisma.internalOrder.count({
