@@ -1,0 +1,77 @@
+<!doctype html>
+<html lang="es">
+<head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>Dashboard · Pase de Cocina · Prototipo Skot ERP</title><link rel="stylesheet" href="prototype.css"><link rel="stylesheet" href="refinement.css"></head>
+<body><svg xmlns="http://www.w3.org/2000/svg" aria-hidden="true" style="position:absolute;width:0;height:0;overflow:hidden">
+  <symbol id="home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10Z"/><path d="M9 21v-7h6v7"/></symbol>
+  <symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="package" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5ZM3 7v10l9 5 9-5V7M12 12v10"/></symbol>
+  <symbol id="factory" viewBox="0 0 24 24"><path d="M3 21V8l6 4V8l6 4V5l6-3v19H3ZM7 17h1m4 0h1m4 0h1"/></symbol>
+  <symbol id="chart" viewBox="0 0 24 24"><path d="M3 3v18h18M7 16v-4m5 4V7m5 9V9"/></symbol>
+  <symbol id="receipt" viewBox="0 0 24 24"><path d="M4 3h16v18l-4-2-4 2-4-2-4 2V3ZM8 8h8M8 12h8"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"/></symbol>
+  <symbol id="chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M5 12h14"/></symbol>
+  <symbol id="cart" viewBox="0 0 24 24"><path d="M2 3h2l3 13h12l3-9H5M9 21h.01M18 21h.01"/></symbol>
+  <symbol id="scale" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 9a4 4 0 0 1 8 0M12 9l2-2M8 16h8"/></symbol>
+  <symbol id="wifi" viewBox="0 0 24 24"><path d="M2 8a16 16 0 0 1 20 0M5 12a11 11 0 0 1 14 0M9 16a5 5 0 0 1 6 0M12 20h.01"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+  <symbol id="alert" viewBox="0 0 24 24"><path d="m12 3 10 18H2L12 3ZM12 9v5m0 3h.01"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="credit" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20M6 16h4"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="settings" viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4"/></symbol>
+</svg>
+
+  <div class="demo-bar"><span class="demo-mark"><span class="demo-dot"></span> Prototipo aislado · Datos de demostración</span><nav aria-label="Pantallas del prototipo"><a href="dashboard.html" aria-current="page">Dashboard</a><a href="burger.html">POS Burger</a><a href="acai.html">POS Açaí</a></nav></div>
+  <div class="app-frame">
+    <aside class="sidebar" aria-label="Navegación administrativa">
+      <div class="brand"><span class="brand-mark" aria-hidden="true"></span><span class="brand-stack">SKOT<small>ERP</small></span></div>
+      <nav class="side-group" aria-label="Principal"><span class="side-label">Operación</span>
+        <a class="side-link active" href="#inicio" aria-current="page"><svg class="icon" aria-hidden="true"><use href="#home"></use></svg>Inicio</a>
+        <a class="side-link" href="#modulos"><svg class="icon" aria-hidden="true"><use href="#grid"></use></svg>Administración</a>
+        <a class="side-link" href="#modulos"><svg class="icon" aria-hidden="true"><use href="#package"></use></svg>Inventario</a>
+        <a class="side-link" href="#modulos"><svg class="icon" aria-hidden="true"><use href="#factory"></use></svg>Almacén y fábrica</a>
+      </nav>
+      <nav class="side-group" aria-label="Análisis"><span class="side-label">Seguimiento</span>
+        <a class="side-link" href="#modulos"><svg class="icon" aria-hidden="true"><use href="#receipt"></use></svg>Ventas y gastos</a>
+        <a class="side-link" href="#modulos"><svg class="icon" aria-hidden="true"><use href="#chart"></use></svg>Reportes</a>
+        <a class="side-link" href="#alertas"><svg class="icon" aria-hidden="true"><use href="#bell"></use></svg>Alertas</a>
+      </nav>
+      <div class="side-foot"><span class="avatar" aria-hidden="true">AD</span><span><strong>Administrador</strong><small>Todas las sucursales</small></span></div>
+    </aside>
+    <div class="app-content" id="inicio">
+      <header class="app-topbar"><div class="breadcrumb"><span>Skot ERP</span><svg class="icon" aria-hidden="true"><use href="#chevron"></use></svg><strong>Inicio</strong></div><div class="top-actions"><span class="pill neutral">Todas las sucursales</span><a class="icon-button" href="#alertas" aria-label="Ver alertas"><svg class="icon" aria-hidden="true"><use href="#bell"></use></svg></a><span class="avatar" aria-label="Perfil de administrador">AD</span></div></header>
+      <nav class="mobile-quicknav" aria-label="Accesos principales"><a href="#inicio" aria-current="page">Inicio</a><a href="#modulos">Módulos</a><a href="#alertas">Alertas</a></nav>
+      <main class="dashboard-main">
+        <div class="page-intro"><div><h1>Operación de hoy</h1><p>Ventas, caja y alertas para comenzar la jornada.</p></div><div class="meta">Vista de administrador<br><strong>Ejemplo de datos</strong></div></div>
+        <section aria-labelledby="resumen-title"><div class="section-header"><h2 id="resumen-title">Resumen</h2><p>Ventas, pedidos, caja y stock</p></div>
+          <div class="metric-band">
+            <div class="metric"><div class="metric-label"><span>Ventas del día</span><svg class="icon" aria-hidden="true"><use href="#receipt"></use></svg></div><div class="metric-value num">Bs. 12.840,00</div><div class="metric-note">Total de ventas registradas</div></div>
+            <div class="metric"><div class="metric-label"><span>Pedidos</span><svg class="icon" aria-hidden="true"><use href="#cart"></use></svg></div><div class="metric-value num">86</div><div class="metric-note">Ventas del día</div></div>
+            <div class="metric"><div class="metric-label"><span>Cajas abiertas</span><svg class="icon" aria-hidden="true"><use href="#check"></use></svg></div><div class="metric-value num">3</div><div class="metric-note">Sucursales con turno activo</div></div>
+            <div class="metric alert-metric"><div class="metric-label"><span>Alertas críticas</span><svg class="icon" aria-hidden="true"><use href="#alert"></use></svg></div><div class="metric-value num">2</div><div class="metric-note">Productos sin stock</div></div>
+          </div>
+        </section>
+        <div class="dashboard-grid">
+          <section class="panel" id="modulos" aria-labelledby="modulos-title"><div class="panel-head"><h2 id="modulos-title">Ir a un módulo</h2><p>Elegí el área que necesitás gestionar.</p></div>
+            <div class="module-list">
+              <a class="module-row" href="#modulos"><span class="module-icon"><svg class="icon" aria-hidden="true"><use href="#grid"></use></svg></span><span><h3>Administración</h3><p>Usuarios, sucursales y catálogo</p></span><svg class="icon" aria-hidden="true"><use href="#chevron"></use></svg></a>
+              <a class="module-row" href="#modulos"><span class="module-icon"><svg class="icon" aria-hidden="true"><use href="#package"></use></svg></span><span><h3>Inventario</h3><p>Stock, transferencias y ajustes</p></span><svg class="icon" aria-hidden="true"><use href="#chevron"></use></svg></a>
+              <a class="module-row" href="#modulos"><span class="module-icon"><svg class="icon" aria-hidden="true"><use href="#factory"></use></svg></span><span><h3>Almacén y fábrica</h3><p>Producción y pedidos internos</p></span><svg class="icon" aria-hidden="true"><use href="#chevron"></use></svg></a>
+              <a class="module-row" href="#modulos"><span class="module-icon"><svg class="icon" aria-hidden="true"><use href="#receipt"></use></svg></span><span><h3>Gastos</h3><p>Pagos y gastos operativos</p></span><svg class="icon" aria-hidden="true"><use href="#chevron"></use></svg></a>
+              <a class="module-row" href="#modulos"><span class="module-icon"><svg class="icon" aria-hidden="true"><use href="#chart"></use></svg></span><span><h3>Ventas</h3><p>Historial y filtros</p></span><svg class="icon" aria-hidden="true"><use href="#chevron"></use></svg></a>
+              <a class="module-row" href="#modulos"><span class="module-icon"><svg class="icon" aria-hidden="true"><use href="#chart"></use></svg></span><span><h3>Reportes</h3><p>Ingresos y métodos de pago</p></span><svg class="icon" aria-hidden="true"><use href="#chevron"></use></svg></a>
+            </div>
+          </section>
+          <section class="panel alert-panel" id="alertas" aria-labelledby="alertas-title"><div class="panel-head"><span class="pill error"><svg class="icon" aria-hidden="true"><use href="#alert"></use></svg>Requiere atención</span><h2 id="alertas-title" style="margin-top:12px">Alertas de stock</h2><p>Dos productos sin stock en el ejemplo.</p></div><div class="alert-list">
+            <div class="alert-item"><svg class="icon" aria-hidden="true"><use href="#alert"></use></svg><div><strong>Base Açaí</strong><p>Sucursal Centro · Sin stock</p></div></div>
+            <div class="alert-item"><svg class="icon" aria-hidden="true"><use href="#alert"></use></svg><div><strong>Pan de hamburguesa</strong><p>Sucursal Norte · Sin stock</p></div></div>
+          </div><div class="alert-foot"><a class="button secondary" href="#alertas">Revisar alertas <svg class="icon" aria-hidden="true"><use href="#chevron"></use></svg></a></div></section>
+        </div>
+        <section class="panel operation-note" aria-label="Estado de caja"><svg class="icon" aria-hidden="true"><use href="#check"></use></svg><div><strong>Caja abierta en 3 sucursales</strong><p>Tres sucursales registran turnos de caja abiertos.</p></div><span class="pill" style="margin-left:auto">En operación</span></section>
+      </main>
+    </div>
+  </div>
+</body>
+</html>

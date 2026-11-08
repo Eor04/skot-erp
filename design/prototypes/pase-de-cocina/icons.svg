@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg">
+  <symbol id="home" viewBox="0 0 24 24"><path d="m3 10 9-7 9 7v10a1 1 0 0 1-1 1H4a1 1 0 0 1-1-1V10Z"/><path d="M9 21v-7h6v7"/></symbol>
+  <symbol id="grid" viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><rect x="14" y="14" width="7" height="7" rx="1"/></symbol>
+  <symbol id="package" viewBox="0 0 24 24"><path d="m12 2 9 5-9 5-9-5 9-5ZM3 7v10l9 5 9-5V7M12 12v10"/></symbol>
+  <symbol id="factory" viewBox="0 0 24 24"><path d="M3 21V8l6 4V8l6 4V5l6-3v19H3ZM7 17h1m4 0h1m4 0h1"/></symbol>
+  <symbol id="chart" viewBox="0 0 24 24"><path d="M3 3v18h18M7 16v-4m5 4V7m5 9V9"/></symbol>
+  <symbol id="receipt" viewBox="0 0 24 24"><path d="M4 3h16v18l-4-2-4 2-4-2-4 2V3ZM8 8h8M8 12h8"/></symbol>
+  <symbol id="bell" viewBox="0 0 24 24"><path d="M18 8a6 6 0 0 0-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9ZM10 21h4"/></symbol>
+  <symbol id="chevron" viewBox="0 0 24 24"><path d="m9 18 6-6-6-6"/></symbol>
+  <symbol id="arrow-left" viewBox="0 0 24 24"><path d="m12 19-7-7 7-7M5 12h14"/></symbol>
+  <symbol id="cart" viewBox="0 0 24 24"><path d="M2 3h2l3 13h12l3-9H5M9 21h.01M18 21h.01"/></symbol>
+  <symbol id="scale" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="17" rx="2"/><path d="M8 9a4 4 0 0 1 8 0M12 9l2-2M8 16h8"/></symbol>
+  <symbol id="wifi" viewBox="0 0 24 24"><path d="M2 8a16 16 0 0 1 20 0M5 12a11 11 0 0 1 14 0M9 16a5 5 0 0 1 6 0M12 20h.01"/></symbol>
+  <symbol id="check" viewBox="0 0 24 24"><path d="m4 12 5 5L20 6"/></symbol>
+  <symbol id="alert" viewBox="0 0 24 24"><path d="m12 3 10 18H2L12 3ZM12 9v5m0 3h.01"/></symbol>
+  <symbol id="plus" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></symbol>
+  <symbol id="minus" viewBox="0 0 24 24"><path d="M5 12h14"/></symbol>
+  <symbol id="credit" viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><path d="M2 10h20M6 16h4"/></symbol>
+  <symbol id="clock" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></symbol>
+  <symbol id="settings" viewBox="0 0 24 24"><path d="M12 3v2m0 14v2M3 12h2m14 0h2M5.6 5.6 7 7m10 10 1.4 1.4M18.4 5.6 17 7M7 17l-1.4 1.4"/><circle cx="12" cy="12" r="4"/></symbol>
+</svg>

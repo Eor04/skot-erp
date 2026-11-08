@@ -1,0 +1,679 @@
+{
+  "date": "2026-11-08T20:22:25.912Z",
+  "cases": 52,
+  "failures": [],
+  "results": [
+    {
+      "scenario": "dashboard",
+      "width": 375,
+      "docWidth": 375,
+      "viewport": 375,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1780,
+      "errors": []
+    },
+    {
+      "scenario": "dashboard",
+      "width": 768,
+      "docWidth": 768,
+      "viewport": 768,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1501,
+      "errors": []
+    },
+    {
+      "scenario": "dashboard",
+      "width": 1024,
+      "docWidth": 1024,
+      "viewport": 1024,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 989,
+      "errors": []
+    },
+    {
+      "scenario": "dashboard",
+      "width": 1440,
+      "docWidth": 1440,
+      "viewport": 1440,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 977,
+      "errors": []
+    },
+    {
+      "scenario": "burger",
+      "width": 375,
+      "docWidth": 375,
+      "viewport": 375,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1759,
+      "errors": []
+    },
+    {
+      "scenario": "burger",
+      "width": 768,
+      "docWidth": 768,
+      "viewport": 768,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1171,
+      "errors": []
+    },
+    {
+      "scenario": "burger",
+      "width": 1024,
+      "docWidth": 1024,
+      "viewport": 1024,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger",
+      "width": 1440,
+      "docWidth": 1440,
+      "viewport": 1440,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-combos",
+      "width": 375,
+      "docWidth": 375,
+      "viewport": 375,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 961,
+      "errors": []
+    },
+    {
+      "scenario": "burger-combos",
+      "width": 768,
+      "docWidth": 768,
+      "viewport": 768,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-combos",
+      "width": 1024,
+      "docWidth": 1024,
+      "viewport": 1024,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-combos",
+      "width": 1440,
+      "docWidth": 1440,
+      "viewport": 1440,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-extras",
+      "width": 375,
+      "docWidth": 375,
+      "viewport": 375,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 961,
+      "errors": []
+    },
+    {
+      "scenario": "burger-extras",
+      "width": 768,
+      "docWidth": 768,
+      "viewport": 768,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-extras",
+      "width": 1024,
+      "docWidth": 1024,
+      "viewport": 1024,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-extras",
+      "width": 1440,
+      "docWidth": 1440,
+      "viewport": 1440,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-long",
+      "width": 375,
+      "docWidth": 375,
+      "viewport": 375,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1759,
+      "errors": []
+    },
+    {
+      "scenario": "burger-long",
+      "width": 768,
+      "docWidth": 768,
+      "viewport": 768,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1171,
+      "errors": []
+    },
+    {
+      "scenario": "burger-long",
+      "width": 1024,
+      "docWidth": 1024,
+      "viewport": 1024,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-long",
+      "width": 1440,
+      "docWidth": 1440,
+      "viewport": 1440,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-large-catalog",
+      "width": 375,
+      "docWidth": 375,
+      "viewport": 375,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 4579,
+      "errors": []
+    },
+    {
+      "scenario": "burger-large-catalog",
+      "width": 768,
+      "docWidth": 768,
+      "viewport": 768,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 2669,
+      "errors": []
+    },
+    {
+      "scenario": "burger-large-catalog",
+      "width": 1024,
+      "docWidth": 1024,
+      "viewport": 1024,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-large-catalog",
+      "width": 1440,
+      "docWidth": 1440,
+      "viewport": 1440,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-selected",
+      "width": 375,
+      "docWidth": 375,
+      "viewport": 375,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1759,
+      "errors": []
+    },
+    {
+      "scenario": "burger-selected",
+      "width": 768,
+      "docWidth": 768,
+      "viewport": 768,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1171,
+      "errors": []
+    },
+    {
+      "scenario": "burger-selected",
+      "width": 1024,
+      "docWidth": 1024,
+      "viewport": 1024,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-selected",
+      "width": 1440,
+      "docWidth": 1440,
+      "viewport": 1440,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-disabled",
+      "width": 375,
+      "docWidth": 375,
+      "viewport": 375,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1759,
+      "errors": []
+    },
+    {
+      "scenario": "burger-disabled",
+      "width": 768,
+      "docWidth": 768,
+      "viewport": 768,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1171,
+      "errors": []
+    },
+    {
+      "scenario": "burger-disabled",
+      "width": 1024,
+      "docWidth": 1024,
+      "viewport": 1024,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "burger-disabled",
+      "width": 1440,
+      "docWidth": 1440,
+      "viewport": 1440,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "acai-waiting",
+      "width": 375,
+      "docWidth": 375,
+      "viewport": 375,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1328,
+      "errors": []
+    },
+    {
+      "scenario": "acai-waiting",
+      "width": 768,
+      "docWidth": 768,
+      "viewport": 768,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 963,
+      "errors": []
+    },
+    {
+      "scenario": "acai-waiting",
+      "width": 1024,
+      "docWidth": 1024,
+      "viewport": 1024,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "acai-waiting",
+      "width": 1440,
+      "docWidth": 1440,
+      "viewport": 1440,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "acai-stable",
+      "width": 375,
+      "docWidth": 375,
+      "viewport": 375,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1289,
+      "errors": []
+    },
+    {
+      "scenario": "acai-stable",
+      "width": 768,
+      "docWidth": 768,
+      "viewport": 768,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 979,
+      "errors": []
+    },
+    {
+      "scenario": "acai-stable",
+      "width": 1024,
+      "docWidth": 1024,
+      "viewport": 1024,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "acai-stable",
+      "width": 1440,
+      "docWidth": 1440,
+      "viewport": 1440,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "acai-extras",
+      "width": 375,
+      "docWidth": 375,
+      "viewport": 375,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1285,
+      "errors": []
+    },
+    {
+      "scenario": "acai-extras",
+      "width": 768,
+      "docWidth": 768,
+      "viewport": 768,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "acai-extras",
+      "width": 1024,
+      "docWidth": 1024,
+      "viewport": 1024,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "acai-extras",
+      "width": 1440,
+      "docWidth": 1440,
+      "viewport": 1440,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "acai-long",
+      "width": 375,
+      "docWidth": 375,
+      "viewport": 375,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 1285,
+      "errors": []
+    },
+    {
+      "scenario": "acai-long",
+      "width": 768,
+      "docWidth": 768,
+      "viewport": 768,
+      "tiny": [],
+      "dockVisible": true,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "acai-long",
+      "width": 1024,
+      "docWidth": 1024,
+      "viewport": 1024,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    },
+    {
+      "scenario": "acai-long",
+      "width": 1440,
+      "docWidth": 1440,
+      "viewport": 1440,
+      "tiny": [],
+      "dockVisible": false,
+      "fonts": [
+        true,
+        true
+      ],
+      "bodyHeight": 900,
+      "errors": []
+    }
+  ]
+}
