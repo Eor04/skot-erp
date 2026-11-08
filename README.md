@@ -116,6 +116,12 @@ src/
 - Gestión de carrito con descuentos
 - Procesamiento de pagos (efectivo / Yape / tarjeta)
 
+### Impresión de comandas
+- Al confirmar una venta en Açaí o Burgers, el POS abre la impresión de una comanda de producción. También imprime ventas offline, marcadas como pendientes de sincronización.
+- Instalar la impresora térmica en el equipo del cajero y seleccionar papel de 58 mm en el diálogo de impresión del navegador. La comanda usa un ancho imprimible de 54 mm, sin precios.
+- En Burgers se puede reimprimir desde **Turno**; en Açaí, desde **Reimprimir última comanda**. Estas opciones conservan las comandas solo durante la sesión abierta de la página.
+- La impresión sin diálogo requiere configurar el navegador y la impresora del equipo en modo quiosco; la aplicación no puede elegir una impresora ni verificar físicamente la salida del papel desde el navegador.
+
 ### 🏭 Fábrica / Producción
 - Gestión de recetas con cálculo de materia prima necesaria
 - Órdenes de producción con seguimiento de estado

@@ -10,9 +10,10 @@ import { useBurgerSale } from '@/hooks/use-burger-sale';
 import { useSession } from '@/lib/session-context';
 import Link from 'next/link';
 import Image from 'next/image';
-import { ArrowLeft, CheckCircle, AlertCircle, Layers, Package, ShoppingBag, ClipboardList, X, ChefHat, Wifi, WifiOff, RefreshCw } from 'lucide-react';
+import { ArrowLeft, CheckCircle, AlertCircle, Layers, Package, ShoppingBag, ClipboardList, X, ChefHat, Wifi, WifiOff, RefreshCw, Printer } from 'lucide-react';
 import CashGate from '@/components/pos/cash-gate';
 import { getOfflineQueue, saveToOfflineQueue, syncOfflineQueue, OfflineSale } from '@/lib/sync-manager';
+import { Comanda, printComanda } from '@/lib/pos/print-comanda';
 
 type ProductWithPrice = Product & { customPrice?: number };
 
@@ -41,6 +42,7 @@ interface TurnSale {
     time: string;
     customerName?: string;
     items: { name: string; quantity: number; subtotal: number }[];
+    comanda: Comanda;
 }
 
 const METHOD_LABEL: Record<string, string> = {
@@ -294,6 +296,24 @@ export default function BurgersPOSPage() {
 
             if (data.success) {
                 const total = calculateTotal();
+                const comanda: Comanda = {
+                    saleNumber: data.data.saleNumber,
+                    createdAt: new Date(),
+                    area: 'Hamburguesas',
+                    customerName: paymentData.customerName,
+                    offline: isOffline,
+                    items: cart.map(item => {
+                        const combo = (item.product as any)._comboRef as Combo | undefined;
+                        return {
+                            name: item.product.name,
+                            quantity: item.quantity,
+                            details: combo
+                                ? combo.items.map(ci => `${ci.quantity * item.quantity} × ${ci.product.name}`)
+                                : item.selectedModifiers.map(({ modifier, quantity }) =>
+                                    `${quantity * item.quantity} × ${modifier.name}`),
+                        };
+                    }),
+                };
                 setTurnHistory(prev => [{
                     saleNumber: data.data.saleNumber,
                     total,
@@ -302,6 +322,7 @@ export default function BurgersPOSPage() {
                     time: new Date().toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' }),
                     customerName: paymentData.customerName,
                     items: cart.map(item => ({ name: item.product.name, quantity: item.quantity, subtotal: item.subtotal })),
+                    comanda,
                 }, ...prev].slice(0, 20));
                 clearCart();
                 setShowPaymentModal(false);
@@ -311,6 +332,11 @@ export default function BurgersPOSPage() {
                     setSaleResult({ type: 'success', message: `¡Venta ${data.data.saleNumber}${paymentData.customerName ? ` — ${paymentData.customerName}` : ''} registrada!`, saleNumber: data.data.saleNumber });
                 }
                 loadInitialData(true);
+                printComanda(comanda, () => setSaleResult({
+                    type: 'success',
+                    message: `Venta ${comanda.saleNumber} registrada. No se pudo abrir la impresión; reimprimí desde Turno.`,
+                    saleNumber: comanda.saleNumber,
+                }));
             } else {
                 setSaleResult({ type: 'error', message: data.error || 'Error al procesar la venta' });
             }
@@ -528,6 +554,10 @@ export default function BurgersPOSPage() {
                                                 </span>
                                                 <span className="font-black text-white text-lg drop-shadow-md">Bs. {sale.total.toFixed(2)}</span>
                                             </div>
+                                            <button type="button" onClick={() => printComanda(sale.comanda)}
+                                                className="mt-3 flex min-h-11 w-full items-center justify-center gap-2 rounded-lg border border-yellow-400/50 text-yellow-300 font-semibold hover:bg-yellow-400/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-300">
+                                                <Printer className="h-4 w-4" /> Reimprimir comanda
+                                            </button>
                                         </div>
                                     </div>
                                 ))

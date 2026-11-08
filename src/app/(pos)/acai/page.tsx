@@ -9,10 +9,11 @@ import {
     ArrowLeft, Scale, ShoppingCart, CreditCard, Banknote,
     ArrowRightLeft, CheckCircle, AlertCircle, Loader2,
     Check, ChevronRight, RotateCcw, Plus, Minus, Trash2,
-    Wifi, WifiOff, Usb, Settings2, X, RefreshCw
+    Wifi, WifiOff, Usb, Settings2, X, RefreshCw, Printer
 } from 'lucide-react';
 import CashGate from '@/components/pos/cash-gate';
 import { getOfflineQueue, saveToOfflineQueue, syncOfflineQueue, OfflineSale } from '@/lib/sync-manager';
+import { Comanda, printComanda } from '@/lib/pos/print-comanda';
 
 type Step = 'sabor' | 'balanza' | 'extras';
 type PaymentMethodType = 'CASH' | 'CARD' | 'TRANSFER' | 'MIXED';
@@ -94,6 +95,7 @@ export default function AcaiPOSPage() {
     const [transferGiven, setTransferGiven]     = useState('');
     const [notification, setNotification]       = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [processing, setProcessing]           = useState(false);
+    const [lastComanda, setLastComanda]           = useState<Comanda | null>(null);
     
     // Offline State
     const [offlineQueue, setOfflineQueue]       = useState<OfflineSale[]>([]);
@@ -256,6 +258,25 @@ export default function AcaiPOSPage() {
             }
 
             if (data.success) {
+                const comanda: Comanda = {
+                    saleNumber: data.data.saleNumber,
+                    createdAt: new Date(),
+                    area: 'Açaí',
+                    offline: isOffline,
+                    items: [
+                        ...(hasBowl ? [{
+                            name: cart.isMixto ? 'Bowl mixto' : `Bowl ${cart.flavors[0].product.name}`,
+                            quantity: cart.totalWeight,
+                            unit: 'kg',
+                            details: cart.isMixto ? cart.flavors.map(f => f.product.name) : [],
+                        }] : []),
+                        ...cart.extras.map(extra => ({
+                            name: extra.product.name,
+                            quantity: extra.quantity,
+                        })),
+                    ],
+                };
+                setLastComanda(comanda);
                 clearCart();
                 setShowPayment(false);
                 setStep('sabor');
@@ -268,6 +289,8 @@ export default function AcaiPOSPage() {
                 } else {
                     notify('success', `✅ Venta ${data.data.saleNumber} — Bs. ${data.data.totalAmount.toFixed(2)}`);
                 }
+                printComanda(comanda, () => notify('error',
+                    `Venta ${comanda.saleNumber} registrada. No se pudo abrir la impresión; usá Reimprimir última comanda.`));
             } else {
                 notify('error', data.error || 'Error al registrar la venta');
             }
@@ -840,6 +863,12 @@ export default function AcaiPOSPage() {
                         className="w-full py-2.5 rounded-xl border border-white/20 text-white/60 hover:text-white hover:border-white/40 disabled:opacity-30 text-sm transition">
                         Limpiar orden
                     </button>
+                    {lastComanda && (
+                        <button type="button" onClick={() => printComanda(lastComanda)}
+                            className="flex min-h-11 w-full items-center justify-center gap-2 rounded-xl border border-purple-300/50 text-purple-100 font-semibold hover:bg-white/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-purple-200">
+                            <Printer className="h-4 w-4" /> Reimprimir última comanda
+                        </button>
+                    )}
                 </div>
             </div>
 
