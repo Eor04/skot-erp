@@ -1,358 +1,181 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import Link from 'next/link';
+import { AlertTriangle, ArrowLeft, Bell, ChevronDown, Clock, PackageOpen, RefreshCw, Store, Truck, XCircle } from 'lucide-react';
 import { useSession } from '@/lib/session-context';
-import {
-    ArrowLeft, Bell, AlertTriangle, XCircle, Clock,
-    RefreshCw, Store, ChevronDown, PackageOpen
-} from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { StatusBadge } from '@/components/ui/status-badge';
 
 type AlertItem = {
-    id: string;
-    branchId: string;
-    productId: string;
-    currentStock: number;
-    minStock: number;
-    dailyAverage?: number;
-    daysRemaining?: number | null;
-    severity?: 'CRITICO' | 'ALTO' | 'MEDIO';
+    id: string; branchId: string; productId: string; currentStock: number; minStock: number;
+    dailyAverage?: number; daysRemaining?: number | null; severity?: 'CRITICO' | 'ALTO' | 'MEDIO';
     product: { id: string; name: string; sku: string; type: string; unit: string };
     branch: { id: string; name: string };
 };
-
 type ExpiringItem = {
-    id: string;
-    branchId: string;
-    productId: string;
-    currentStock: number;
-    expirationDate: string;
+    id: string; branchId: string; productId: string; currentStock: number; expirationDate: string;
     product: { id: string; name: string; sku: string; type: string; unit: string };
     branch: { id: string; name: string };
 };
-
-type PendingOrder = {
-    id: string;
-    orderNumber: string;
-    fromBranch: { name: string };
-    toBranch: { name: string };
-};
-
-type PendingTransfer = {
-    id: string;
-    transferNumber: string;
-    fromBranch: { name: string };
-    toBranch: { name: string };
-};
-
+type PendingOrder = { id: string; orderNumber: string; fromBranch: { name: string }; toBranch: { name: string } };
+type PendingTransfer = { id: string; transferNumber: string; fromBranch: { name: string }; toBranch: { name: string } };
 type Branch = { id: string; name: string; type: string };
-
-const SEVERITY_CONFIG = {
-    CRITICO: { label: 'Sin Stock', color: 'bg-red-100 text-red-700 border-red-200', icon: XCircle, border: 'border-l-red-500' },
-    ALTO: { label: 'Crítico', color: 'bg-orange-100 text-orange-700 border-orange-200', icon: AlertTriangle, border: 'border-l-orange-500' },
-    MEDIO: { label: 'Bajo', color: 'bg-yellow-100 text-yellow-700 border-yellow-200', icon: AlertTriangle, border: 'border-l-yellow-500' },
+type AlertData = {
+    lowStock: AlertItem[];
+    expiringSoon: ExpiringItem[];
+    pendingOrders: PendingOrder[];
+    pendingTransfers: PendingTransfer[];
+    summary: { totalLowStock: number; totalExpiring: number; critical: number; totalPendingOrders: number; totalPendingTransfers: number };
 };
+
+const severity = {
+    CRITICO: { label: 'Sin stock', tone: 'error' as const, Icon: XCircle },
+    ALTO: { label: 'Crítico', tone: 'error' as const, Icon: AlertTriangle },
+    MEDIO: { label: 'Bajo', tone: 'warning' as const, Icon: AlertTriangle },
+};
+
+function daysLabel(days: number | null | undefined) {
+    if (days === null || days === undefined) return '—';
+    if (days === 0) return 'Hoy';
+    return `~${days}d`;
+}
 
 export default function AlertsPage() {
     const { user } = useSession();
     const [branches, setBranches] = useState<Branch[]>([]);
-    
-    // Si no es ADMIN y tiene sucursales, forzar esa sucursal
     const initialBranch = user?.role !== 'ADMIN' && user?.branchIds?.length ? user.branchIds[0] : '';
     const [selectedBranch, setSelectedBranch] = useState(initialBranch);
-    
-    // Sincronizar si el usuario carga después
-    useEffect(() => {
-        if (user?.role !== 'ADMIN' && user?.branchIds?.length) {
-            setSelectedBranch(user.branchIds[0]);
-        }
-    }, [user]);
-
-    const [data, setData] = useState<{
-        lowStock: AlertItem[];
-        expiringSoon: ExpiringItem[];
-        pendingOrders: PendingOrder[];
-        pendingTransfers: PendingTransfer[];
-        summary: { totalLowStock: number; totalExpiring: number; critical: number; totalPendingOrders: number; totalPendingTransfers: number };
-    } | null>(null);
+    const [data, setData] = useState<AlertData | null>(null);
     const [loading, setLoading] = useState(false);
     const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
 
     useEffect(() => {
-        fetch('/api/admin/branches').then(r => r.json()).then(d => {
-            if (d.success) setBranches(d.data);
+        if (user?.role !== 'ADMIN' && user?.branchIds?.length) setSelectedBranch(user.branchIds[0]);
+    }, [user]);
+    useEffect(() => {
+        fetch('/api/admin/branches').then(response => response.json()).then(result => {
+            if (result.success) setBranches(result.data);
         });
     }, []);
-
     const loadAlerts = useCallback(async () => {
         setLoading(true);
         try {
             const query = selectedBranch ? `?branchId=${selectedBranch}` : '';
-            const res = await fetch(`/api/inventory/alerts${query}`);
-            const d = await res.json();
-            if (d.success) {
-                setData(d.data);
+            const response = await fetch(`/api/inventory/alerts${query}`);
+            const result = await response.json();
+            if (result.success) {
+                setData(result.data);
                 setLastUpdated(new Date());
             }
-        } catch { }
+        } catch { /* La consulta conserva el último resultado disponible. */ }
         finally { setLoading(false); }
     }, [selectedBranch]);
-
     useEffect(() => { loadAlerts(); }, [loadAlerts]);
 
-    const totalAlerts = (data?.summary.totalLowStock ?? 0) + (data?.summary.totalExpiring ?? 0) + (data?.summary.totalPendingOrders ?? 0) + (data?.summary.totalPendingTransfers ?? 0);
+    const totalAlerts = (data?.summary.totalLowStock ?? 0) + (data?.summary.totalExpiring ?? 0)
+        + (data?.summary.totalPendingOrders ?? 0) + (data?.summary.totalPendingTransfers ?? 0);
 
-    function daysLabel(days: number | null | undefined) {
-        if (days === null || days === undefined) return '—';
-        if (days === 0) return 'Hoy';
-        return `~${days}d`;
-    }
-
-    return (
-        <div className="min-h-screen relative overflow-hidden p-4 md:p-8" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
-                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
-            </div>
-            <div className="relative z-10 max-w-6xl mx-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <Link href="/admin" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
-                        <ArrowLeft className="h-4 w-4" /> Volver a Admin
-                    </Link>
-                    <div className="flex items-center justify-between flex-wrap gap-4">
-                        <div>
-                            <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
-                                <Bell className="h-8 w-8 text-red-500" />
-                                Alertas de Stock
-                                {totalAlerts > 0 && (
-                                    <span className="bg-red-500 text-white text-sm font-bold rounded-full px-2.5 py-0.5">
-                                        {totalAlerts}
-                                    </span>
-                                )}
-                            </h1>
-                            <p className="text-white/60 mt-1">
-                                Productos con stock bajo o por vencer
-                                {lastUpdated && (
-                                    <span className="ml-2 text-xs text-white/40">
-                                        · Actualizado {lastUpdated.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}
-                                    </span>
-                                )}
-                            </p>
-                        </div>
-                        <button
-                            onClick={loadAlerts}
-                            disabled={loading}
-                            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 backdrop-blur-md border border-white/10 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 disabled:opacity-50 transition"
-                        >
-                            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} />
-                            Actualizar
-                        </button>
-                    </div>
+    return <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl">
+            <header className="mb-7 flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <Link href="/admin" className="mb-4 inline-flex min-h-11 items-center gap-2 font-semibold text-brand hover:underline"><ArrowLeft size={18} aria-hidden="true" /> Volver a administración</Link>
+                    <div className="mb-2 flex items-center gap-2 text-sm text-muted"><Bell size={16} aria-hidden="true" /> Administración <span aria-hidden="true">›</span> Alertas de stock</div>
+                    <h1 className="flex flex-wrap items-center gap-3 font-display text-2xl font-semibold sm:text-3xl">Alertas de stock {totalAlerts > 0 && <StatusBadge tone="error">{totalAlerts} pendientes</StatusBadge>}</h1>
+                    <p className="mt-2 text-muted">Stock bajo, vencimientos y movimientos pendientes.
+                        {lastUpdated && <span className="ml-2 text-sm">Actualizado a las {lastUpdated.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}</span>}
+                    </p>
                 </div>
+                <Button variant="secondary" size="touch" onClick={loadAlerts} disabled={loading}><RefreshCw size={18} className={loading ? 'animate-spin' : ''} aria-hidden="true" /> Actualizar</Button>
+            </header>
 
-                {/* Filtro de sucursal (Solo ADMIN) */}
-                {user?.role === 'ADMIN' && (
-                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow p-4 mb-6 flex gap-2 flex-wrap items-center">
-                    <Store className="h-4 w-4 text-white/40" />
-                    <button
-                        onClick={() => setSelectedBranch('')}
-                        className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${!selectedBranch ? 'bg-red-600 text-white' : 'bg-white/10 text-white/70 hover:bg-gray-200'}`}
-                    >
-                        Todas
-                    </button>
-                    {branches.map(b => (
-                        <button
-                            key={b.id}
-                            onClick={() => setSelectedBranch(b.id)}
-                            className={`px-3 py-1.5 rounded-lg text-sm font-medium transition ${selectedBranch === b.id ? 'bg-red-600 text-white' : 'bg-white/10 text-white/70 hover:bg-gray-200'}`}
-                        >
-                            {b.type === 'ACAI' ? '🥤' : b.type === 'HAMBURGUESAS' ? '🍔' : '🏭'} {b.name}
-                        </button>
-                    ))}
+            {user?.role === 'ADMIN' && <Card className="mb-6 p-4">
+                <h2 className="mb-3 flex items-center gap-2 font-semibold"><Store size={18} aria-hidden="true" /> Sucursal</h2>
+                <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por sucursal">
+                    <BranchFilter active={!selectedBranch} onClick={() => setSelectedBranch('')}>Todas</BranchFilter>
+                    {branches.map(branch => <BranchFilter key={branch.id} active={selectedBranch === branch.id} onClick={() => setSelectedBranch(branch.id)}>{branch.name}</BranchFilter>)}
                 </div>
-                )}
+            </Card>}
 
-                {loading ? (
-                    <div className="text-center py-20 text-white/40">
-                        <RefreshCw className="h-8 w-8 mx-auto animate-spin mb-3 opacity-40" />
-                        Cargando alertas…
+            {loading ? <Card className="flex items-center justify-center gap-3 p-16 text-muted" role="status"><RefreshCw size={21} className="animate-spin" aria-hidden="true" /> Cargando alertas…</Card>
+                : data ? <>
+                    <div className="mb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-5" aria-label="Resumen de alertas">
+                        <Metric label="Sin stock" value={data.summary.critical} tone="error" />
+                        <Metric label="Stock bajo" value={data.summary.totalLowStock - data.summary.critical} tone="warning" />
+                        <Metric label="Por vencer" value={data.summary.totalExpiring} tone="warning" />
+                        <Metric label="Pedidos pendientes" value={data.summary.totalPendingOrders} tone="info" />
+                        <Metric label="Transferencias pendientes" value={data.summary.totalPendingTransfers} tone="info" />
                     </div>
-                ) : (
-                    <>
-                        {/* KPIs */}
-                        {data && (
-                            <div className="grid grid-cols-4 gap-4 mb-6">
-                                <div className="bg-red-50 border border-red-200 rounded-2xl p-5">
-                                    <p className="text-xs font-semibold text-red-500 uppercase tracking-wide">Sin Stock</p>
-                                    <p className="text-3xl font-bold text-red-700 mt-1">{data.summary.critical}</p>
-                                </div>
-                                <div className="bg-yellow-50 border border-yellow-200 rounded-2xl p-5">
-                                    <p className="text-xs font-semibold text-yellow-600 uppercase tracking-wide">Stock Bajo</p>
-                                    <p className="text-3xl font-bold text-yellow-700 mt-1">{data.summary.totalLowStock - data.summary.critical}</p>
-                                </div>
-                                <div className="bg-orange-50 border border-orange-200 rounded-2xl p-5">
-                                    <p className="text-xs font-semibold text-orange-500 uppercase tracking-wide">Por Vencer</p>
-                                    <p className="text-3xl font-bold text-orange-700 mt-1">{data.summary.totalExpiring}</p>
-                                </div>
-                                <div className="bg-blue-50 border border-blue-200 rounded-2xl p-5">
-                                    <p className="text-xs font-semibold text-blue-500 uppercase tracking-wide">Pedidos Ptes</p>
-                                    <p className="text-3xl font-bold text-blue-700 mt-1">{data.summary.totalPendingOrders}</p>
-                                </div>
-                                <div className="bg-purple-50 border border-purple-200 rounded-2xl p-5">
-                                    <p className="text-xs font-semibold text-purple-500 uppercase tracking-wide">Transf. Ptes</p>
-                                    <p className="text-3xl font-bold text-purple-700 mt-1">{data.summary.totalPendingTransfers}</p>
-                                </div>
-                            </div>
-                        )}
 
-                        {/* Pedidos Pendientes */}
-                        <Section title="📦 Pedidos Internos Pendientes" count={data?.summary.totalPendingOrders ?? 0} defaultOpen={data?.summary.totalPendingOrders ? true : false}>
-                            {data?.pendingOrders?.length === 0 ? (
-                                <Empty text="No tienes pedidos internos pendientes" />
-                            ) : data?.pendingOrders?.map(order => (
-                                <div key={order.id} className="flex items-center justify-between p-4 border-l-4 border-l-blue-400 bg-white/5 border border-white/10 backdrop-blur-md rounded-r-xl shadow-sm mb-2">
-                                    <div className="flex items-start gap-3">
-                                        <PackageOpen className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                                        <div>
-                                            <p className="font-semibold text-white/90">Pedido #{order.orderNumber}</p>
-                                            <p className="text-xs text-white/60">De: {order.fromBranch.name} → Para: {order.toBranch.name}</p>
-                                        </div>
-                                    </div>
-                                    <Link href="/inventory/internal-orders" className="text-sm px-4 py-2 bg-blue-50 text-blue-600 rounded-lg font-medium hover:bg-blue-100 transition">
-                                        Revisar
-                                    </Link>
-                                </div>
-                            ))}
-                        </Section>
-
-                        {/* Transferencias Pendientes */}
-                        <Section title="🚚 Transferencias Pendientes" count={data?.summary.totalPendingTransfers ?? 0} defaultOpen={data?.summary.totalPendingTransfers ? true : false}>
-                            {data?.pendingTransfers?.length === 0 ? (
-                                <Empty text="No tienes transferencias pendientes por aprobar" />
-                            ) : data?.pendingTransfers?.map(transfer => (
-                                <div key={transfer.id} className="flex items-center justify-between p-4 border-l-4 border-l-purple-400 bg-white/5 border border-white/10 backdrop-blur-md rounded-r-xl shadow-sm mb-2">
-                                    <div className="flex items-start gap-3">
-                                        <PackageOpen className="h-5 w-5 text-purple-500 mt-0.5 flex-shrink-0" />
-                                        <div>
-                                            <p className="font-semibold text-white/90">Transferencia #{transfer.transferNumber}</p>
-                                            <p className="text-xs text-white/60">Origen: {transfer.fromBranch.name} → Destino: {transfer.toBranch.name}</p>
-                                        </div>
-                                    </div>
-                                    <Link href="/inventory/transfers" className="text-sm px-4 py-2 bg-purple-50 text-purple-600 rounded-lg font-medium hover:bg-purple-100 transition">
-                                        Revisar
-                                    </Link>
-                                </div>
-                            ))}
-                        </Section>
-
-                        {/* Stock bajo */}
-                        <Section title="🚨 Stock Bajo / Sin Stock" count={data?.summary.totalLowStock ?? 0} defaultOpen>
-                            {data?.lowStock.length === 0 ? (
-                                <Empty text="¡Todo el stock está en buen nivel! 🎉" />
-                            ) : data?.lowStock.map(item => {
-                                const sev = item.severity || 'MEDIO';
-                                const cfg = SEVERITY_CONFIG[sev];
-                                const Icon = cfg.icon;
-                                return (
-                                    <div key={item.id} className={`flex items-center justify-between p-4 border-l-4 ${cfg.border} bg-white/5 border border-white/10 backdrop-blur-md rounded-r-xl shadow-sm mb-2`}>
-                                        <div className="flex items-start gap-3">
-                                            <Icon className="h-5 w-5 text-current mt-0.5 flex-shrink-0" style={{ color: sev === 'CRITICO' ? '#dc2626' : sev === 'ALTO' ? '#ea580c' : '#d97706' }} />
-                                            <div>
-                                                <p className="font-semibold text-white/90">{item.product.name}</p>
-                                                <p className="text-xs text-white/60">{item.branch.name} · SKU: {item.product.sku}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-6 text-right">
-                                            <div>
-                                                <p className="text-xs text-white/40">Stock actual</p>
-                                                <p className={`font-bold text-lg ${sev === 'CRITICO' ? 'text-red-600' : 'text-white/90'}`}>
-                                                    {item.currentStock} <span className="text-xs font-normal text-white/40">{item.product.unit}</span>
-                                                </p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-white/40">Mínimo</p>
-                                                <p className="font-medium text-white/70">{item.minStock} <span className="text-xs font-normal text-white/40">{item.product.unit}</span></p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-white/40">Días restantes</p>
-                                                <p className="font-medium text-white/80">{daysLabel(item.daysRemaining)}</p>
-                                            </div>
-                                            <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${cfg.color}`}>
-                                                {cfg.label}
-                                            </span>
-                                        </div>
-                                    </div>
-                                );
+                    <div className="space-y-4">
+                        <AlertSection title="Pedidos internos pendientes" count={data.summary.totalPendingOrders} Icon={PackageOpen} defaultOpen={data.summary.totalPendingOrders > 0}>
+                            {data.pendingOrders.length === 0 ? <Empty text="No tienes pedidos internos pendientes" /> : data.pendingOrders.map(order =>
+                                <AlertRow key={order.id} Icon={PackageOpen} title={`Pedido #${order.orderNumber}`} detail={`De: ${order.fromBranch.name} → Para: ${order.toBranch.name}`}>
+                                    <Link className="inline-flex min-h-11 items-center rounded-lg px-3 font-semibold text-brand hover:bg-canvas" href="/inventory/internal-orders">Revisar pedido</Link>
+                                </AlertRow>)}
+                        </AlertSection>
+                        <AlertSection title="Transferencias pendientes" count={data.summary.totalPendingTransfers} Icon={Truck} defaultOpen={data.summary.totalPendingTransfers > 0}>
+                            {data.pendingTransfers.length === 0 ? <Empty text="No tienes transferencias pendientes por aprobar" /> : data.pendingTransfers.map(transfer =>
+                                <AlertRow key={transfer.id} Icon={Truck} title={`Transferencia #${transfer.transferNumber}`} detail={`Origen: ${transfer.fromBranch.name} → Destino: ${transfer.toBranch.name}`}>
+                                    <Link className="inline-flex min-h-11 items-center rounded-lg px-3 font-semibold text-brand hover:bg-canvas" href="/inventory/transfers">Revisar transferencia</Link>
+                                </AlertRow>)}
+                        </AlertSection>
+                        <AlertSection title="Stock bajo o agotado" count={data.summary.totalLowStock} Icon={AlertTriangle} defaultOpen>
+                            {data.lowStock.length === 0 ? <Empty text="Todo el stock está en buen nivel" /> : data.lowStock.map(item => {
+                                const config = severity[item.severity || 'MEDIO'];
+                                return <AlertRow key={item.id} Icon={config.Icon} title={item.product.name} detail={`${item.branch.name} · SKU: ${item.product.sku}`}>
+                                    <dl className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm">
+                                        <div><dt className="text-muted">Stock actual</dt><dd className="font-display font-semibold tabular-nums">{item.currentStock} {item.product.unit}</dd></div>
+                                        <div><dt className="text-muted">Mínimo</dt><dd className="tabular-nums">{item.minStock} {item.product.unit}</dd></div>
+                                        <div><dt className="text-muted">Días restantes</dt><dd className="tabular-nums">{daysLabel(item.daysRemaining)}</dd></div>
+                                    </dl>
+                                    <StatusBadge tone={config.tone}>{config.label}</StatusBadge>
+                                </AlertRow>;
                             })}
-                        </Section>
-
-                        {/* Por vencer */}
-                        <Section title="⏰ Próximos a Vencer (30 días)" count={data?.summary.totalExpiring ?? 0}>
-                            {data?.expiringSoon.length === 0 ? (
-                                <Empty text="No hay productos próximos a vencer" />
-                            ) : data?.expiringSoon.map(item => {
-                                const exp = new Date(item.expirationDate);
-                                const daysLeft = Math.ceil((exp.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-                                return (
-                                    <div key={item.id} className="flex items-center justify-between p-4 border-l-4 border-l-orange-400 bg-white/5 border border-white/10 backdrop-blur-md rounded-r-xl shadow-sm mb-2">
-                                        <div className="flex items-start gap-3">
-                                            <Clock className="h-5 w-5 text-orange-500 mt-0.5" />
-                                            <div>
-                                                <p className="font-semibold text-white/90">{item.product.name}</p>
-                                                <p className="text-xs text-white/60">{item.branch.name} · SKU: {item.product.sku}</p>
-                                            </div>
-                                        </div>
-                                        <div className="flex items-center gap-6 text-right">
-                                            <div>
-                                                <p className="text-xs text-white/40">Stock</p>
-                                                <p className="font-bold text-white/90">{item.currentStock} <span className="text-xs font-normal text-white/40">{item.product.unit}</span></p>
-                                            </div>
-                                            <div>
-                                                <p className="text-xs text-white/40">Vence</p>
-                                                <p className="font-medium text-white/80">{exp.toLocaleDateString('es-BO')}</p>
-                                            </div>
-                                            <span className={`px-2.5 py-1 text-xs font-semibold rounded-full border ${daysLeft <= 7 ? 'bg-red-100 text-red-700 border-red-200' : 'bg-orange-100 text-orange-700 border-orange-200'}`}>
-                                                {daysLeft <= 0 ? '¡Vencido!' : `En ${daysLeft}d`}
-                                            </span>
-                                        </div>
-                                    </div>
-                                );
+                        </AlertSection>
+                        <AlertSection title="Próximos a vencer (30 días)" count={data.summary.totalExpiring} Icon={Clock}>
+                            {data.expiringSoon.length === 0 ? <Empty text="No hay productos próximos a vencer" /> : data.expiringSoon.map(item => {
+                                const expiration = new Date(item.expirationDate);
+                                const daysLeft = Math.ceil((expiration.getTime() - Date.now()) / (1000 * 60 * 60 * 24));
+                                return <AlertRow key={item.id} Icon={Clock} title={item.product.name} detail={`${item.branch.name} · SKU: ${item.product.sku}`}>
+                                    <dl className="flex flex-wrap gap-x-5 gap-y-2 text-sm">
+                                        <div><dt className="text-muted">Stock</dt><dd className="font-display font-semibold tabular-nums">{item.currentStock} {item.product.unit}</dd></div>
+                                        <div><dt className="text-muted">Vence</dt><dd>{expiration.toLocaleDateString('es-BO')}</dd></div>
+                                    </dl>
+                                    <StatusBadge tone={daysLeft <= 7 ? 'error' : 'warning'}>{daysLeft <= 0 ? 'Vencido' : `En ${daysLeft}d`}</StatusBadge>
+                                </AlertRow>;
                             })}
-                        </Section>
-                    </>
-                )}
-            </div>
+                        </AlertSection>
+                    </div>
+                </> : <Card className="p-8 text-center text-muted" role="status">No se pudieron cargar las alertas. Usa Actualizar para volver a intentarlo.</Card>}
         </div>
-    );
+    </main>;
 }
 
-function Section({ title, count, children, defaultOpen }: { title: string; count: number; children: React.ReactNode; defaultOpen?: boolean }) {
-    const [open, setOpen] = useState(defaultOpen ?? false);
-    return (
-        <div className="mb-6">
-            <button
-                onClick={() => setOpen(o => !o)}
-                className="w-full flex items-center justify-between bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow px-5 py-4 text-left hover:bg-white/5 transition"
-            >
-                <span className="font-semibold text-white/90">
-                    {title}
-                    {count > 0 && (
-                        <span className="ml-2 bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">{count}</span>
-                    )}
-                </span>
-                <ChevronDown className={`h-5 w-5 text-white/40 transition-transform ${open ? 'rotate-180' : ''}`} />
-            </button>
-            {open && <div className="mt-3">{children}</div>}
-        </div>
-    );
+function BranchFilter({ active, onClick, children }: { active: boolean; onClick: () => void; children: ReactNode }) {
+    return <button type="button" onClick={onClick} aria-pressed={active} className={`min-h-11 rounded-lg border px-4 py-2 text-sm font-semibold ${active ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-ink hover:bg-canvas'}`}>{children}</button>;
 }
-
+function Metric({ label, value, tone }: { label: string; value: number; tone: 'error' | 'warning' | 'info' }) {
+    return <Card className="p-4"><p className="text-sm text-muted">{label}</p><p className="mt-2 font-display text-3xl font-semibold tabular-nums">{value}</p><StatusBadge tone={tone} className="mt-3">{value === 0 ? 'Sin pendientes' : 'Requiere atención'}</StatusBadge></Card>;
+}
+function AlertSection({ title, count, Icon, children, defaultOpen = false }: { title: string; count: number; Icon: typeof Bell; children: ReactNode; defaultOpen?: boolean }) {
+    const [open, setOpen] = useState(defaultOpen);
+    return <section>
+        <button type="button" aria-expanded={open} onClick={() => setOpen(previous => !previous)} className="flex min-h-14 w-full items-center gap-3 rounded-xl border border-line-subtle bg-surface px-4 py-3 text-left hover:border-brand">
+            <Icon size={20} className="shrink-0 text-brand" aria-hidden="true" /><span className="min-w-0 flex-1 font-display font-semibold">{title}</span>
+            {count > 0 && <StatusBadge tone="error">{count}</StatusBadge>}<ChevronDown size={19} className={`shrink-0 text-muted transition-transform ${open ? 'rotate-180' : ''}`} aria-hidden="true" />
+        </button>
+        {open && <div className="mt-2 space-y-2">{children}</div>}
+    </section>;
+}
+function AlertRow({ Icon, title, detail, children }: { Icon: typeof Bell; title: string; detail: string; children: ReactNode }) {
+    return <Card className="flex flex-wrap items-center justify-between gap-4 p-4">
+        <div className="flex min-w-0 items-start gap-3"><Icon size={20} className="mt-0.5 shrink-0 text-brand" aria-hidden="true" /><div className="min-w-0"><h3 className="break-words font-semibold">{title}</h3><p className="mt-1 break-words text-sm text-muted">{detail}</p></div></div>
+        <div className="flex w-full flex-wrap items-center gap-4 sm:w-auto">{children}</div>
+    </Card>;
+}
 function Empty({ text }: { text: string }) {
-    return (
-        <div className="text-center py-10 text-white/40 bg-white/5 border border-white/10 backdrop-blur-md rounded-xl shadow-sm">
-            <p>{text}</p>
-        </div>
-    );
+    return <Card className="p-8 text-center text-muted">{text}</Card>;
 }
