@@ -1,5 +1,7 @@
 # Skot ERP · Pase de Cocina · Fase 2.1
 
+**Preparación de Fase 3:** [plan técnico y paleta contextual](./PHASE-3-PLAN.md) · [vista previa con colores de marca](./index-brand.html). La variante usa el logo Burger compartido por el propietario y los logos existentes del repositorio. La composición original de Fase 2.1 permanece disponible en esta galería y en `previews/refined/`.
+
 Prototipos aislados para revisar el refinamiento visual antes de implementar en Next.js. Abrir [la galería](./index.html). Todos los importes, productos, estados de hardware y pedidos de estas páginas son **datos de demostración**; no hay API, sesión, cálculo de venta ni persistencia conectados. La identidad aprobada «Pase de Cocina» permanece intacta. La [especificación de Fase 2](./README-phase-2.md) y sus capturas originales en [`previews/`](./previews/) conservan la referencia anterior; las nuevas capturas están en [`previews/refined/`](./previews/refined/).
 
 ## Ajustes del Design System

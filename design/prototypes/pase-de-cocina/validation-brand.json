@@ -1,0 +1,207 @@
+{
+  "date": "2026-11-08T20:39:00.564Z",
+  "cases": 28,
+  "colorPairs": {
+    "burgerAction": 7.16,
+    "acaiAction": 10.3,
+    "adminAction": 11.62,
+    "textBackground": 13.37,
+    "mutedSurface": 7.38,
+    "darkTextGold": 7.71
+  },
+  "failures": [],
+  "results": [
+    {
+      "name": "dashboard",
+      "width": 375,
+      "primary": "#54294F",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "dashboard",
+      "width": 768,
+      "primary": "#54294F",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "dashboard",
+      "width": 1024,
+      "primary": "#54294F",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "dashboard",
+      "width": 1440,
+      "primary": "#54294F",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "burger",
+      "width": 375,
+      "primary": "#A6262B",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "burger",
+      "width": 768,
+      "primary": "#A6262B",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "burger",
+      "width": 1024,
+      "primary": "#A6262B",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "burger",
+      "width": 1440,
+      "primary": "#A6262B",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "burger-combos",
+      "width": 375,
+      "primary": "#A6262B",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "burger-combos",
+      "width": 768,
+      "primary": "#A6262B",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "burger-combos",
+      "width": 1024,
+      "primary": "#A6262B",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "burger-combos",
+      "width": 1440,
+      "primary": "#A6262B",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "acai-waiting",
+      "width": 375,
+      "primary": "#632A62",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "acai-waiting",
+      "width": 768,
+      "primary": "#632A62",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "acai-waiting",
+      "width": 1024,
+      "primary": "#632A62",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "acai-waiting",
+      "width": 1440,
+      "primary": "#632A62",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "acai-stable",
+      "width": 375,
+      "primary": "#632A62",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "acai-stable",
+      "width": 768,
+      "primary": "#632A62",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "acai-stable",
+      "width": 1024,
+      "primary": "#632A62",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "acai-stable",
+      "width": 1440,
+      "primary": "#632A62",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "acai-extras",
+      "width": 375,
+      "primary": "#632A62",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "acai-extras",
+      "width": 768,
+      "primary": "#632A62",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "acai-extras",
+      "width": 1024,
+      "primary": "#632A62",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    },
+    {
+      "name": "acai-extras",
+      "width": 1440,
+      "primary": "#632A62",
+      "fontDisplay": true,
+      "fontText": true,
+      "errors": []
+    }
+  ]
+}

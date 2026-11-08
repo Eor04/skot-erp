@@ -1,0 +1,65 @@
+/* Variante cromática para revisar antes de la Fase 3. No modifica producción. */
+html.palette-brand {
+  --primary: #54294F;
+  --secondary: #A6262B;
+  --accent: #E1B528;
+  --background: #F4F2F0;
+  --surface: #FFFFFF;
+  --foreground: #2D2528;
+  --muted: #5D5358;
+  --border: #867A80;
+  --line: #DED8D9;
+  --pale: #F0E9EF;
+  --pale-gold: #F8EDC9;
+  --pale-red: #F9E8E7;
+  --success: #1E6849;
+  --warning: #805208;
+  --error: #A52D2D;
+  --info: #1F5F80;
+  --focus: #174B78;
+}
+html.palette-brand.palette-burger {
+  --primary: #A6262B;
+  --secondary: #A6262B;
+  --pale: #F8EAEA;
+  --line: #E5D9D8;
+}
+html.palette-brand.palette-acai {
+  --primary: #632A62;
+  --secondary: #8B4B82;
+  --pale: #F1EAF1;
+}
+html.palette-brand .demo-bar { background: #2D2528; }
+html.palette-brand .button.primary:hover { background: #43213F; }
+html.palette-brand.palette-burger .button.primary:hover,
+html.palette-brand.palette-burger .add-button:hover { background: #861F25; }
+html.palette-brand.palette-acai .button.primary:hover { background: #4F214E; }
+html.palette-brand .button.secondary:hover,
+html.palette-brand .side-link:hover,
+html.palette-brand .icon-button:hover { background: #F7F4F6; }
+html.palette-brand .pill.neutral { background: #F2EFF1; }
+html.palette-brand .instruction { background: #FAF8F7; }
+html.palette-brand .brand-mark { background: #2D2528; }
+html.palette-brand .brand-mark:before { background: #F21924; height: 3px; }
+html.palette-brand .brand-mark:after { background: #FEDA16; height: 3px; }
+html.palette-brand .metric:first-child { background: #FAF8F9; }
+html.palette-brand.palette-burger .product-card.is-selected { background: #FFF7F6; }
+html.palette-brand.palette-burger .catalog-note { background: #F8ECE8; }
+html.palette-brand.palette-burger .product-card .type { background: #F7ECE9; }
+html.palette-brand.palette-burger .modifier-option:has(input:checked) { background: #FFF7F6; }
+html.palette-brand.palette-acai .choice.selected { background: #F8F3F8; }
+html.palette-brand.palette-acai .scale-display { background: #302139; }
+html.palette-brand.palette-acai body.view-waiting .scale-display { background: #3D3443; }
+html.palette-brand .pos-header .pill:not(.neutral) { background: #E8F1EA; color: var(--success); }
+html.palette-brand .ticket:before { background: var(--accent); }
+html.palette-brand .product-card .modifier-badge { color: var(--secondary); }
+html.palette-brand .pill.warning { background: var(--pale-gold); color: var(--warning); }
+html.palette-brand .pill.error { background: var(--pale-red); color: var(--error); }
+html.palette-brand .button.primary:disabled { background: #D6D0D0; color: #534A4D; }
+html.palette-brand .brand-reference { display: flex; align-items: center; gap: 16px; margin-top: 22px; padding: 16px; width: min(100%, 640px); border: 1px solid var(--line); border-radius: 12px; background: #fff; }
+html.palette-brand .brand-reference img { width: 64px; height: 64px; object-fit: contain; flex: none; background: #231B1C; border-radius: 9px; }
+html.palette-brand .brand-reference p { font-size: 14px; line-height: 1.4; color: var(--muted); }
+html.palette-brand .brand-reference strong { display: block; color: var(--foreground); }
+html.palette-brand .brand-swatches { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+html.palette-brand .brand-swatch { display: inline-flex; align-items: center; gap: 8px; padding: 7px 10px; border: 1px solid var(--line); border-radius: 8px; background: #fff; font-size: 13px; font-weight: 700; }
+html.palette-brand .brand-swatch i { width: 18px; height: 18px; display: block; border-radius: 4px; border: 1px solid rgba(0,0,0,.14); }
