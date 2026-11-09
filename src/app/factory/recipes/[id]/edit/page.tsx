@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Plus, X, Save, AlertCircle, Trash2, Loader2, Pencil } from 'lucide-react';
 import { SearchableSelect } from '@/components/ui/searchable-select';
+import { isRawMaterial } from '@/lib/recipe-product-options';
 
 type Product = {
     id: string;
@@ -12,6 +13,7 @@ type Product = {
     sku: string;
     unit: string;
     type: string;
+    category: string | null;
 };
 
 export default function EditRecipePage() {
@@ -187,7 +189,7 @@ export default function EditRecipePage() {
                             <div>
                                 <label htmlFor="recipe-product" className="block text-sm font-semibold text-ink mb-2">Producto resultante *</label>
                                 <SearchableSelect id="recipe-product"
-                                    options={products.map(p => ({ value: p.id, label: `${p.name} (${p.unit})` }))}
+                                    options={products.filter(p => !isRawMaterial(p) || p.id === form.productId).map(p => ({ value: p.id, label: `${p.name} (${p.unit})${isRawMaterial(p) ? ' · selección actual' : ''}` }))}
                                     value={form.productId}
                                     onChange={val => setForm(f => ({ ...f, productId: val }))}
                                     placeholder="Seleccionar producto..."
@@ -260,7 +262,7 @@ export default function EditRecipePage() {
                                         <div className="col-span-2 min-w-0 sm:col-span-1">
                                             <label htmlFor={`ingredient-product-${i}`} className="block text-xs font-semibold text-muted mb-1">Insumo / Ingrediente</label>
                                             <SearchableSelect id={`ingredient-product-${i}`}
-                                                options={products.map(p => ({ value: p.id, label: `${p.name} (${p.unit})` }))}
+                                                options={products.filter(p => isRawMaterial(p) || p.id === ing.ingredientId).map(p => ({ value: p.id, label: `${p.name} (${p.unit})${!isRawMaterial(p) ? ' · selección actual' : ''}` }))}
                                                 value={ing.ingredientId}
                                                 onChange={val => handleIngredientChange(i, 'ingredientId', val)}
                                                 placeholder="Buscar ingrediente..."
