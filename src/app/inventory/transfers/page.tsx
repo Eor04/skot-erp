@@ -20,10 +20,10 @@ type Transfer = {
 };
 
 const STATUS_CFG: Record<string, { label: string; color: string; Icon: React.ElementType }> = {
-    PENDING: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-400', Icon: Clock },
-    IN_TRANSIT: { label: 'En Tránsito', color: 'bg-blue-500/20 text-blue-400', Icon: Loader },
-    RECEIVED: { label: 'Recibida', color: 'bg-green-100 text-green-400', Icon: CheckCircle },
-    CANCELLED: { label: 'Cancelada', color: 'bg-red-100 text-red-400', Icon: X },
+    PENDING: { label: 'Pendiente', color: 'bg-[var(--status-warning-bg)] text-warning', Icon: Clock },
+    IN_TRANSIT: { label: 'En Tránsito', color: 'bg-[var(--status-info-bg)] text-info', Icon: Loader },
+    RECEIVED: { label: 'Recibida', color: 'bg-[var(--status-success-bg)] text-success', Icon: CheckCircle },
+    CANCELLED: { label: 'Cancelada', color: 'bg-[var(--status-error-bg)] text-danger', Icon: X },
 };
 
 export default function TransfersPage() {
@@ -83,7 +83,7 @@ export default function TransfersPage() {
                 const msgs: Record<string, string> = {
                     approve: '✅ Transferencia aprobada — en tránsito',
                     cancel: '❌ Transferencia cancelada',
-                    receive: '📦 Recepción confirmada — stock actualizado',
+                    receive: 'Recepción confirmada — stock actualizado',
                 };
                 showToast('success', msgs[action]);
                 fetchTransfers();
@@ -100,31 +100,26 @@ export default function TransfersPage() {
     const pending = transfers.filter(t => t.status === 'PENDING');
 
     return (
-        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
-                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
-            </div>
+        <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8">
             {toast && (
-                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-brand' : 'bg-danger'}`}>
                     {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
                     {toast.msg}
                 </div>
             )}
 
-            <div className="max-w-5xl mx-auto">
+            <div className="mx-auto max-w-5xl">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
                     <div>
-                        <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
-                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
-                            <ArrowLeftRight className="h-8 w-8 text-blue-400" /> Transferencias
+                        <button onClick={() => window.history.back()} className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
+                        <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink flex items-center gap-3">
+                            <ArrowLeftRight className="h-8 w-8 text-info" /> Transferencias
                         </h1>
                     </div>
                     <Link
                         href="/inventory/transfers/request"
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition"
+                        className="flex items-center gap-2 bg-brand hover:brightness-90 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition"
                     >
                         <Send className="h-4 w-4" /> Solicitar transferencia
                     </Link>
@@ -132,8 +127,8 @@ export default function TransfersPage() {
 
                 {/* Alertas de pendientes para admin */}
                 {isAdmin && pending.length > 0 && (
-                    <div className="bg-yellow-500/10 border border-yellow-200 rounded-2xl p-4 mb-6 flex items-center gap-3">
-                        <Clock className="h-5 w-5 text-yellow-400 flex-shrink-0" />
+                    <div className="bg-[var(--status-warning-bg)] border border-line-subtle rounded-2xl p-4 mb-6 flex items-center gap-3">
+                        <Clock className="h-5 w-5 text-warning flex-shrink-0" />
                         <p className="text-yellow-300 text-sm font-medium">
                             Hay <strong>{pending.length} solicitud{pending.length !== 1 ? 'es' : ''}</strong> pendiente{pending.length !== 1 ? 's' : ''} de aprobación.
                         </p>
@@ -146,7 +141,7 @@ export default function TransfersPage() {
                         <button
                             key={s || 'ALL'}
                             onClick={() => setStatusFilter(s)}
-                            className={`px-4 py-1.5 rounded-xl text-sm font-medium transition ${statusFilter === s ? 'bg-blue-600 text-white' : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/5'}`}
+                            className={`px-4 min-h-11 py-2 rounded-xl text-sm font-medium transition ${statusFilter === s ? 'bg-brand text-white' : 'bg-surface border border-line-subtle text-muted hover:bg-canvas'}`}
                         >
                             {s === '' ? 'Todas' : STATUS_CFG[s]?.label || s}
                         </button>
@@ -155,12 +150,12 @@ export default function TransfersPage() {
 
                 {/* Lista */}
                 {loading ? (
-                    <div className="text-center py-20 text-white/40">Cargando transferencias…</div>
+                    <div className="text-center py-20 text-muted">Cargando transferencias…</div>
                 ) : transfers.length === 0 ? (
-                    <div className="text-center py-20 bg-white/5 rounded-2xl shadow text-white/40">
+                    <div className="text-center py-20 bg-surface rounded-2xl shadow text-muted">
                         <ArrowLeftRight className="h-12 w-12 mx-auto mb-3 opacity-30" />
                         <p>No hay transferencias{statusFilter ? ` en estado "${STATUS_CFG[statusFilter]?.label}"` : ''}.</p>
-                        <Link href="/inventory/transfers/request" className="mt-4 inline-block text-green-400 font-medium hover:underline">
+                        <Link href="/inventory/transfers/request" className="mt-4 inline-block text-success font-medium hover:underline">
                             Solicitar una →
                         </Link>
                     </div>
@@ -171,26 +166,26 @@ export default function TransfersPage() {
                             const Icon = cfg.Icon;
                             const isPending = t.status === 'PENDING';
                             return (
-                                <div key={t.id} className={`bg-white/5 rounded-2xl shadow p-5 border-l-4 ${isPending ? 'border-yellow-400' : t.status === 'RECEIVED' ? 'border-green-400' : 'border-white/20'}`}>
-                                    <div className="flex items-center justify-between gap-4">
+                                <div key={t.id} className={`bg-surface rounded-2xl shadow p-5 border-l-4 ${isPending ? 'border-yellow-400' : t.status === 'RECEIVED' ? 'border-green-400' : 'border-line'}`}>
+                                    <div className="flex flex-wrap items-center justify-between gap-4">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-3 mb-1">
-                                                <span className="font-mono text-xs text-white/40">{t.transferNumber}</span>
+                                                <span className="font-mono text-xs text-muted">{t.transferNumber}</span>
                                                 <span className={`flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium ${cfg.color}`}>
                                                     <Icon className="h-3.5 w-3.5" /> {cfg.label}
                                                 </span>
                                             </div>
-                                            <p className="font-semibold text-white/90 text-sm">
+                                            <p className="font-semibold text-ink text-sm">
                                                 {t.items.map(i => `${i.product.name} (${i.requestedQty})`).join(' · ')}
                                             </p>
-                                            <p className="text-xs text-white/60 mt-0.5 flex items-center gap-1.5">
+                                            <p className="text-xs text-muted mt-0.5 flex items-center gap-1.5">
                                                 <span className="font-medium">{t.fromBranch.name}</span>
                                                 <ArrowLeftRight className="h-3 w-3" />
                                                 <span className="font-medium">{t.toBranch.name}</span>
-                                                <span className="text-white/30">·</span>
+                                                <span className="text-muted">·</span>
                                                 <span>{new Date(t.requestedDate).toLocaleDateString('es-PE')}</span>
                                             </p>
-                                            {t.notes && <p className="text-xs text-white/40 mt-1 italic">"{t.notes}"</p>}
+                                            {t.notes && <p className="text-xs text-muted mt-1 italic">"{t.notes}"</p>}
                                         </div>
 
                                         {/* Botones de acción según el estado */}
@@ -199,7 +194,7 @@ export default function TransfersPage() {
                                                 <button
                                                     onClick={() => handleAction(t.id, 'approve')}
                                                     disabled={!!actionLoading}
-                                                    className="flex items-center gap-1.5 px-3 py-2 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-semibold disabled:opacity-50 transition"
+                                                    className="flex items-center gap-1.5 px-3 py-2 bg-brand hover:brightness-90 text-white rounded-xl text-xs font-semibold disabled:opacity-50 transition"
                                                 >
                                                     <ThumbsUp className="h-3.5 w-3.5" />
                                                     {actionLoading === t.id + 'approve' ? 'Aprobando…' : 'Aprobar'}
@@ -207,7 +202,7 @@ export default function TransfersPage() {
                                                 <button
                                                     onClick={() => handleAction(t.id, 'cancel')}
                                                     disabled={!!actionLoading}
-                                                    className="flex items-center gap-1.5 px-3 py-2 bg-red-500/10 hover:bg-red-100 text-red-400 border border-red-200 rounded-xl text-xs font-semibold disabled:opacity-50 transition"
+                                                    className="flex items-center gap-1.5 px-3 py-2 bg-[var(--status-error-bg)] hover:bg-[var(--status-error-bg)] text-danger border border-line-subtle rounded-xl text-xs font-semibold disabled:opacity-50 transition"
                                                 >
                                                     <ThumbsDown className="h-3.5 w-3.5" />
                                                     {actionLoading === t.id + 'cancel' ? 'Cancelando…' : 'Rechazar'}
@@ -219,7 +214,7 @@ export default function TransfersPage() {
                                             <button
                                                 onClick={() => handleAction(t.id, 'receive')}
                                                 disabled={!!actionLoading}
-                                                className="flex items-center gap-1.5 px-3 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-semibold disabled:opacity-50 transition flex-shrink-0"
+                                                className="flex items-center gap-1.5 px-3 py-2 bg-brand hover:brightness-90 text-white rounded-xl text-xs font-semibold disabled:opacity-50 transition flex-shrink-0"
                                             >
                                                 <CheckCircle className="h-3.5 w-3.5" />
                                                 {actionLoading === t.id + 'receive' ? 'Confirmando…' : 'Confirmar recepción'}
@@ -232,8 +227,8 @@ export default function TransfersPage() {
                     </div>
                 )}
 
-                <p className="text-xs text-white/40 text-center mt-6">{transfers.length} transferencia{transfers.length !== 1 ? 's' : ''}</p>
+                <p className="text-xs text-muted text-center mt-6">{transfers.length} transferencia{transfers.length !== 1 ? 's' : ''}</p>
             </div>
-        </div>
+        </main>
     );
 }

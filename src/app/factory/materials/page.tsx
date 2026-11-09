@@ -28,9 +28,9 @@ function getSeverity(current: number, min: number): 'ok' | 'low' | 'critical' {
 }
 
 const SEV_CONFIG = {
-    critical: { label: 'Sin stock', color: 'bg-red-500/20 text-red-400 border border-red-500/30', bar: 'bg-red-500', icon: <XCircle className="h-4 w-4 text-red-400" /> },
-    low:      { label: 'Stock bajo', color: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30', bar: 'bg-yellow-400', icon: <AlertTriangle className="h-4 w-4 text-yellow-400" /> },
-    ok:       { label: 'Normal', color: 'bg-green-500/20 text-green-400 border border-green-500/30', bar: 'bg-green-500', icon: <CheckCircle2 className="h-4 w-4 text-green-400" /> },
+    critical: { label: 'Sin stock', color: 'bg-[var(--status-error-bg)] text-danger', bar: 'bg-danger', icon: <XCircle className="h-4 w-4" /> },
+    low:      { label: 'Stock bajo', color: 'bg-[var(--status-warning-bg)] text-warning', bar: 'bg-warning', icon: <AlertTriangle className="h-4 w-4" /> },
+    ok:       { label: 'Normal', color: 'bg-[var(--status-success-bg)] text-success', bar: 'bg-success', icon: <CheckCircle2 className="h-4 w-4" /> },
 };
 
 // Labels legibles por tipo de producto
@@ -50,7 +50,7 @@ function StockBar({ current, min }: { current: number; min: number }) {
     const pct = Math.min((current / cap) * 100, 100);
     const sev = getSeverity(current, min);
     return (
-        <div className="w-full bg-white/5 rounded-full h-2 mt-1">
+        <div className="mt-1 h-2 w-full rounded-full bg-canvas">
             <div className={`h-2 rounded-full transition-all ${SEV_CONFIG[sev].bar}`} style={{ width: `${pct}%` }} />
         </div>
     );
@@ -112,184 +112,24 @@ export default function FactoryMaterialsPage() {
     const low      = stocks.filter(s => getSeverity(s.currentStock, s.minStock) === 'low').length;
     const ok       = stocks.filter(s => getSeverity(s.currentStock, s.minStock) === 'ok').length;
 
-    return (
-        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
-                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
-            </div>
-            <div className="relative z-10">
-            <div className="max-w-5xl mx-auto space-y-6 px-4 py-8">
-
-                {/* Header */}
-                <div>
-                    <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
-                        <ArrowLeft className="h-4 w-4" /> Fábrica
-                    </Link>
-                    <div className="flex items-center justify-between flex-wrap gap-3">
-                        <div>
-                            <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
-                                <Package className="h-7 w-7 text-blue-400" /> Inventario Completo
-                            </h1>
-                            <p className="text-white/60 text-sm mt-1">
-                                Todo el stock de la sucursal seleccionada
-                                {lastUpd && <span className="ml-2 text-white/40">· Actualizado {lastUpd.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}</span>}
-                            </p>
-                        </div>
-                        <button onClick={load} disabled={loading}
-                            className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/10 rounded-xl text-sm text-white/70 hover:bg-white/10 transition disabled:opacity-50">
-                            <RefreshCw className={`h-4 w-4 ${loading ? 'animate-spin' : ''}`} /> Actualizar
-                        </button>
-                    </div>
-                </div>
-
-                {/* KPIs de estado */}
-                <div className="grid grid-cols-3 gap-3">
-                    {[
-                        { label: 'Sin stock', val: critical, color: 'bg-red-500/10 border-red-500/30', tc: 'text-red-400', key: 'critical' },
-                        { label: 'Stock bajo', val: low,      color: 'bg-yellow-500/10 border-yellow-500/30', tc: 'text-yellow-300', key: 'low' },
-                        { label: 'Normal',     val: ok,       color: 'bg-green-500/10 border-green-500/30', tc: 'text-green-400', key: 'ok' },
-                    ].map(k => (
-                        <button key={k.key} onClick={() => setFilter(filter === k.key as any ? 'all' : k.key as any)}
-                            className={`border rounded-2xl p-4 text-left transition ${k.color} ${filter === k.key ? 'ring-2 ring-white/30' : 'hover:bg-white/5'}`}>
-                            <p className="text-xs font-medium text-white/60">{k.label}</p>
-                            <p className={`text-3xl font-black mt-1 ${k.tc}`}>{k.val}</p>
-                        </button>
-                    ))}
-                </div>
-
-                {/* Filtros: sucursal + búsqueda */}
-                <div className="bg-white/5 border border-white/10 rounded-2xl p-4 flex flex-wrap gap-3 items-center">
-                    {/* Selector de sucursal — todas, no solo fábricas */}
-                    {branches.length > 1 && (
-                        <select value={branchId} onChange={e => setBranchId(e.target.value)}
-                            className="bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-blue-400">
-                            <option value="" className="bg-gray-900">Todas las sucursales</option>
-                            {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900">{b.name} ({b.type})</option>)}
-                        </select>
-                    )}
-                    {/* Buscador */}
-                    <div className="relative flex-1 min-w-48">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-white/40" />
-                        <input value={search} onChange={e => setSearch(e.target.value)}
-                            placeholder="Buscar por nombre o SKU…"
-                            className="pl-9 pr-3 py-2 bg-black/30 text-white border border-white/20 rounded-xl text-sm w-full focus:outline-none focus:ring-2 focus:ring-blue-400 placeholder-white/30" />
-                    </div>
-                    {filter !== 'all' && (
-                        <button onClick={() => setFilter('all')}
-                            className="flex items-center gap-1 text-xs text-blue-400 hover:text-blue-300 font-medium">
-                            <Filter className="h-3.5 w-3.5" /> Quitar filtro estado
-                        </button>
-                    )}
-                </div>
-
-                {/* Pestañas por TIPO de producto */}
-                <div className="flex flex-wrap gap-2">
-                    {['', ...availableTypes].map(t => (
-                        <button
-                            key={t || 'all'}
-                            onClick={() => setTypeFilter(t)}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition border ${
-                                typeFilter === t
-                                    ? 'bg-blue-600 text-white border-blue-500 shadow-lg shadow-blue-500/20'
-                                    : 'bg-white/5 text-white/60 border-white/10 hover:bg-white/10 hover:text-white'
-                            }`}
-                        >
-                            {TYPE_LABELS[t] || t}
-                            <span className="ml-1.5 text-[10px] opacity-70">
-                                ({stocks.filter(s => t === '' ? true : s.product.type === t).length})
-                            </span>
-                        </button>
-                    ))}
-                </div>
-
-                {/* Tabla */}
-                {loading ? (
-                    <div className="text-center py-20 text-white/40">
-                        <RefreshCw className="h-8 w-8 animate-spin mx-auto mb-2" /> Cargando…
-                    </div>
-                ) : filtered.length === 0 ? (
-                    <div className="text-center py-20 text-white/40">
-                        <Package className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                        <p className="text-sm">No hay productos con esas condiciones</p>
-                        {!branchId && <p className="text-xs mt-1">Seleccioná una sucursal para ver su inventario</p>}
-                    </div>
-                ) : (
-                    <div className="bg-white/5 border border-white/10 rounded-2xl overflow-hidden">
-                        <table className="w-full text-sm">
-                            <thead className="bg-white/5 border-b border-white/10">
-                                <tr>
-                                    <th className="text-left px-5 py-3.5 font-semibold text-white/70">Producto</th>
-                                    <th className="text-left px-4 py-3.5 font-semibold text-white/70 hidden sm:table-cell">Tipo</th>
-                                    <th className="text-left px-4 py-3.5 font-semibold text-white/70 hidden sm:table-cell">Categoría</th>
-                                    <th className="text-right px-5 py-3.5 font-semibold text-white/70">Stock actual</th>
-                                    <th className="text-right px-5 py-3.5 font-semibold text-white/70 hidden md:table-cell">Mínimo</th>
-                                    <th className="px-5 py-3.5 font-semibold text-white/70 w-28 hidden md:table-cell">Nivel</th>
-                                    <th className="text-center px-5 py-3.5 font-semibold text-white/70">Estado</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.map(s => {
-                                    const sev = getSeverity(s.currentStock, s.minStock);
-                                    const cfg = SEV_CONFIG[sev];
-                                    return (
-                                        <tr key={s.id} className={`border-b border-white/10 hover:bg-white/5 transition ${sev === 'critical' ? 'bg-red-500/5' : ''}`}>
-                                            <td className="px-5 py-3.5">
-                                                <p className="font-semibold text-white/90">{s.product.name}</p>
-                                                <p className="text-xs text-white/40 font-mono">{s.product.sku}</p>
-                                            </td>
-                                            <td className="px-4 py-3.5 hidden sm:table-cell">
-                                                <span className="text-xs bg-white/10 text-white/60 px-2 py-0.5 rounded-full">
-                                                    {TYPE_LABELS[s.product.type] || s.product.type}
-                                                </span>
-                                            </td>
-                                            <td className="px-4 py-3.5 text-white/60 text-xs hidden sm:table-cell">
-                                                {s.product.category || '—'}
-                                            </td>
-                                            <td className="px-5 py-3.5 text-right">
-                                                <span className={`font-bold text-base ${sev === 'critical' ? 'text-red-400' : 'text-white/90'}`}>
-                                                    {s.currentStock % 1 === 0 ? s.currentStock : s.currentStock.toFixed(2)}
-                                                </span>
-                                                <span className="text-xs text-white/40 ml-1">{s.product.unit}</span>
-                                            </td>
-                                            <td className="px-5 py-3.5 text-right text-white/60 text-sm hidden md:table-cell">
-                                                {s.minStock} {s.product.unit}
-                                            </td>
-                                            <td className="px-5 py-3.5 hidden md:table-cell">
-                                                <StockBar current={s.currentStock} min={s.minStock} />
-                                            </td>
-                                            <td className="px-5 py-3.5 text-center">
-                                                <span className={`inline-flex items-center gap-1 px-2.5 py-1 rounded-full text-xs font-semibold ${cfg.color}`}>
-                                                    {cfg.icon} {cfg.label}
-                                                </span>
-                                            </td>
-                                        </tr>
-                                    );
-                                })}
-                            </tbody>
-                        </table>
-                        <div className="px-5 py-3 text-xs text-white/40 bg-white/5 border-t border-white/10">
-                            Mostrando {filtered.length} de {stocks.length} productos
-                            {typeFilter && ` · Tipo: ${TYPE_LABELS[typeFilter] || typeFilter}`}
-                        </div>
-                    </div>
-                )}
-
-                {/* Links de acciones */}
-                <div className="flex flex-wrap justify-center gap-4">
-                    <Link href="/factory/receiving"
-                        className="inline-flex items-center gap-2 text-sm text-green-400 hover:text-green-300 font-semibold bg-green-500/10 hover:bg-green-500/20 border border-green-500/30 px-4 py-2 rounded-xl transition">
-                        <PackagePlus className="h-4 w-4" />
-                        Registrar entrada de mercancía
-                    </Link>
-                    <Link href="/inventory/movements"
-                        className="inline-flex items-center gap-2 text-sm text-blue-400 hover:text-blue-300 font-medium bg-blue-500/10 hover:bg-blue-500/20 border border-blue-500/30 px-4 py-2 rounded-xl transition">
-                        <TrendingDown className="h-4 w-4" />
-                        Ver Kardex completo →
-                    </Link>
-                </div>
-            </div>
-        </div>
-        </div>
-    );
+    return <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8"><div className="mx-auto max-w-6xl space-y-5">
+        <header className="flex flex-wrap items-end justify-between gap-4"><div>
+            <Link href="/factory" className="mb-4 inline-flex min-h-11 items-center gap-2 font-semibold text-brand hover:underline"><ArrowLeft size={18} aria-hidden="true" /> Volver a fábrica</Link>
+            <div className="mb-2 flex items-center gap-2 text-sm text-muted"><Package size={16} aria-hidden="true" /> Fábrica <span aria-hidden="true">›</span> Materiales</div>
+            <h1 className="font-display text-2xl font-semibold sm:text-3xl">Inventario completo</h1>
+            <p className="mt-2 text-muted">Stock de la sucursal seleccionada{lastUpd && <span className="ml-2 text-sm">· Actualizado {lastUpd.toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })}</span>}</p>
+        </div><button type="button" onClick={load} disabled={loading} className="inline-flex min-h-12 items-center gap-2 rounded-lg border border-line bg-surface px-4 font-semibold hover:bg-canvas disabled:opacity-50"><RefreshCw size={18} className={loading ? 'animate-spin' : ''} aria-hidden="true" /> Actualizar</button></header>
+        <div className="grid grid-cols-3 gap-2 sm:gap-3" aria-label="Resumen de stock">{([
+            { label: 'Sin stock', val: critical, key: 'critical' as const, color: 'text-danger' },
+            { label: 'Stock bajo', val: low, key: 'low' as const, color: 'text-warning' },
+            { label: 'Normal', val: ok, key: 'ok' as const, color: 'text-success' },
+        ]).map(k => <button key={k.key} type="button" aria-pressed={filter === k.key} onClick={() => setFilter(filter === k.key ? 'all' : k.key)} className={`min-h-24 rounded-xl border bg-surface p-3 text-left sm:p-4 ${filter === k.key ? 'border-brand' : 'border-line-subtle'}`}><span className="block text-xs text-muted sm:text-sm">{k.label}</span><strong className={`mt-2 block font-display text-2xl tabular-nums sm:text-3xl ${k.color}`}>{k.val}</strong></button>)}</div>
+        <section className="rounded-xl border border-line-subtle bg-surface p-4" aria-label="Filtros de inventario"><div className="grid gap-3 sm:grid-cols-2">
+            {branches.length > 1 && <div><label htmlFor="materials-branch" className="mb-1 block text-sm font-semibold">Sucursal</label><select id="materials-branch" value={branchId} onChange={e => setBranchId(e.target.value)} className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 text-ink"><option value="">Todas las sucursales</option>{branches.map(b => <option key={b.id} value={b.id}>{b.name} ({b.type})</option>)}</select></div>}
+            <div><label htmlFor="materials-search" className="mb-1 flex items-center gap-2 text-sm font-semibold"><Search size={16} aria-hidden="true" /> Buscar</label><input id="materials-search" type="search" value={search} onChange={e => setSearch(e.target.value)} placeholder="Nombre o SKU" className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 text-ink placeholder:text-muted" /></div>
+        </div>{filter !== 'all' && <button type="button" onClick={() => setFilter('all')} className="mt-3 inline-flex min-h-11 items-center gap-2 font-semibold text-brand hover:underline"><Filter size={16} aria-hidden="true" /> Quitar filtro de estado</button>}</section>
+        <div className="flex flex-wrap gap-2" role="group" aria-label="Filtrar por tipo de producto">{['', ...availableTypes].map(type => <button key={type || 'all'} type="button" aria-pressed={typeFilter === type} onClick={() => setTypeFilter(type)} className={`min-h-11 rounded-lg border px-3 py-2 text-sm font-semibold ${typeFilter === type ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-ink hover:bg-canvas'}`}>{TYPE_LABELS[type] || type} <span className="tabular-nums">({stocks.filter(s => type === '' || s.product.type === type).length})</span></button>)}</div>
+        {loading ? <div role="status" className="rounded-xl border border-line-subtle bg-surface p-12 text-center text-muted">Cargando inventario…</div> : filtered.length === 0 ? <div className="rounded-xl border border-line-subtle bg-surface p-12 text-center text-muted">No hay productos con esas condiciones</div> : <section className="overflow-hidden rounded-xl border border-line-subtle bg-surface"><div className="overflow-x-auto"><table className="w-full min-w-[670px] text-sm"><thead className="bg-canvas text-muted"><tr><th scope="col" className="px-4 py-3 text-left">Producto</th><th scope="col" className="px-4 py-3 text-left">Tipo</th><th scope="col" className="px-4 py-3 text-left">Categoría</th><th scope="col" className="px-4 py-3 text-right">Stock actual</th><th scope="col" className="px-4 py-3 text-right">Mínimo</th><th scope="col" className="px-4 py-3 text-left">Nivel</th><th scope="col" className="px-4 py-3 text-left">Estado</th></tr></thead><tbody>{filtered.map(stock => { const sev = getSeverity(stock.currentStock, stock.minStock);const cfg = SEV_CONFIG[sev];return <tr key={stock.id} className="border-t border-line-subtle hover:bg-canvas"><th scope="row" className="px-4 py-3 text-left"><span className="block break-words font-semibold">{stock.product.name}</span><span className="font-mono text-xs text-muted">{stock.product.sku}</span></th><td className="px-4 py-3">{TYPE_LABELS[stock.product.type] || stock.product.type}</td><td className="px-4 py-3 text-muted">{stock.product.category || '—'}</td><td className="px-4 py-3 text-right font-display font-semibold tabular-nums">{stock.currentStock % 1 === 0 ? stock.currentStock : stock.currentStock.toFixed(2)} <span className="text-xs font-normal text-muted">{stock.product.unit}</span></td><td className="px-4 py-3 text-right tabular-nums">{stock.minStock} {stock.product.unit}</td><td className="w-24 px-4 py-3"><StockBar current={stock.currentStock} min={stock.minStock} /></td><td className="px-4 py-3"><span className={`inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold ${cfg.color}`}>{cfg.icon}{cfg.label}</span></td></tr>;})}</tbody></table></div><p className="border-t border-line-subtle px-4 py-3 text-sm text-muted">Mostrando {filtered.length} de {stocks.length} productos{typeFilter && ` · Tipo: ${TYPE_LABELS[typeFilter] || typeFilter}`}</p></section>}
+        <nav className="flex flex-wrap gap-3" aria-label="Acciones de inventario"><Link href="/factory/receiving" className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-brand px-4 font-semibold text-white hover:brightness-90"><PackagePlus size={18} aria-hidden="true" /> Registrar entrada</Link><Link href="/inventory/movements" className="inline-flex min-h-12 items-center gap-2 rounded-lg border border-line bg-surface px-4 font-semibold text-brand hover:bg-canvas"><TrendingDown size={18} aria-hidden="true" /> Ver kardex</Link></nav>
+    </div></main>;
 }

@@ -2,7 +2,8 @@
 
 import { useState } from 'react';
 import Image from 'next/image';
-import { Eye, EyeOff, LogIn, AlertCircle } from 'lucide-react';
+import { Eye, EyeOff, LogIn, AlertCircle, Loader2 } from 'lucide-react';
+import { Button } from '@/components/ui/button';
 
 export default function LoginPage() {
     const [email, setEmail] = useState('');
@@ -34,176 +35,30 @@ export default function LoginPage() {
         }
     }
 
-    return (
-        <div className="min-h-screen flex items-center justify-center p-4 relative overflow-hidden"
-            style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
-
-            {/* Glows de fondo inspirados en el logo */}
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                {/* Glow morado/rosa — izquierda */}
-                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full"
-                    style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.25) 0%, transparent 70%)' }} />
-                {/* Glow rojo/naranja — derecha */}
-                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full"
-                    style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.2) 0%, transparent 70%)' }} />
-                {/* Glow rosa central sutil */}
-                <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[300px] rounded-full"
-                    style={{ background: 'radial-gradient(ellipse, rgba(236,72,153,0.08) 0%, transparent 70%)' }} />
-                {/* Líneas de hexágono sutiles — patrón del logo */}
-                <div className="absolute inset-0 opacity-[0.04]"
-                    style={{
-                        backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`,
-                        backgroundSize: '56px 100px',
-                    }} />
-            </div>
-
-            <div className="relative w-full max-w-sm z-10">
-
-                {/* Logo */}
-                <div className="text-center mb-8">
-                    <div className="inline-block mb-4 drop-shadow-[0_0_30px_rgba(236,72,153,0.5)]">
-                        <img
-                            src="/logo-skot.png"
-                            alt="Skot"
-                            className="h-20 w-auto mx-auto object-contain"
-                            onError={(e) => {
-                                // Fallback si no existe la imagen
-                                (e.target as HTMLImageElement).style.display = 'none';
-                            }}
-                        />
-                    </div>
-                    <p className="text-sm font-medium mt-2"
-                        style={{ color: 'rgba(255,255,255,0.55)' }}>
-                        Sistema de Gestión Multi-Sucursal
-                    </p>
+    return <main data-brand="admin" className="skot-experience flex min-h-screen items-center justify-center px-4 py-8">
+        <div className="w-full max-w-md">
+            <header className="mb-7 text-center">
+                <Image src="/logo-skot.png" alt="Skot" width={200} height={78} priority className="mx-auto h-auto w-36 object-contain" />
+                <p className="mt-4 text-sm font-semibold tracking-wide text-muted">Sistema de gestión multisucursal</p>
+            </header>
+            <section aria-labelledby="login-title" className="rounded-xl border border-line-subtle bg-surface p-6 shadow-sm sm:p-8">
+                <div className="mb-6 border-b border-line-subtle pb-5">
+                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-brand">Acceso a Skot ERP</p>
+                    <h1 id="login-title" className="font-display text-2xl font-semibold">Bienvenido</h1>
+                    <p className="mt-2 text-sm text-muted">Ingresá con tu cuenta para continuar.</p>
                 </div>
-
-                {/* Card glassmorphism */}
-                <div className="rounded-3xl p-8 shadow-2xl"
-                    style={{
-                        background: 'rgba(255,255,255,0.04)',
-                        backdropFilter: 'blur(24px)',
-                        border: '1px solid rgba(255,255,255,0.08)',
-                        boxShadow: '0 0 0 1px rgba(192,38,211,0.1), 0 24px 48px rgba(0,0,0,0.5)',
-                    }}>
-
-                    {/* Header del form */}
-                    <h2 className="text-white text-xl font-bold mb-1">Bienvenido</h2>
-                    <p className="text-sm mb-6" style={{ color: 'rgba(255,255,255,0.4)' }}>
-                        Ingresá con tu cuenta de Skot
-                    </p>
-
-                    <form onSubmit={handleSubmit} className="space-y-4">
-
-                        {/* Email */}
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                                Correo electrónico
-                            </label>
-                            <input
-                                type="email"
-                                required
-                                autoComplete="email"
-                                placeholder="tu@skot.com"
-                                value={email}
-                                onChange={e => setEmail(e.target.value)}
-                                className="w-full rounded-xl px-4 py-3 text-sm transition-all outline-none"
-                                style={{
-                                    background: 'rgba(255,255,255,0.07)',
-                                    border: '1px solid rgba(255,255,255,0.12)',
-                                    color: '#ffffff',
-                                    caretColor: '#e879f9',
-                                }}
-                                onFocus={e => {
-                                    e.target.style.border = '1px solid rgba(192,38,211,0.6)';
-                                    e.target.style.boxShadow = '0 0 0 3px rgba(192,38,211,0.15)';
-                                }}
-                                onBlur={e => {
-                                    e.target.style.border = '1px solid rgba(255,255,255,0.12)';
-                                    e.target.style.boxShadow = 'none';
-                                }}
-                            />
-                        </div>
-
-                        {/* Contraseña */}
-                        <div>
-                            <label className="block text-sm font-medium mb-1.5" style={{ color: 'rgba(255,255,255,0.7)' }}>
-                                Contraseña
-                            </label>
-                            <div className="relative">
-                                <input
-                                    type={showPass ? 'text' : 'password'}
-                                    required
-                                    autoComplete="current-password"
-                                    placeholder="••••••••"
-                                    value={password}
-                                    onChange={e => setPassword(e.target.value)}
-                                    className="w-full rounded-xl px-4 py-3 pr-12 text-sm transition-all outline-none"
-                                    style={{
-                                        background: 'rgba(255,255,255,0.07)',
-                                        border: '1px solid rgba(255,255,255,0.12)',
-                                        color: '#ffffff',
-                                        caretColor: '#e879f9',
-                                    }}
-                                    onFocus={e => {
-                                        e.target.style.border = '1px solid rgba(192,38,211,0.6)';
-                                        e.target.style.boxShadow = '0 0 0 3px rgba(192,38,211,0.15)';
-                                    }}
-                                    onBlur={e => {
-                                        e.target.style.border = '1px solid rgba(255,255,255,0.12)';
-                                        e.target.style.boxShadow = 'none';
-                                    }}
-                                />
-                                <button type="button" onClick={() => setShowPass(!showPass)}
-                                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1 transition-colors"
-                                    style={{ color: 'rgba(255,255,255,0.35)' }}>
-                                    {showPass ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Error */}
-                        {error && (
-                            <div className="flex items-center gap-2 rounded-xl px-4 py-3"
-                                style={{ background: 'rgba(220,38,38,0.12)', border: '1px solid rgba(220,38,38,0.25)' }}>
-                                <AlertCircle className="h-4 w-4 flex-shrink-0" style={{ color: '#f87171' }} />
-                                <p className="text-sm" style={{ color: '#fca5a5' }}>{error}</p>
-                            </div>
-                        )}
-
-                        {/* Botón */}
-                        <button
-                            type="submit"
-                            disabled={loading}
-                            className="w-full flex items-center justify-center gap-2 font-semibold py-3 rounded-xl transition-all duration-200 mt-2 disabled:opacity-50"
-                            style={{
-                                background: loading
-                                    ? 'rgba(100,100,120,0.5)'
-                                    : 'linear-gradient(135deg, #9333ea 0%, #c026d3 50%, #db2777 100%)',
-                                color: '#ffffff',
-                                boxShadow: loading ? 'none' : '0 0 20px rgba(192,38,211,0.35), 0 4px 15px rgba(0,0,0,0.3)',
-                            }}
-                        >
-                            {loading ? (
-                                <>
-                                    <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
-                                    Ingresando...
-                                </>
-                            ) : (
-                                <>
-                                    <LogIn className="h-4 w-4" />
-                                    Ingresar
-                                </>
-                            )}
-                        </button>
-                    </form>
-                </div>
-
-                {/* Footer */}
-                <p className="text-center text-xs mt-6" style={{ color: 'rgba(255,255,255,0.2)' }}>
-                    Skot v1.0 — Acceso restringido
-                </p>
-            </div>
+                <form onSubmit={handleSubmit} className="space-y-5">
+                    <div><label htmlFor="login-email" className="mb-1 block text-sm font-semibold">Correo electrónico</label>
+                        <input id="login-email" type="email" required autoComplete="email" placeholder="tu@skot.com" value={email} onChange={event => setEmail(event.target.value)} className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 text-ink placeholder:text-muted" /></div>
+                    <div><label htmlFor="login-password" className="mb-1 block text-sm font-semibold">Contraseña</label>
+                        <div className="relative"><input id="login-password" type={showPass ? 'text' : 'password'} required autoComplete="current-password" value={password} onChange={event => setPassword(event.target.value)} className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 pr-14 text-ink" />
+                            <button type="button" aria-label={showPass ? 'Ocultar contraseña' : 'Mostrar contraseña'} aria-pressed={showPass} onClick={() => setShowPass(value => !value)} className="absolute right-1 top-1 grid h-10 w-11 place-items-center rounded-lg text-muted hover:bg-canvas">{showPass ? <EyeOff size={20} aria-hidden="true" /> : <Eye size={20} aria-hidden="true" />}</button>
+                        </div></div>
+                    {error && <p role="alert" className="flex items-start gap-2 rounded-lg bg-[var(--status-error-bg)] p-3 text-sm font-semibold text-danger"><AlertCircle size={18} className="shrink-0" aria-hidden="true" />{error}</p>}
+                    <Button type="submit" size="touch" disabled={loading} className="w-full">{loading ? <Loader2 size={18} className="animate-spin" aria-hidden="true" /> : <LogIn size={18} aria-hidden="true" />}{loading ? 'Ingresando…' : 'Ingresar'}</Button>
+                </form>
+            </section>
+            <p className="mt-6 text-center text-xs text-muted">Skot ERP · Acceso restringido</p>
         </div>
-    );
+    </main>;
 }

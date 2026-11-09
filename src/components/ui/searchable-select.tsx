@@ -9,6 +9,7 @@ type Option = {
 };
 
 interface SearchableSelectProps {
+    id?: string;
     options: Option[];
     value: string;
     onChange: (value: string) => void;
@@ -16,7 +17,7 @@ interface SearchableSelectProps {
     required?: boolean;
 }
 
-export function SearchableSelect({ options, value, onChange, placeholder = 'Seleccionar...', required }: SearchableSelectProps) {
+export function SearchableSelect({ id, options, value, onChange, placeholder = 'Seleccionar...', required }: SearchableSelectProps) {
     const [isOpen, setIsOpen] = useState(false);
     const [searchTerm, setSearchTerm] = useState('');
     const wrapperRef = useRef<HTMLDivElement>(null);
@@ -40,16 +41,17 @@ export function SearchableSelect({ options, value, onChange, placeholder = 'Sele
     return (
         <div ref={wrapperRef} className="relative w-full">
             <div 
-                className="w-full bg-black/40 border border-white/10 text-white rounded-xl px-4 py-3 focus-within:ring-2 focus-within:ring-purple-500 flex items-center justify-between cursor-pointer"
+                className="flex min-h-12 w-full cursor-pointer items-center justify-between rounded-lg border border-line bg-surface px-3 text-ink focus-within:ring-2 focus-within:ring-brand"
                 onClick={() => {
                     setIsOpen(true);
                     if (!isOpen) setSearchTerm(''); // Solo reiniciar si estaba cerrado
                 }}
             >
                 <input
+                    id={id}
                     type="text"
                     required={required && !value}
-                    className="bg-transparent border-none outline-none w-full text-white placeholder-white/40 cursor-pointer"
+                    className="w-full cursor-pointer border-none bg-transparent text-ink outline-none placeholder:text-muted"
                     placeholder={placeholder}
                     value={displayValue}
                     onChange={(e) => {
@@ -58,18 +60,18 @@ export function SearchableSelect({ options, value, onChange, placeholder = 'Sele
                     }}
                     onFocus={() => setIsOpen(true)}
                 />
-                <ChevronDown className={`h-4 w-4 text-white/50 ml-2 transition ${isOpen ? 'rotate-180' : ''}`} />
+                <ChevronDown className={`ml-2 h-4 w-4 text-muted transition ${isOpen ? 'rotate-180' : ''}`} />
             </div>
 
             {isOpen && (
-                <div className="absolute z-50 w-full mt-2 bg-[#1a0f2e] border border-white/10 rounded-xl shadow-2xl max-h-60 overflow-y-auto">
+                <div className="absolute z-50 mt-2 max-h-60 w-full overflow-y-auto rounded-lg border border-line bg-surface shadow-lg">
                     {filteredOptions.length === 0 ? (
-                        <div className="p-4 text-sm text-white/50 text-center">No se encontraron resultados</div>
+                        <div className="p-4 text-center text-sm text-muted">No se encontraron resultados</div>
                     ) : (
                         filteredOptions.map(option => (
                             <div
                                 key={option.value}
-                                className={`px-4 py-3 cursor-pointer transition text-sm ${option.value === value ? 'bg-purple-600/40 text-white font-medium' : 'text-white/80 hover:bg-white/10 hover:text-white'}`}
+                                className={`cursor-pointer px-4 py-3 text-sm ${option.value === value ? 'bg-[var(--status-neutral-bg)] font-semibold text-brand' : 'text-ink hover:bg-canvas'}`}
                                 onClick={() => {
                                     onChange(option.value);
                                     setIsOpen(false);

@@ -140,106 +140,105 @@ export default function TransferRequestPage() {
     const otherBranches = branches.filter(b => b.id !== form.myBranchId);
 
     return (
-        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
-                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
-            </div>
+        <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8">
             {notification && (
-                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${notification.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${notification.type === 'success' ? 'bg-brand' : 'bg-danger'}`}>
                     {notification.type === 'success' ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
                     {notification.msg}
                 </div>
             )}
 
-            <div className="max-w-3xl mx-auto">
+            <div className="mx-auto max-w-3xl">
                 {/* Header */}
                 <div className="mb-8">
-                    <Link href="/inventory/transfers" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
+                    <Link href="/inventory/transfers" className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-2">
                         <ArrowLeft className="h-4 w-4" /> Transferencias
                     </Link>
-                    <h1 className="text-3xl font-bold text-white/90">📦 Solicitar Transferencia</h1>
-                    <p className="text-white/60 mt-1">Solicitá productos de otra sucursal o de la fábrica</p>
+                    <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink">Solicitar transferencia</h1>
+                    <p className="text-muted mt-1">Solicitá productos de otra sucursal o de la fábrica</p>
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
                     {/* Sucursales */}
-                    <div className="bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6">
-                        <h2 className="font-bold text-white/80 mb-4">Origen y destino</h2>
-                        <div className="grid grid-cols-2 gap-4">
+                    <div className="bg-surface rounded-2xl shadow-sm border border-line-subtle p-6">
+                        <h2 className="font-bold text-ink mb-4">Origen y destino</h2>
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">
+                                <label className="block text-sm font-semibold text-ink mb-1.5">
                                     Mi sucursal (recibe) *
                                 </label>
                                 <select
+                                    aria-label="Mi sucursal que recibe"
                                     value={form.myBranchId}
                                     onChange={e => setForm(f => ({ ...f, myBranchId: e.target.value }))}
                                     disabled={!!(user?.branchIds?.[0] && user.role !== 'ADMIN')}
-                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-white/5"
+                                    className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-surface"
                                 >
-                                    <option value="" className="bg-gray-900 text-white">-- Seleccioná --</option>
-                                    {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
+                                    <option value="" className="bg-surface text-ink">-- Seleccioná --</option>
+                                    {branches.map(b => <option key={b.id} value={b.id} className="bg-surface text-ink">{b.name}</option>)}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">
+                                <label className="block text-sm font-semibold text-ink mb-1.5">
                                     Sucursal de origen (provee) *
                                 </label>
                                 <select
+                                    aria-label="Sucursal de origen que provee"
                                     value={form.fromBranchId}
                                     onChange={e => handleFromBranchChange(e.target.value)}
-                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                                    className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                                 >
-                                    <option value="" className="bg-gray-900 text-white">-- Seleccioná --</option>
-                                    {otherBranches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name} ({b.type})</option>)}
+                                    <option value="" className="bg-surface text-ink">-- Seleccioná --</option>
+                                    {otherBranches.map(b => <option key={b.id} value={b.id} className="bg-surface text-ink">{b.name} ({b.type})</option>)}
                                 </select>
                             </div>
                         </div>
 
                         {myBranch && fromBranch && (
-                            <div className="mt-3 p-3 bg-green-500/10 rounded-xl text-sm text-green-400">
-                                📦 <strong>{fromBranch.name}</strong> enviará productos a <strong>{myBranch.name}</strong>
+                            <div className="mt-3 p-3 bg-[var(--status-success-bg)] rounded-xl text-sm text-success">
+                                <strong>{fromBranch.name}</strong> enviará productos a <strong>{myBranch.name}</strong>
                             </div>
                         )}
 
                         <div className="mt-4">
-                            <label className="block text-sm font-semibold text-white/80 mb-1.5">Notas para el administrador</label>
+                            <label className="block text-sm font-semibold text-ink mb-1.5">Notas para el administrador</label>
                             <textarea
+                                aria-label="Notas para el administrador"
                                 rows={2}
                                 value={form.notes}
                                 onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                                 placeholder="Ej: Necesitamos urgente para el fin de semana..."
-                                className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none"
+                                className="w-full bg-surface text-ink border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 resize-none"
                             />
                         </div>
                     </div>
 
                     {/* Agregar productos */}
-                    <div className="bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6">
-                        <h2 className="font-bold text-white/80 mb-4">Productos a solicitar</h2>
+                    <div className="bg-surface rounded-2xl shadow-sm border border-line-subtle p-6">
+                        <h2 className="font-bold text-ink mb-4">Productos a solicitar</h2>
 
                         {!form.fromBranchId ? (
-                            <p className="text-white/40 text-sm">Seleccioná la sucursal de origen para ver sus productos disponibles</p>
+                            <p className="text-muted text-sm">Seleccioná la sucursal de origen para ver sus productos disponibles</p>
                         ) : (
                             <>
-                                <div className="flex gap-3 mb-4">
+                                <div className="flex flex-wrap gap-3 mb-4">
                                     <ProductCombobox 
                                         products={products} 
                                         value={selectedProduct} 
                                         onChange={setSelectedProduct} 
                                     />
                                     <input
+                                        aria-label="Cantidad a solicitar"
                                         type="number" min="0.01" step="0.01"
                                         value={qty}
                                         onChange={e => setQty(e.target.value)}
                                         placeholder="Cantidad"
-                                        className="w-28 bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                                        className="w-28 bg-surface text-ink border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                                     />
                                     <button
                                         type="button"
                                         onClick={addItem}
-                                        className="flex items-center gap-1 px-4 py-2.5 bg-green-600 text-white rounded-xl text-sm font-semibold hover:bg-green-700 transition"
+                                        className="flex items-center gap-1 px-4 py-2.5 bg-brand text-white rounded-xl text-sm font-semibold hover:brightness-90 transition"
                                     >
                                         <Plus className="h-4 w-4" /> Agregar
                                     </button>
@@ -249,19 +248,19 @@ export default function TransferRequestPage() {
                                 {items.length > 0 ? (
                                     <div className="space-y-2">
                                         {items.map(item => (
-                                            <div key={item.productId} className="flex items-center justify-between bg-green-500/10 rounded-xl px-4 py-3">
+                                            <div key={item.productId} className="flex items-center justify-between bg-[var(--status-success-bg)] rounded-xl px-4 py-3">
                                                 <div>
-                                                    <p className="font-semibold text-sm text-white/80">{item.productName}</p>
-                                                    <p className="text-xs text-white/60">{item.requestedQty} {item.unit}</p>
+                                                    <p className="font-semibold text-sm text-ink">{item.productName}</p>
+                                                    <p className="text-xs text-muted">{item.requestedQty} {item.unit}</p>
                                                 </div>
-                                                <button type="button" onClick={() => removeItem(item.productId)} className="text-red-400 hover:text-red-400">
+                                                <button type="button" onClick={() => removeItem(item.productId)} aria-label={`Quitar ${item.productName} de la solicitud`} className="grid h-11 w-11 place-items-center rounded-lg text-danger hover:bg-[var(--status-error-bg)]">
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
                                             </div>
                                         ))}
                                     </div>
                                 ) : (
-                                    <p className="text-white/40 text-sm text-center py-4">Aún no hay productos en la solicitud</p>
+                                    <p className="text-muted text-sm text-center py-4">Aún no hay productos en la solicitud</p>
                                 )}
                             </>
                         )}
@@ -271,7 +270,7 @@ export default function TransferRequestPage() {
                     <button
                         type="submit"
                         disabled={submitting || items.length === 0}
-                        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-green-600 hover:bg-green-700 disabled:bg-gray-300 disabled:cursor-not-allowed text-white font-bold text-lg transition shadow-lg shadow-green-200"
+                        className="w-full flex items-center justify-center gap-2 py-4 rounded-2xl bg-brand hover:brightness-90 disabled:opacity-50 disabled:cursor-not-allowed text-white font-bold text-lg transition "
                     >
                         {submitting
                             ? <><Loader2 className="h-5 w-5 animate-spin" /> Enviando solicitud…</>
@@ -280,7 +279,7 @@ export default function TransferRequestPage() {
                     </button>
                 </form>
             </div>
-        </div>
+        </main>
     );
 }
 
@@ -300,10 +299,11 @@ function ProductCombobox({ products, value, onChange }: { products: any[], value
     const filtered = products.filter(p => (p.name || '').toLowerCase().includes(search.toLowerCase()) || (p.sku || '').toLowerCase().includes(search.toLowerCase()));
 
     return (
-        <div className="relative flex-1 min-w-0">
+        <div className="relative min-w-[200px] flex-1">
             <input 
+                aria-label="Buscar y seleccionar producto"
                 type="text"
-                placeholder="🔍 Buscar y seleccionar producto..."
+                placeholder="Buscar y seleccionar producto..."
                 value={search}
                 onChange={e => {
                     setSearch(e.target.value);
@@ -312,14 +312,14 @@ function ProductCombobox({ products, value, onChange }: { products: any[], value
                 }}
                 onFocus={() => setShow(true)}
                 onBlur={() => setTimeout(() => setShow(false), 200)}
-                className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
+                className="w-full bg-surface text-ink border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
             />
             {show && (
-                <div className="absolute z-50 mt-1 w-full bg-gray-900 border border-white/20 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+                <div className="absolute z-50 mt-1 w-full bg-surface border border-line rounded-xl shadow-xl max-h-60 overflow-y-auto">
                     {filtered.length > 0 ? filtered.map(p => (
                         <div 
                             key={p.id}
-                            className="px-3 py-2 hover:bg-white/10 cursor-pointer text-sm text-white border-b border-white/5 last:border-0"
+                            className="px-3 py-2 hover:bg-canvas cursor-pointer text-sm text-ink border-b border-line-subtle last:border-0"
                             onClick={() => {
                                 onChange(p.id);
                                 setSearch(`${p.name} ${p.sku ? `(${p.sku})` : ''}`);
@@ -327,10 +327,10 @@ function ProductCombobox({ products, value, onChange }: { products: any[], value
                             }}
                         >
                             <div className="font-medium">{p.name} {p.sku ? `(${p.sku})` : ''}</div>
-                            <div className="text-xs text-white/50">Stock disponible: {p.currentStock} {p.unit}</div>
+                            <div className="text-xs text-muted">Stock disponible: {p.currentStock} {p.unit}</div>
                         </div>
                     )) : (
-                        <div className="px-3 py-2 text-sm text-white/40">No hay resultados</div>
+                        <div className="px-3 py-2 text-sm text-muted">No hay resultados</div>
                     )}
                 </div>
             )}

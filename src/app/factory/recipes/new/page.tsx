@@ -62,7 +62,7 @@ export default function NewRecipePage() {
         setForm(f => {
             const newIngredients = [...f.ingredients];
             newIngredients[index] = { ...newIngredients[index], [field]: value };
-            
+
             // Auto-update unit if ingredient changes
             if (field === 'ingredientId') {
                 const prod = products.find(p => p.id === value);
@@ -95,7 +95,7 @@ export default function NewRecipePage() {
                 body: JSON.stringify(form)
             });
             const data = await res.json();
-            
+
             if (data.success) {
                 router.push('/factory/recipes');
             } else {
@@ -109,52 +109,47 @@ export default function NewRecipePage() {
     };
 
     return (
-        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
-                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
-            </div>
-            
-            <div className="relative z-10 max-w-4xl mx-auto p-6 md:p-8">
+        <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+
+            <div className="mx-auto max-w-4xl">
                 <div className="mb-8">
-                    <Link href="/factory/recipes" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-3">
+                    <Link href="/factory/recipes" className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-3">
                         <ArrowLeft className="h-4 w-4" /> Volver a Recetas
                     </Link>
-                        <h1 className="text-3xl font-bold text-white flex items-center gap-3">
-                        <Plus className="h-8 w-8 text-purple-400" /> Crear Nueva Receta
+                        <h1 className="flex items-center gap-3 font-display text-2xl font-semibold text-ink sm:text-3xl">
+                        <Plus className="h-8 w-8 text-brand" /> Crear Nueva Receta
                     </h1>
                 </div>
 
                 {error && (
-                    <div className="bg-red-500/20 border border-red-500/50 text-red-200 px-4 py-3 rounded-xl mb-6 flex items-start gap-3 backdrop-blur-sm">
+                    <div role="alert" className="mb-6 flex items-start gap-3 rounded-lg border border-line bg-[var(--status-error-bg)] px-4 py-3 text-danger">
                         <AlertCircle className="h-5 w-5 mt-0.5 flex-shrink-0" />
                         <p>{error}</p>
                     </div>
                 )}
 
                 <form onSubmit={handleSubmit} className="space-y-6">
-                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8">
-                        <h2 className="text-xl font-bold text-white mb-6 border-b border-white/10 pb-4">Información General</h2>
-                        
+                    <div className="rounded-xl border border-line-subtle bg-surface p-4 sm:p-6 md:p-8">
+                        <h2 className="text-xl font-bold text-ink mb-6 border-b border-line-subtle pb-4">Información General</h2>
+
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-semibold text-white/80 mb-2">Nombre de la Receta *</label>
-                                <input type="text" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                <label htmlFor="recipe-name" className="block text-sm font-semibold text-ink mb-2">Nombre de la Receta *</label>
+                                <input id="recipe-name" type="text" required value={form.name} onChange={e => setForm(f => ({ ...f, name: e.target.value }))}
+                                    className="w-full bg-surface border border-line-subtle text-ink rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                                     placeholder="Ej: Base de Açaí Estándar" />
                             </div>
 
                             <div className="md:col-span-2">
-                                <label className="block text-sm font-semibold text-white/80 mb-2">Descripción</label>
-                                <input type="text" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                <label htmlFor="recipe-description" className="block text-sm font-semibold text-ink mb-2">Descripción</label>
+                                <input id="recipe-description" type="text" value={form.description} onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
+                                    className="w-full bg-surface border border-line-subtle text-ink rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                                     placeholder="Detalles sobre esta preparación..." />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-2">Producto Resultante *</label>
-                                <SearchableSelect 
+                                <label htmlFor="recipe-product" className="block text-sm font-semibold text-ink mb-2">Producto resultante *</label>
+                                <SearchableSelect id="recipe-product"
                                     options={products.map(p => ({ value: p.id, label: `${p.name} (${p.unit})` }))}
                                     value={form.productId}
                                     onChange={val => setForm(f => ({ ...f, productId: val }))}
@@ -165,54 +160,54 @@ export default function NewRecipePage() {
 
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-white/80 mb-2">Rendimiento *</label>
-                                    <input type="number" min="0.01" step="0.01" required value={form.yield} onChange={e => setForm(f => ({ ...f, yield: parseFloat(e.target.value) }))}
-                                        className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                                    <label htmlFor="recipe-yield" className="block text-sm font-semibold text-ink mb-2">Rendimiento *</label>
+                                    <input id="recipe-yield" type="number" min="0.01" step="0.01" required value={form.yield} onChange={e => setForm(f => ({ ...f, yield: parseFloat(e.target.value) }))}
+                                        className="w-full bg-surface border border-line-subtle text-ink rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-white/80 mb-2">Unidad</label>
-                                    <input type="text" required value={form.yieldUnit} onChange={e => setForm(f => ({ ...f, yieldUnit: e.target.value }))}
-                                        className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                                    <label htmlFor="recipe-yield-unit" className="block text-sm font-semibold text-ink mb-2">Unidad</label>
+                                    <input id="recipe-yield-unit" type="text" required value={form.yieldUnit} onChange={e => setForm(f => ({ ...f, yieldUnit: e.target.value }))}
+                                        className="w-full bg-surface border border-line-subtle text-ink rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand" />
                                 </div>
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-2">Merma Estimada (%)</label>
-                                <input type="number" min="0" max="100" step="0.1" value={form.merma} onChange={e => setForm(f => ({ ...f, merma: parseFloat(e.target.value) }))}
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                                <label htmlFor="recipe-merma" className="block text-sm font-semibold text-ink mb-2">Merma Estimada (%)</label>
+                                <input id="recipe-merma" type="number" min="0" max="100" step="0.1" value={form.merma} onChange={e => setForm(f => ({ ...f, merma: parseFloat(e.target.value) }))}
+                                    className="w-full bg-surface border border-line-subtle text-ink rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand" />
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-2">Notas Operativas</label>
-                                <input type="text" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-                                    className="w-full bg-white/5 border border-white/10 text-white rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-purple-500"
+                                <label htmlFor="recipe-notes" className="block text-sm font-semibold text-ink mb-2">Notas Operativas</label>
+                                <input id="recipe-notes" type="text" value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
+                                    className="w-full bg-surface border border-line-subtle text-ink rounded-xl px-4 py-3 focus:outline-none focus:ring-2 focus:ring-brand"
                                     placeholder="Ej: Mezclar a temperatura ambiente..." />
                             </div>
                         </div>
                     </div>
 
                     {/* Ingedients List */}
-                    <div className="bg-white/5 backdrop-blur-md border border-white/10 rounded-2xl p-6 md:p-8">
-                        <div className="flex items-center justify-between border-b border-white/10 pb-4 mb-6">
-                            <h2 className="text-xl font-bold text-white">Ingredientes (BOM)</h2>
+                    <div className="rounded-xl border border-line-subtle bg-surface p-4 sm:p-6 md:p-8">
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-b border-line-subtle pb-4 mb-6">
+                            <h2 className="text-xl font-bold text-ink">Ingredientes (BOM)</h2>
                             <button type="button" onClick={handleAddIngredient}
-                                className="flex items-center gap-2 bg-purple-600/30 hover:bg-purple-600/50 text-purple-200 px-4 py-2 rounded-lg text-sm font-medium transition">
+                                className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-[var(--status-neutral-bg)] px-4 py-2 text-sm font-semibold text-brand hover:bg-canvas">
                                 <Plus className="h-4 w-4" /> Agregar Ingrediente
                             </button>
                         </div>
 
                         {form.ingredients.length === 0 ? (
-                            <div className="text-center py-10 text-white/40">
+                            <div className="text-center py-10 text-muted">
                                 <AlertCircle className="h-10 w-10 mx-auto mb-2 opacity-50" />
                                 <p>No has agregado ningún ingrediente a esta receta.</p>
                             </div>
                         ) : (
                             <div className="space-y-4">
                                 {form.ingredients.map((ing, i) => (
-                                    <div key={i} className="flex gap-4 items-start bg-black/20 p-4 rounded-xl border border-white/5">
-                                        <div className="flex-1">
-                                            <label className="block text-xs font-semibold text-white/50 mb-1">Insumo / Materia Prima</label>
-                                            <SearchableSelect 
+                                    <div key={i} className="grid grid-cols-2 gap-3 bg-canvas p-4 sm:grid-cols-[minmax(0,1fr)_8rem_6rem_auto] rounded-xl border border-line-subtle">
+                                        <div className="col-span-2 min-w-0 sm:col-span-1">
+                                            <label htmlFor={`ingredient-product-${i}`} className="block text-xs font-semibold text-muted mb-1">Insumo / Materia prima</label>
+                                            <SearchableSelect id={`ingredient-product-${i}`}
                                                 options={products.map(p => ({ value: p.id, label: `${p.name} (${p.unit})` }))}
                                                 value={ing.ingredientId}
                                                 onChange={val => handleIngredientChange(i, 'ingredientId', val)}
@@ -220,18 +215,18 @@ export default function NewRecipePage() {
                                                 required
                                             />
                                         </div>
-                                        <div className="w-32">
-                                            <label className="block text-xs font-semibold text-white/50 mb-1">Cantidad</label>
-                                            <input type="number" min="0.001" step="0.001" required value={ing.quantity} onChange={e => handleIngredientChange(i, 'quantity', parseFloat(e.target.value))}
-                                                className="w-full bg-white/5 border border-white/10 text-white rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                                        <div className="min-w-0">
+                                            <label htmlFor={`ingredient-quantity-${i}`} className="block text-xs font-semibold text-muted mb-1">Cantidad</label>
+                                            <input id={`ingredient-quantity-${i}`} type="number" min="0.001" step="0.001" required value={ing.quantity} onChange={e => handleIngredientChange(i, 'quantity', parseFloat(e.target.value))}
+                                                className="w-full bg-surface border border-line-subtle text-ink rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                                         </div>
-                                        <div className="w-24">
-                                            <label className="block text-xs font-semibold text-white/50 mb-1">Unidad</label>
-                                            <input type="text" required value={ing.unit} onChange={e => handleIngredientChange(i, 'unit', e.target.value)}
-                                                className="w-full bg-white/5 border border-white/10 text-white/50 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-purple-500" />
+                                        <div className="min-w-0">
+                                            <label htmlFor={`ingredient-unit-${i}`} className="block text-xs font-semibold text-muted mb-1">Unidad</label>
+                                            <input id={`ingredient-unit-${i}`} type="text" required value={ing.unit} onChange={e => handleIngredientChange(i, 'unit', e.target.value)}
+                                                className="w-full bg-surface border border-line-subtle text-muted rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                                         </div>
-                                        <button type="button" onClick={() => handleRemoveIngredient(i)}
-                                            className="mt-6 p-2 text-white/30 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition">
+                                        <button type="button" onClick={() => handleRemoveIngredient(i)} aria-label={`Quitar ingrediente ${i + 1}`}
+                                            className="col-span-2 min-h-11 rounded-lg p-2 text-muted hover:bg-[var(--status-error-bg)] hover:text-danger sm:col-span-1">
                                             <Trash2 className="h-5 w-5" />
                                         </button>
                                     </div>
@@ -240,13 +235,13 @@ export default function NewRecipePage() {
                         )}
                     </div>
 
-                    <div className="flex justify-end gap-4 pt-4">
+                    <div className="flex flex-wrap justify-end gap-3 pt-4">
                         <Link href="/factory/recipes"
-                            className="px-6 py-3 rounded-xl border border-white/10 text-white/70 hover:bg-white/5 hover:text-white transition font-medium">
+                            className="inline-flex min-h-12 items-center rounded-lg border border-line px-5 py-3 font-semibold text-ink hover:bg-canvas">
                             Cancelar
                         </Link>
                         <button type="submit" disabled={submitting || form.ingredients.length === 0}
-                            className="flex items-center gap-2 bg-purple-600 hover:bg-purple-500 disabled:opacity-50 text-white px-8 py-3 rounded-xl font-bold shadow-lg shadow-purple-500/20 transition">
+                            className="inline-flex min-h-12 items-center gap-2 rounded-lg bg-brand px-5 py-3 font-semibold text-white hover:brightness-90 disabled:opacity-50">
                             {submitting ? (
                                 <span className="flex items-center gap-2"><span className="animate-spin text-xl leading-none">⟳</span> Guardando...</span>
                             ) : (
@@ -256,6 +251,6 @@ export default function NewRecipePage() {
                     </div>
                 </form>
             </div>
-        </div>
+        </main>
     );
 }

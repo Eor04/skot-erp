@@ -37,8 +37,8 @@ function KPI({ label, value, sub, color, icon: Icon }: {
                 <Icon className="h-5 w-5 opacity-80" />
                 <span className="text-xs font-semibold opacity-80">{label}</span>
             </div>
-            <p className="text-2xl font-black text-white">{value}</p>
-            {sub && <p className="text-xs mt-1 opacity-60 text-white/70">{sub}</p>}
+            <p className="font-display text-2xl font-semibold text-ink">{value}</p>
+            {sub && <p className="text-xs mt-1 opacity-60 text-muted">{sub}</p>}
         </div>
     );
 }
@@ -57,44 +57,43 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
     }, [params.id]);
 
     if (loading) return (
-        <div className="min-h-screen bg-[#0A0002] bg-[url('/hex-pattern.svg')] bg-repeat flex items-center justify-center">
+        <main data-brand="admin" className="skot-experience flex min-h-screen items-center justify-center">
             <Loader2 className="h-10 w-10 animate-spin text-slate-500" />
-        </div>
+        </main>
     );
 
     if (error || !data) return (
-        <div className="min-h-screen bg-[#0A0002] bg-[url('/hex-pattern.svg')] bg-repeat flex items-center justify-center">
-            <div className="text-center text-red-500 bg-black/40 p-6 rounded-2xl border border-red-500/20 backdrop-blur-md">
+        <main data-brand="admin" className="skot-experience flex min-h-screen items-center justify-center">
+            <div className="text-center text-red-500 bg-surface p-6 rounded-xl border border-line-subtle">
                 <XCircle className="h-10 w-10 mx-auto mb-2" />
                 <p>{error || 'No se pudo cargar'}</p>
-                <Link href="/admin/branches" className="mt-3 inline-block text-sm underline text-white/70">Volver</Link>
+                <Link href="/admin/branches" className="mt-3 inline-block text-sm underline text-muted">Volver</Link>
             </div>
-        </div>
+        </main>
     );
 
     const { branch, sales, stock, cashCloses, expenses } = data;
-    const typeEmoji = branch.type === 'ACAI' ? '🥤' : branch.type === 'HAMBURGUESAS' ? '🍔' : '🏭';
 
     return (
-        <div className="min-h-screen bg-[#0A0002] bg-[url('/hex-pattern.svg')] bg-repeat p-6">
+        <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8">
             <div className="relative z-10 max-w-6xl mx-auto">
                 {/* Header */}
                 <div className="flex items-start justify-between mb-6">
                     <div>
-                        <Link href="/admin/branches" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-1">
+                        <Link href="/admin/branches" className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-1">
                             <ArrowLeft className="h-4 w-4" /> Sucursales
                         </Link>
-                        <h1 className="text-2xl font-bold text-white/90">
-                            {typeEmoji} {branch.name}
+                        <h1 className="font-display text-2xl font-semibold text-ink">
+                            <Store className="mr-2 inline h-6 w-6 text-brand" aria-hidden="true" />{branch.name}
                         </h1>
-                        <p className="text-sm text-white/60 mt-0.5">
+                        <p className="text-sm text-muted mt-0.5">
                             {branch.type} {branch.address ? '· ' + branch.address : ''} {branch.phone ? '· ' + branch.phone : ''}
                         </p>
                     </div>
                     <div className="flex gap-2">
                         <Link href={`/inventory/stock?branch=${branch.id}`}
-                            className="px-3 py-2 bg-green-600 text-white rounded-xl text-sm font-semibold hover:bg-green-700 transition">
-                            📦 Inventario
+                            className="px-3 py-2 bg-brand text-white rounded-xl text-sm font-semibold hover:brightness-90 transition">
+                             Inventario
                         </Link>
                         <Link href={`/admin/sales?branch=${branch.id}`}
                             className="px-3 py-2 bg-blue-600 text-white rounded-xl text-sm font-semibold hover:bg-blue-700 transition">
@@ -106,28 +105,28 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                 {/* KPIs */}
                 <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-6">
                     <KPI label="Ventas hoy" value={S(sales.today.amount)} sub={`${sales.today.count} transacciones`}
-                        color="bg-green-500/10 text-green-400 border-green-500/20" icon={TrendingUp} />
+                        color="bg-green-500/10 text-success border-green-500/20" icon={TrendingUp} />
                     <KPI label="Ventas del mes" value={S(sales.month.amount)} sub={`${sales.month.count} transacciones`}
-                        color="bg-blue-500/10 text-blue-400 border-blue-500/20" icon={BarChart3} />
+                        color="bg-[var(--status-info-bg)] text-info border-line-subtle" icon={BarChart3} />
                     <KPI label="Gastos del mes" value={S(expenses.month.amount)} sub={`${expenses.month.count} gastos`}
                         color="bg-rose-500/10 text-rose-400 border-rose-500/20" icon={Receipt} />
                     <KPI label="Stock crítico" value={`${stock.criticalCount} sin stock`} sub={`${stock.lowCount} bajo mínimo`}
-                        color={stock.criticalCount > 0 ? 'bg-red-500/10 text-red-400 border-red-500/20' : 'bg-white/5 text-white/80 border-white/10'} icon={Package} />
+                        color={stock.criticalCount > 0 ? 'bg-[var(--status-error-bg)] text-danger border-line-subtle' : 'bg-surface text-ink border-line-subtle'} icon={Package} />
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                     {/* Stock crítico */}
-                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 overflow-hidden">
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-                            <h2 className="font-bold text-white/90 flex items-center gap-2">
+                    <div className="bg-surface border border-line-subtle rounded-xl shadow-sm overflow-x-auto">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-line-subtle">
+                            <h2 className="font-bold text-ink flex items-center gap-2">
                                 <AlertTriangle className="h-5 w-5 text-yellow-500" /> Stock bajo / Crítico
                             </h2>
                             <Link href={`/inventory/stock`}
-                                className="text-xs text-green-600 hover:underline font-medium">Ver todo →</Link>
+                                className="text-xs text-brand hover:underline font-medium">Ver todo →</Link>
                         </div>
                         {stock.criticalItems.length === 0 ? (
-                            <div className="py-10 text-center text-white/40">
-                                <CheckCircle className="h-8 w-8 mx-auto mb-2 text-green-400" />
+                            <div className="py-10 text-center text-muted">
+                                <CheckCircle className="h-8 w-8 mx-auto mb-2 text-success" />
                                 <p className="text-sm">¡Todo el stock está OK!</p>
                             </div>
                         ) : (
@@ -135,10 +134,10 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                                 {stock.criticalItems.map((item, i) => (
                                     <div key={i} className="px-5 py-3 flex items-center justify-between">
                                         <div>
-                                            <p className="text-sm font-medium text-white/90">{item.name}</p>
-                                            <p className="text-xs text-white/40">Mín: {item.min} {item.unit}</p>
+                                            <p className="text-sm font-medium text-ink">{item.name}</p>
+                                            <p className="text-xs text-muted">Mín: {item.min} {item.unit}</p>
                                         </div>
-                                        <span className={`text-sm font-bold px-3 py-1 rounded-full ${item.current <= 0 ? 'bg-red-500/20 text-red-400' : 'bg-yellow-500/20 text-yellow-400'}`}>
+                                        <span className={`text-sm font-bold px-3 py-1 rounded-full ${item.current <= 0 ? 'bg-[var(--status-error-bg)] text-danger' : 'bg-[var(--status-warning-bg)] text-warning'}`}>
                                             {item.current} {item.unit}
                                         </span>
                                     </div>
@@ -148,14 +147,14 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                     </div>
 
                     {/* Últimos cierres de caja */}
-                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 overflow-hidden">
-                        <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
-                            <h2 className="font-bold text-white/90 flex items-center gap-2">
+                    <div className="bg-surface border border-line-subtle rounded-xl shadow-sm overflow-x-auto">
+                        <div className="flex items-center justify-between px-5 py-4 border-b border-line-subtle">
+                            <h2 className="font-bold text-ink flex items-center gap-2">
                                 <DollarSign className="h-5 w-5 text-slate-500" /> Cierres de Caja
                             </h2>
                         </div>
                         {cashCloses.length === 0 ? (
-                            <div className="py-10 text-center text-white/40">
+                            <div className="py-10 text-center text-muted">
                                 <DollarSign className="h-8 w-8 mx-auto mb-2 opacity-30" />
                                 <p className="text-sm">Sin cierres registrados</p>
                             </div>
@@ -172,8 +171,8 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                                         <div key={c.id} className="px-5 py-3">
                                             <div className="flex items-center justify-between mb-1">
                                                 <div>
-                                                    <p className="text-sm font-semibold text-white/90">{c.user}</p>
-                                                    <div className="flex items-center gap-2 text-xs text-white/40">
+                                                    <p className="text-sm font-semibold text-ink">{c.user}</p>
+                                                    <div className="flex items-center gap-2 text-xs text-muted">
                                                         {openedAt && (
                                                             <span className="flex items-center gap-1">
                                                                 <Clock className="h-3 w-3" />
@@ -186,13 +185,13 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                                                     </div>
                                                 </div>
                                                 <div className="text-right">
-                                                    <p className="text-sm font-bold text-white/90">{S(c.totalSales)}</p>
-                                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${diff === 0 ? 'bg-green-500/20 text-green-400' : diff > 0 ? 'bg-blue-500/20 text-blue-400' : 'bg-red-500/20 text-red-400'}`}>
+                                                    <p className="text-sm font-bold text-ink">{S(c.totalSales)}</p>
+                                                    <span className={`text-xs font-semibold px-2 py-0.5 rounded-full ${diff === 0 ? 'bg-[var(--status-success-bg)] text-success' : diff > 0 ? 'bg-[var(--status-info-bg)] text-info' : 'bg-[var(--status-error-bg)] text-danger'}`}>
                                                         {diff > 0 ? '+' : ''}{diff.toFixed(2)}
                                                     </span>
                                                 </div>
                                             </div>
-                                            {c.notes && <p className="text-xs text-white/40 italic mt-0.5">"{c.notes}"</p>}
+                                            {c.notes && <p className="text-xs text-muted italic mt-0.5">"{c.notes}"</p>}
                                         </div>
                                     );
                                 })}
@@ -201,6 +200,6 @@ export default function BranchOverviewPage({ params }: { params: { id: string } 
                     </div>
                 </div>
             </div>
-        </div>
+        </main>
     );
 }
