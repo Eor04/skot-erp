@@ -166,7 +166,7 @@ export default function SalesPage() {
                             className="flex items-center gap-2 px-4 py-2 rounded-xl border border-red-300 text-red-700 bg-red-50 hover:bg-red-100 text-sm font-semibold disabled:opacity-40 transition"
                         >
                             {exporting
-                                ? <><Loader2 className="h-4 w-4 animate-spin" /> Generando...-</>
+                                ? <><Loader2 className="h-4 w-4 animate-spin" /> Generando…</>
                                 : <><FileText className="h-4 w-4" /> PDF</>
                             }
                         </button>
@@ -248,7 +248,7 @@ export default function SalesPage() {
                 <div className="relative mb-4">
                     <Search className="absolute left-3 top-2.5 h-5 w-5 text-muted" />
                     <input
-                        type="text" placeholder="Buscar por n-mero de venta, sucursal o vendedor...-"
+                        type="text" placeholder="Buscar por número de venta, sucursal o vendedor…"
                         value={search} onChange={e => setSearch(e.target.value)}
                         className="w-full pl-10 pr-4 py-2.5 border border-line-subtle rounded-xl bg-surface border border-line-subtle text-sm focus:outline-none focus:ring-2 focus:ring-brand"
                     />

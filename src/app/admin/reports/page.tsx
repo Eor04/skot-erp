@@ -266,7 +266,7 @@ export default function AdminReportsPage() {
                                         <XAxis dataKey="date" tickFormatter={fDate} interval={tickInterval} tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} />
                                         <YAxis tickFormatter={v => `${v}`} tick={{ fontSize: 11, fill: 'var(--muted)' }} axisLine={false} tickLine={false} width={45} />
                                         <Tooltip content={<CustomTooltip />} />
-                                        <Legend formatter={(v: string) => ({ ingresos: 'Total', burger: '🍔 Burger', acai: '🥤 Açaí' }[v] ?? v)} />
+                                        <Legend formatter={(v: string) => ({ ingresos: 'Total', burger: 'Hamburguesas', acai: 'Açaí' }[v] ?? v)} />
                                         <Area type="monotone" dataKey="ingresos" name="ingresos" stroke="var(--brand-primary)" strokeWidth={2} fill="url(#gI)" dot={false} activeDot={{ r: 5 }} />
                                         <Area type="monotone" dataKey="burger" name="burger" stroke="var(--brand-secondary)" strokeWidth={1.5} fill="url(#gB)" dot={false} activeDot={{ r: 4 }} />
                                         <Area type="monotone" dataKey="acai" name="acai" stroke="var(--brand-accent)" strokeWidth={1.5} fill="url(#gA)" dot={false} activeDot={{ r: 4 }} />

@@ -252,7 +252,7 @@ export default function ModifiersPage() {
                     <div className="bg-surface border border-line-subtle rounded-xl shadow-lg w-full max-w-sm">
                         <div className="flex items-center justify-between p-6 border-b border-line-subtle">
                             <h2 className="text-lg font-bold text-ink">
-                                {editingId ? '✏️ Editar modificador' : '➕ Nuevo modificador'}
+                                {editingId ? 'Editar modificador' : 'Nuevo modificador'}
                             </h2>
                             <button onClick={() => setShowModal(false)} className="grid h-11 w-11 place-items-center rounded-lg text-muted hover:bg-canvas hover:text-ink"><X className="h-5 w-5" /></button>
                         </div>

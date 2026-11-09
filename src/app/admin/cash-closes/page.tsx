@@ -266,7 +266,7 @@ export default function CashClosesReportPage() {
                                                 </td>
                                                 <td className="px-5 py-3.5 text-center">
                                                     <span className={`px-2 py-0.5 rounded-full text-xs font-semibold ${c.sessionStatus === 'OPEN' ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'}`}>
-                                                        {c.sessionStatus === 'OPEN' ? '🔓 Abierta' : '✅ Cerrada'}
+                                                        {c.sessionStatus === 'OPEN' ? 'Abierta' : 'Cerrada'}
                                                     </span>
                                                 </td>
                                             </tr>
@@ -291,7 +291,7 @@ export default function CashClosesReportPage() {
                                                                         { label: '📲 Transferencia', val: fmt(c.transferSales), color: 'text-purple-400' },
                                                                         { label: '🧾 Total gastos', val: fmt(c.totalExpenses), color: 'text-red-400' },
                                                                         { label: '📊 Neto', val: fmt(c.netCash), color: 'text-ink' },
-                                                                        { label: '📦 Ventas (#)', val: String(detail.totals.salesCount), color: 'text-indigo-400' },
+                                                                        { label: 'Ventas (#)', val: String(detail.totals.salesCount), color: 'text-indigo-400' },
                                                                     ].map(k => (
                                                                         <div key={k.label} className="bg-surface border border-line-subtle rounded-xl border border-line-subtle px-3 py-2.5">
                                                                             <p className="text-xs text-muted">{k.label}</p>
@@ -410,7 +410,7 @@ export default function CashClosesReportPage() {
                                                                             {(c.difference ?? 0) > 0 ? '+' : ''}{fmt(c.difference)}
                                                                         </p>
                                                                         <p className="text-xs text-slate-500 mt-0.5">
-                                                                            {(c.difference ?? 0) === 0 ? '✅ Cuadra perfectamente'
+                                                                            {(c.difference ?? 0) === 0 ? 'Cuadra perfectamente'
                                                                                 : (c.difference ?? 0) > 0 ? '⬆️ Sobrante' : '⬇️ Faltante'}
                                                                         </p>
                                                                     </div>

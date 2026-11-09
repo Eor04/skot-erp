@@ -169,7 +169,7 @@ export default function AnalyticsPage() {
 
     const { label: periodLabel } = periodRange(period);
     const selectedBranch = branches.find(b => b.id === branchId);
-    const reportTitle = `Analytics${selectedBranch ? ' · ' + selectedBranch.name : ''} � ${periodLabel}`;
+    const reportTitle = `Analytics${selectedBranch ? ' · ' + selectedBranch.name : ''} · ${periodLabel}`;
 
     // Filtros r�pidos por tipo de sucursal
     const branchTypeGroups: Record<string, Branch[]> = {};
@@ -251,7 +251,7 @@ export default function AnalyticsPage() {
 
                     <div className="w-px h-5 bg-gray-200" />
 
-                    {/* Filtro sucursal � Todas */}
+                    {/* Filtro sucursal · Todas */}
                     <div className="flex items-center gap-1.5 flex-wrap">
                         <span className="text-xs font-semibold text-muted mr-1">
                             <Store className="h-3.5 w-3.5 inline mr-0.5" /> Sucursal:
@@ -316,7 +316,7 @@ export default function AnalyticsPage() {
                             {/* Ingresos por período */}
                             <div className="lg:col-span-2 bg-surface border border-line-subtle rounded-xl shadow-sm p-6">
                                 <h2 className="text-sm font-bold text-ink mb-4">
-                                    Ingresos (S/) � {periodLabel}
+                                    Ingresos (S/) · {periodLabel}
                                     {selectedBranch && <span className="ml-2 text-xs text-muted font-normal">{selectedBranch.name}</span>}
                                 </h2>
                                 {dailySales.length > 0 ? (
@@ -374,7 +374,7 @@ export default function AnalyticsPage() {
                         {/* Tendencia cantidad de ventas */}
                         {dailySales.length > 1 && (
                             <div className="bg-surface border border-line-subtle rounded-xl shadow-sm p-6">
-                                <h2 className="text-sm font-bold text-ink mb-4">Cantidad de Ventas � {periodLabel}</h2>
+                                <h2 className="text-sm font-bold text-ink mb-4">Cantidad de Ventas · {periodLabel}</h2>
                                 <ResponsiveContainer width="100%" height={200}>
                                     <LineChart data={dailySales}>
                                         <CartesianGrid strokeDasharray="3 3" stroke="var(--line-subtle)" />

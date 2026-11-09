@@ -20,13 +20,13 @@ type Summary = {
     byPayment: { method: string; total: number }[];
 };
 
-const CAT_LABELS: Record<string, { label: string; color: string; emoji: string }> = {
-    PROVEEDOR: { label: 'Proveedor', color: 'bg-blue-100 text-blue-700', emoji: '🏭' },
-    SERVICIOS: { label: 'Servicios', color: 'bg-purple-100 text-purple-700', emoji: '⚡' },
-    MANTENIMIENTO: { label: 'Mantenimiento', color: 'bg-orange-100 text-orange-700', emoji: '🔧' },
-    SUELDOS: { label: 'Sueldos', color: 'bg-green-100 text-green-700', emoji: '👷' },
-    LOGISTICA: { label: 'Logística', color: 'bg-teal-100 text-teal-700', emoji: '🚚' },
-    OTRO: { label: 'Otro', color: 'bg-canvas text-ink', emoji: '📋' },
+const CAT_LABELS: Record<string, { label: string; color: string }> = {
+    PROVEEDOR: { label: 'Proveedor', color: 'bg-blue-100 text-blue-700' },
+    SERVICIOS: { label: 'Servicios', color: 'bg-purple-100 text-purple-700' },
+    MANTENIMIENTO: { label: 'Mantenimiento', color: 'bg-orange-100 text-orange-700' },
+    SUELDOS: { label: 'Sueldos', color: 'bg-green-100 text-green-700' },
+    LOGISTICA: { label: 'Logística', color: 'bg-teal-100 text-teal-700' },
+    OTRO: { label: 'Otro', color: 'bg-canvas text-ink' },
 };
 const PAY_LABELS: Record<string, string> = {
     CASH: 'Efectivo', CARD: 'Tarjeta', TRANSFER: 'Transferencia', MIXED: 'Mixto',
@@ -159,7 +159,7 @@ export default function AdminExpensesPage() {
                             <select value={category} onChange={e => setCategory(e.target.value)}
                                 className="w-full border border-line-subtle rounded-xl px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300">
                                 <option value="">Todas</option>
-                                {Object.entries(CAT_LABELS).map(([k, v]) => <option key={k} value={k}>{v.emoji} {v.label}</option>)}
+                                {Object.entries(CAT_LABELS).map(([k, v]) => <option key={k} value={k}>{v.label}</option>)}
                             </select>
                         </div>
                     </div>
@@ -207,12 +207,12 @@ export default function AdminExpensesPage() {
                         </div>
                         <div className="divide-y divide-gray-50">
                             {summary.byCategory.sort((a, b) => b.total - a.total).map(c => {
-                                const cfg = CAT_LABELS[c.category] || { label: c.category, color: 'bg-canvas text-ink', emoji: '📋' };
+                                const cfg = CAT_LABELS[c.category] || { label: c.category, color: 'bg-canvas text-ink' };
                                 const pct = summary.totalAmount > 0 ? (c.total / summary.totalAmount * 100) : 0;
                                 return (
                                     <div key={c.category} className="px-5 py-3 flex items-center gap-4">
                                         <span className={`px-2.5 py-0.5 rounded-full text-xs font-semibold ${cfg.color}`}>
-                                            {cfg.emoji} {cfg.label}
+                                            {cfg.label}
                                         </span>
                                         <div className="flex-1 bg-canvas rounded-full h-2 overflow-hidden">
                                             <div className="bg-rose-400 h-2 rounded-full transition-all" style={{ width: `${pct}%` }} />
@@ -256,7 +256,7 @@ export default function AdminExpensesPage() {
                                 </thead>
                                 <tbody>
                                     {expenses.map(e => {
-                                        const cfg = CAT_LABELS[e.category] || { label: e.category, color: 'bg-canvas text-ink', emoji: '📋' };
+                                        const cfg = CAT_LABELS[e.category] || { label: e.category, color: 'bg-canvas text-ink' };
                                         return (
                                             <tr key={e.id} className="border-b border-gray-50 hover:bg-canvas transition">
                                                 <td className="px-4 py-3 text-muted whitespace-nowrap">
@@ -265,7 +265,7 @@ export default function AdminExpensesPage() {
                                                 <td className="px-4 py-3 text-ink">{e.branch.name}</td>
                                                 <td className="px-4 py-3">
                                                     <span className={`px-2 py-0.5 text-xs rounded-full font-semibold ${cfg.color}`}>
-                                                        {cfg.emoji} {cfg.label}
+                                                        {cfg.label}
                                                     </span>
                                                 </td>
                                                 <td className="px-4 py-3 text-ink max-w-xs">
