@@ -387,7 +387,7 @@ export default function AdminReportsPage() {
                                         <tbody className="divide-y divide-gray-50">
                                             {cashiers.map((c, i) => (
                                                 <tr key={c.userId} className={`hover:bg-canvas transition ${i === 0 ? 'bg-amber-50/50' : ''}`}>
-                                                    <td className="px-5 py-3.5 font-bold text-muted">{i === 0 ? '🥇' : i === 1 ? '🥈' : i === 2 ? '🥉' : i + 1}</td>
+                                                    <td className="px-5 py-3.5 font-bold text-muted">{i + 1}</td>
                                                     <td className="px-5 py-3.5 font-semibold text-ink">{c.userName}</td>
                                                     <td className="px-5 py-3.5 text-right font-medium text-ink">{c.totalSales}</td>
                                                     <td className="px-5 py-3.5 text-right font-bold text-green-700">{fBs(c.totalRevenue)}</td>

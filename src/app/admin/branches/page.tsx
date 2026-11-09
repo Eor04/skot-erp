@@ -206,7 +206,7 @@ export default function BranchesPage() {
                                     <div className="flex gap-2 border-t border-line-subtle pt-4">
                                         <Link href={`/admin/branches/${b.id}`}
                                             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-green-700 hover:bg-green-50 rounded-lg border border-green-200 font-medium transition">
-                                            📊 Ver panel
+                                             Ver panel
                                         </Link>
                                         <button onClick={() => openEdit(b)}
                                             className="flex items-center gap-1.5 px-3 py-1.5 text-sm text-blue-600 hover:bg-blue-50 rounded-lg border border-blue-200 font-medium transition">

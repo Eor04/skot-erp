@@ -134,7 +134,7 @@ export function StockAlerts({ branchId, onCreateTransfer }: StockAlertsProps) {
                                             )}
                                             {alert.daysRemaining !== null && alert.daysRemaining !== undefined && (
                                                 <span className="font-semibold">
-                                                    ⏱️ {alert.daysRemaining} día(s) restantes
+                                                    {alert.daysRemaining} día(s) restantes
                                                 </span>
                                             )}
                                         </div>

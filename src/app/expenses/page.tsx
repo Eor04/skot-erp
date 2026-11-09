@@ -260,7 +260,7 @@ export default function ExpensesPage() {
                                                     {cat.label}
                                                 </span>
                                                 <span className="text-xs text-muted">
-                                                    {ex.paymentMethod === 'CASH' ? '💵' : ex.paymentMethod === 'CARD' ? '💳' : '🏦'}
+                                                    {ex.paymentMethod === 'CASH' ? 'Efectivo' : ex.paymentMethod === 'CARD' ? 'Tarjeta' : 'Transferencia'}
                                                 </span>
                                             </div>
                                             <p className="font-semibold text-ink">{ex.description}</p>

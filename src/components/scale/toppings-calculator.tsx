@@ -6,6 +6,7 @@
 
 'use client';
 
+import { Package } from 'lucide-react';
 import styles from './toppings-calculator.module.css';
 
 export interface ToppingItem {
@@ -41,7 +42,7 @@ export function ToppingsCalculator({
                 </div>
 
                 <div className={styles.empty}>
-                    <span className={styles.emptyIcon}>🥣</span>
+                    <span className={styles.emptyIcon}><Package size={28} aria-hidden="true" /></span>
                     <p>Aún no has agregado toppings</p>
                     <p className={styles.emptyHint}>Usa la balanza para pesar y agregar</p>
                 </div>

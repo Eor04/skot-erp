@@ -268,7 +268,7 @@ export default function FactoryReceivingPage() {
         setShowNewProduct(false);
         if (newProductForRow !== null) selectProduct(newProductForRow, prod);
         setNewProductForRow(null);
-        showToast('success', `✅ Producto "${prod.name}" creado y seleccionado`);
+        showToast('success', `Producto "${prod.name}"creado y seleccionado`);
     }
 
     // ── Submit ───────────────────────────────────────────────────────────────
@@ -297,7 +297,7 @@ export default function FactoryReceivingPage() {
             });
             const d = await res.json();
             if (d.success) {
-                showToast('success', `✅ ${d.message} — Ref: ${d.reference}`);
+                showToast('success', ` ${d.message} — Ref: ${d.reference}`);
                 setSupplier(''); setInvoiceRef(''); setFormNotes('');
                 setProductSearch({}); setItems([{ productId: '', productName: '', unit: '', quantity: '', notes: '' }]);
                 loadHistory();

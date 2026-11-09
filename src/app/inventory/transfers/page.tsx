@@ -81,8 +81,8 @@ export default function TransfersPage() {
             const data = await res.json();
             if (data.success) {
                 const msgs: Record<string, string> = {
-                    approve: '✅ Transferencia aprobada — en tránsito',
-                    cancel: '❌ Transferencia cancelada',
+                    approve: 'Transferencia aprobada — en tránsito',
+                    cancel: 'Transferencia cancelada',
                     receive: 'Recepción confirmada — stock actualizado',
                 };
                 showToast('success', msgs[action]);

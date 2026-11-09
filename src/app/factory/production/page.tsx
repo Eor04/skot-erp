@@ -110,7 +110,7 @@ export default function ProductionPage() {
             });
             const data = await res.json();
             if (data.success) {
-                showToast('success', '✅ Producción completada — stock actualizado en kardex');
+                showToast('success', 'Producción completada — stock actualizado en kardex');
                 setCompletingOrder(null);
                 fetchAll();
             } else {
@@ -196,7 +196,7 @@ export default function ProductionPage() {
                                                     setCompleteForm({ actualYield: order.plannedYield, completedBy: '' });
                                                 }}
                                                     className="text-xs font-semibold px-3 py-1.5 bg-brand hover:brightness-90 text-white rounded-lg transition-colors disabled:opacity-50">
-                                                    ✓ Completar
+                                                     Completar
                                                 </button>
                                             )}
                                         </div>

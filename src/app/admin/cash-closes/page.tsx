@@ -285,12 +285,12 @@ export default function CashClosesReportPage() {
                                                                 {/* KPIs del turno */}
                                                                 <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-3">
                                                                     {[
-                                                                        { label: '💰 Apertura', val: fmt(c.openingAmount), color: 'text-ink' },
-                                                                        { label: '💵 Efectivo ventas', val: fmt(c.cashSales), color: 'text-green-400' },
-                                                                        { label: '💳 Tarjeta', val: fmt(c.cardSales), color: 'text-blue-400' },
-                                                                        { label: '📲 Transferencia', val: fmt(c.transferSales), color: 'text-purple-400' },
-                                                                        { label: '🧾 Total gastos', val: fmt(c.totalExpenses), color: 'text-red-400' },
-                                                                        { label: '📊 Neto', val: fmt(c.netCash), color: 'text-ink' },
+                                                                        { label: 'Apertura', val: fmt(c.openingAmount), color: 'text-ink' },
+                                                                        { label: 'Efectivo ventas', val: fmt(c.cashSales), color: 'text-green-400' },
+                                                                        { label: 'Tarjeta', val: fmt(c.cardSales), color: 'text-blue-400' },
+                                                                        { label: 'Transferencia', val: fmt(c.transferSales), color: 'text-purple-400' },
+                                                                        { label: 'Total gastos', val: fmt(c.totalExpenses), color: 'text-red-400' },
+                                                                        { label: 'Neto', val: fmt(c.netCash), color: 'text-ink' },
                                                                         { label: 'Ventas (#)', val: String(detail.totals.salesCount), color: 'text-indigo-400' },
                                                                     ].map(k => (
                                                                         <div key={k.label} className="bg-surface border border-line-subtle rounded-xl border border-line-subtle px-3 py-2.5">
@@ -411,13 +411,13 @@ export default function CashClosesReportPage() {
                                                                         </p>
                                                                         <p className="text-xs text-slate-500 mt-0.5">
                                                                             {(c.difference ?? 0) === 0 ? 'Cuadra perfectamente'
-                                                                                : (c.difference ?? 0) > 0 ? '⬆️ Sobrante' : '⬇️ Faltante'}
+                                                                                : (c.difference ?? 0) > 0 ? '⬆ Sobrante' : '⬇ Faltante'}
                                                                         </p>
                                                                     </div>
                                                                 </div>
 
                                                                 {c.notes && (
-                                                                    <p className="text-xs text-muted italic">📝 Nota: "{c.notes}"</p>
+                                                                    <p className="text-xs text-muted italic"> Nota: "{c.notes}"</p>
                                                                 )}
                                                             </div>
                                                         ) : null}

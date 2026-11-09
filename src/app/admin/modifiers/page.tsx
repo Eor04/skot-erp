@@ -14,7 +14,7 @@ const CAT_OPTIONS = [
     { value: 'BURGER', label: ' Burgers' },
     { value: 'ACAI', label: ' Açaí' },
     { value: 'BEVERAGE', label: ' Bebidas' },
-    { value: 'GENERAL', label: '📋 General' },
+    { value: 'GENERAL', label: 'General' },
 ];
 
 const EMPTY_FORM = { name: '', description: '', price: 0, category: 'BURGER', active: true };
@@ -216,7 +216,7 @@ export default function ModifiersPage() {
                         {sinCat.length > 0 && (
                             <div className="bg-surface border border-line-subtle rounded-xl shadow overflow-x-auto">
                                 <div className="px-5 py-3 bg-surface border-b border-line-subtle">
-                                    <h2 className="font-semibold text-ink">📋 Sin categoría</h2>
+                                    <h2 className="font-semibold text-ink"> Sin categoría</h2>
                                 </div>
                                 <table className="w-full min-w-[760px] text-sm">
                                     <tbody>

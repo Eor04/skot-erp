@@ -1,5 +1,6 @@
 'use client';
 
+import { User } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { Product, ProductModifier, PaymentMethod } from '@prisma/client';
 import ProductGrid from '@/components/pos/burgers/product-grid';
@@ -46,7 +47,7 @@ interface TurnSale {
 }
 
 const METHOD_LABEL: Record<string, string> = {
-    CASH: '💵 Efectivo', CARD: '💳 Tarjeta', TRANSFER: '📲 QR', MIXED: '🔀 Mixto'
+    CASH: 'Efectivo', CARD: 'Tarjeta', TRANSFER: 'QR', MIXED: 'Mixto'
 };
 
 export default function BurgersPOSPage() {
@@ -173,7 +174,7 @@ export default function BurgersPOSPage() {
     const handleComboSelect = (combo: Combo) => {
         const syntheticProduct = {
             id: `COMBO-${combo.id}`,   // prefijo para identificar en el carrito
-            name: `🧩 ${combo.name}`,
+            name: combo.name,
             description: combo.description || combo.items.map(i => `${i.quantity}x ${i.product.name}`).join(', '),
             price: combo.price,
             customPrice: combo.price,
@@ -531,7 +532,7 @@ export default function BurgersPOSPage() {
                                             {sale.customerName && (
                                                 <div className="mb-2">
                                                     <span className="text-xs font-bold text-black bg-yellow-400 px-2 py-0.5 rounded-md inline-flex items-center gap-1 shadow-sm">
-                                                        <span>👤</span> {sale.customerName}
+                                                        <User size={14} aria-hidden="true" /> {sale.customerName}
                                                     </span>
                                                 </div>
                                             )}

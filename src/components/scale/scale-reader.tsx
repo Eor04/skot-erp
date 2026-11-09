@@ -1,6 +1,6 @@
 /**
  * COMPONENTE LECTOR DE BALANZA PRIX 4
- * 
+ *
  * Interfaz visual para conectar, leer peso, y capturar lecturas estables
  */
 
@@ -108,7 +108,7 @@ export function ScaleReader({
     const statusDisplay = getStatusDisplay();
 
     // Indicador de peso estable
-    const stabilityIndicator = isStable ? '🟢 Estable' : '🟡 Estabilizando...';
+    const stabilityIndicator = isStable ? 'Estable' : 'Estabilizando...';
     const weightColor = isStable ? 'green' : 'yellow';
 
     return (
@@ -116,12 +116,12 @@ export function ScaleReader({
             {/* Header */}
             <div className={styles.header}>
                 <div className={styles.statusBadge} data-status={statusDisplay.color}>
-                    🔌 Estado: {statusDisplay.text}
+                     Estado: {statusDisplay.text}
                 </div>
 
                 {isMockMode && (
                     <div className={styles.mockBadge}>
-                        ⚠️ Modo Simulación
+                         Modo Simulación
                     </div>
                 )}
             </div>
@@ -136,7 +136,7 @@ export function ScaleReader({
                 </div>
 
                 <div className={styles.stability}>
-                    {status === 'reading' ? stabilityIndicator : '⚫ En espera'}
+                    {status === 'reading' ? stabilityIndicator : 'En espera'}
                 </div>
 
                 {/* Info adicional */}
@@ -182,7 +182,7 @@ export function ScaleReader({
             {/* Error */}
             {error && (
                 <div className={styles.error}>
-                    ⚠️ {error}
+                     {error}
                 </div>
             )}
         </div>

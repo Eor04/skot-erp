@@ -155,10 +155,10 @@ export default function InternalOrdersPage() {
             const data = await res.json();
             if (data.success) {
                 const msgs: Record<string, string> = {
-                    approve: '✅ Pedido aprobado',
-                    cancel: '❌ Pedido cancelado',
-                    dispatch: '🚚 Pedido despachado',
-                    receive: '📦 Recepción confirmada — stock actualizado',
+                    approve: 'Pedido aprobado',
+                    cancel: 'Pedido cancelado',
+                    dispatch: 'Pedido despachado',
+                    receive: 'Recepción confirmada — stock actualizado',
                 };
                 showToast('success', msgs[action] || 'Listo');
                 const refreshed = await fetch('/api/inventory/internal-orders').then(r => r.json());
@@ -405,7 +405,7 @@ export default function InternalOrdersPage() {
                                                 </tbody>
                                             </table>
                                             {order.notes && (
-                                                <p className="text-xs text-muted mt-3 bg-surface rounded-lg px-3 py-2">📝 {order.notes}</p>
+                                                <p className="text-xs text-muted mt-3 bg-surface rounded-lg px-3 py-2"> {order.notes}</p>
                                             )}
                                         </div>
                                     )}
@@ -535,7 +535,7 @@ function ProductCombobox({ products, value, onChange }: { products: any[], value
         <div className="relative flex-1 min-w-0">
             <input
                 type="text"
-                placeholder="🔍 Buscar y seleccionar producto..."
+                placeholder="Buscar y seleccionar producto..."
                 value={search}
                 onChange={e => {
                     setSearch(e.target.value);

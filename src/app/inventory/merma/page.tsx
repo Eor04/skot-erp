@@ -7,12 +7,12 @@ import { useSession } from '@/lib/session-context';
 import { Dialog } from '@/components/ui/dialog';
 
 const MERMA_REASONS = [
-    { value: 'VENCIMIENTO', label: '🗓️ Vencimiento' },
-    { value: 'DANO_FISICO', label: '💥 Daño físico' },
-    { value: 'DIFERENCIA_RECEPCION', label: '📦 Diferencia en recepción' },
-    { value: 'PROCESO_PRODUCCION', label: '🏭 Merma de producción' },
-    { value: 'ROBO', label: '🚨 Robo / Faltante' },
-    { value: 'OTRO', label: '📝 Otro' },
+    { value: 'VENCIMIENTO', label: 'Vencimiento' },
+    { value: 'DANO_FISICO', label: 'Daño físico' },
+    { value: 'DIFERENCIA_RECEPCION', label: 'Diferencia en recepción' },
+    { value: 'PROCESO_PRODUCCION', label: 'Merma de producción' },
+    { value: 'ROBO', label: 'Robo / Faltante' },
+    { value: 'OTRO', label: 'Otro' },
 ];
 
 const REASON_COLORS: Record<string, string> = {
@@ -284,7 +284,7 @@ export default function MermaPage() {
                                 </div>
                             </div>
                             <p className="text-xs text-warning bg-orange-50 border border-orange-200 rounded-lg p-3">
-                                ⚠️ Esta acción reducirá el stock de la sucursal seleccionada y quedará registrada en el Kardex.
+                                 Esta acción reducirá el stock de la sucursal seleccionada y quedará registrada en el Kardex.
                             </p>
                             <div className="flex gap-3">
                                 <button type="button" onClick={() => setShowModal(false)}

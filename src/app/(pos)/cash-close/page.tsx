@@ -187,7 +187,7 @@ export default function CashClosePage() {
             });
             const d = await res.json();
             if (d.success) {
-                showToast('success', '🟢 Caja abierta correctamente');
+                showToast('success', 'Caja abierta correctamente');
                 setActiveSession(d.data);
                 setMode('close');
                 loadData(form.branchId);
@@ -236,7 +236,7 @@ export default function CashClosePage() {
                     });
                 }
 
-                showToast('success', '🔴 Caja cerrada correctamente');
+                showToast('success', 'Caja cerrada correctamente');
                 setActiveSession(null);
                 setShiftSummary(null);
                 setMode('open');
@@ -446,7 +446,7 @@ export default function CashClosePage() {
                                 </h2>
                                 {activeSession && (
                                     <div className="bg-[var(--status-success-bg)] border border-green-500/30 rounded-xl p-3 mb-4 text-sm text-success">
-                                        <p className="font-semibold">🟢 Sesión activa</p>
+                                        <p className="font-semibold"> Sesión activa</p>
                                         <p className="text-xs mt-0.5">
                                             Abierta: {activeSession.openedAt
                                                 ? new Date(activeSession.openedAt).toLocaleTimeString('es-BO', { hour: '2-digit', minute: '2-digit' })

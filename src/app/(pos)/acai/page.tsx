@@ -30,26 +30,11 @@ interface ApiProduct {
     currentStock: number;
 }
 
-const STEPS: { key: Step; emoji: string; label: string }[] = [
-    { key: 'sabor',    emoji: '🍨', label: 'Sabor'    },
-    { key: 'balanza',  emoji: '⚖️', label: 'Balanza'  },
-    { key: 'extras',   emoji: '🥤', label: 'Extras'   },
+const STEPS: { key: Step; label: string }[] = [
+    { key: 'sabor', label: 'Sabor' },
+    { key: 'balanza', label: 'Balanza' },
+    { key: 'extras', label: 'Extras' },
 ];
-
-// Emoji automático para toppings
-function toppingEmoji(name: string): string {
-    const n = name.toLowerCase();
-    if (n.includes('granola'))                      return '🥣';
-    if (n.includes('banana') || n.includes('plát')) return '🍌';
-    if (n.includes('fresa') || n.includes('frut'))  return '🍓';
-    if (n.includes('miel'))                         return '🍯';
-    if (n.includes('leche') || n.includes('cond'))  return '🥛';
-    if (n.includes('gomi') || n.includes('candy'))  return '🍬';
-    if (n.includes('cereal'))                       return '🌾';
-    if (n.includes('coco'))                         return '🥥';
-    if (n.includes('chocolate') || n.includes('choco')) return '🍫';
-    return '✨';
-}
 
 export default function AcaiPOSPage() {
     const { user } = useSession();
@@ -98,7 +83,7 @@ export default function AcaiPOSPage() {
     const [notification, setNotification]       = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [processing, setProcessing]           = useState(false);
     const [lastComanda, setLastComanda]           = useState<Comanda | null>(null);
-    
+
     // Offline State
     const [offlineQueue, setOfflineQueue]       = useState<OfflineSale[]>([]);
     const [isSyncing, setIsSyncing]             = useState(false);
@@ -287,9 +272,9 @@ export default function AcaiPOSPage() {
                 setTransferGiven('');
                 loadProducts(true);
                 if (isOffline) {
-                    notify('success', `✅ Venta OFFLINE guardada: ${data.data.saleNumber} — Pendiente de sincronización`);
+                    notify('success', `Venta OFFLINE guardada: ${data.data.saleNumber} — Pendiente de sincronización`);
                 } else {
-                    notify('success', `✅ Venta ${data.data.saleNumber} — Bs. ${data.data.totalAmount.toFixed(2)}`);
+                    notify('success', `Venta ${data.data.saleNumber} — Bs. ${data.data.totalAmount.toFixed(2)}`);
                 }
                 printComanda(comanda, () => notify('error',
                     `Venta ${comanda.saleNumber} registrada. No se pudo abrir la impresión; usá Reimprimir última comanda.`));
@@ -364,7 +349,7 @@ export default function AcaiPOSPage() {
 
                     {/* Offline / Online status y Balanza */}
                     <div className="flex items-center gap-2 relative">
-                        
+
                         {/* Indicador Offline */}
                         {offlineQueue.length > 0 ? (
                             <button onClick={handleSync} disabled={isSyncing} aria-label={`${offlineQueue.length} ventas pendientes. Reintentar sincronización`} className="mr-2 flex min-h-12 items-center gap-1.5 rounded-lg border border-line px-3 text-sm font-semibold text-warning hover:bg-[var(--status-warning-bg)] disabled:opacity-50">

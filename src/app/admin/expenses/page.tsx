@@ -188,7 +188,7 @@ export default function AdminExpensesPage() {
                                     {p.method === 'CASH' ? <DollarSign className="h-5 w-5 text-success" /> :
                                         p.method === 'CARD' ? <CreditCard className="h-5 w-5 text-blue-600" /> :
                                             p.method === 'TRANSFER' ? <ArrowRightLeft className="h-5 w-5 text-brand" /> :
-                                                <span className="text-lg">💳</span>}
+                                                <CreditCard className="h-5 w-5 text-muted" aria-hidden="true" />}
                                 </div>
                                 <div>
                                     <p className="text-xs text-muted font-medium">{PAY_LABELS[p.method] || p.method}</p>

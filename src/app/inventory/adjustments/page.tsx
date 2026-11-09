@@ -236,7 +236,7 @@ export default function StockAdjustmentsPage() {
                                     {newStockPreview !== null && selected && (
                                         <p className={`text-xs mt-1.5 font-semibold ${newStockPreview < 0 ? 'text-danger' : 'text-success'}`}>
                                             → Nuevo stock: {fmt(newStockPreview, selected.unit)}
-                                            {newStockPreview < 0 && ' ⚠️ No puede quedar negativo'}
+                                            {newStockPreview < 0 && 'No puede quedar negativo'}
                                         </p>
                                     )}
                                 </div>

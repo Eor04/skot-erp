@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useSession } from '@/lib/session-context';
 import {
     ArrowLeft, Trash2, AlertTriangle, Search, Plus,
-    Check, AlertCircle, Loader2, Package, ClipboardList
+    Check, AlertCircle, Loader2, Package, ClipboardList, X
 } from 'lucide-react';
 
 type Branch   = { id: string; name: string; type: string };
@@ -13,11 +13,11 @@ type Product  = { id: string; name: string; sku: string; unit: string };
 type StockItem = { product: { id: string; name: string; unit: string }; currentStock: number };
 
 const REASON_LABELS: Record<string, string> = {
-    VENCIMIENTO:           '📅 Vencimiento',
-    DANO_FISICO:           '💥 Daño físico',
-    DIFERENCIA_RECEPCION:  '📦 Diferencia en recepción',
-    PROCESO_PRODUCCION:    '⚙️ Merma de producción',
-    OTRO:                  '🔖 Otro',
+    VENCIMIENTO:           'Vencimiento',
+    DANO_FISICO:           'Daño físico',
+    DIFERENCIA_RECEPCION:  'Diferencia en recepción',
+    PROCESO_PRODUCCION:    'Merma de producción',
+    OTRO:                  'Otro',
 };
 
 type Merma = {
@@ -203,7 +203,7 @@ export default function MermasPage() {
                                                     Stock: {selectedItem?.currentStock} {selectedItem?.product.unit}
                                                 </span>
                                             </div>
-                                            <button type="button" onClick={() => setProductId('')} className="text-danger hover:text-danger">✕</button>
+                                            <button type="button" onClick={() => setProductId('')} aria-label="Quitar producto seleccionado" className="grid h-11 w-11 place-items-center rounded-lg text-danger hover:bg-canvas"><X size={18} aria-hidden="true" /></button>
                                         </div>
                                     ) : (
                                         <>
