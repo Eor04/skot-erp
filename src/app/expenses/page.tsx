@@ -24,12 +24,12 @@ interface Expense {
 interface Summary { total: number; sumAmount: number }
 
 const CATEGORIES = [
-    { value: 'PROVEEDOR', label: '🛒 Proveedor', color: 'bg-orange-500/20 text-orange-400 border border-orange-500/30' },
-    { value: 'SERVICIOS', label: '💡 Servicios', color: 'bg-yellow-500/20 text-yellow-400 border border-yellow-500/30' },
-    { value: 'MANTENIMIENTO', label: '🔧 Mantenimiento', color: 'bg-blue-500/20 text-blue-400 border border-blue-500/30' },
-    { value: 'SUELDOS', label: '👤 Sueldos', color: 'bg-purple-500/20 text-purple-400 border border-purple-500/30' },
-    { value: 'LOGISTICA', label: '🚚 Logística', color: 'bg-cyan-500/20 text-cyan-400 border border-cyan-500/30' },
-    { value: 'OTRO', label: '📝 Otro', color: 'bg-white/10 text-white/70 border border-white/20' },
+    { value: 'PROVEEDOR', label: 'Proveedor', color: 'bg-[var(--status-warning-bg)] text-warning border border-line-subtle' },
+    { value: 'SERVICIOS', label: 'Servicios', color: 'bg-[var(--status-warning-bg)] text-warning border border-line-subtle' },
+    { value: 'MANTENIMIENTO', label: 'Mantenimiento', color: 'bg-[var(--status-info-bg)] text-info border border-line-subtle' },
+    { value: 'SUELDOS', label: 'Sueldos', color: 'bg-[var(--status-neutral-bg)] text-brand border border-line-subtle' },
+    { value: 'LOGISTICA', label: 'Logística', color: 'bg-[var(--status-info-bg)] text-info border border-line-subtle' },
+    { value: 'OTRO', label: 'Otro', color: 'bg-canvas text-muted border border-line' },
 ];
 
 const PAY_METHODS = [
@@ -141,40 +141,35 @@ export default function ExpensesPage() {
     const currentBranch = branches.find(b => b.id === branchId);
 
     return (
-        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
-                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
-            </div>
+        <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8">
             <div className="relative z-10">
             {/* Toast */}
             {toast && (
-                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-500/90 backdrop-blur border border-green-500/50' : 'bg-red-500/90 backdrop-blur border border-red-500/50'}`}>
+                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-brand' : 'bg-danger'}`}>
                     {toast.type === 'success' ? <CheckCircle className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
                     {toast.msg}
                 </div>
             )}
 
-            <div className="max-w-3xl mx-auto px-6 py-8">
+            <div className="mx-auto max-w-3xl">
                 {/* Header */}
-                <div className="flex items-center justify-between mb-8">
+                <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
                     <div>
-                        <Link href="/" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
+                        <Link href="/" className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-2">
                             <ArrowLeft className="h-4 w-4" /> Volver al dashboard
                         </Link>
-                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
+                        <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink flex items-center gap-3">
                             <Receipt className="h-8 w-8 text-rose-600" />
                             Registro de Gastos
                         </h1>
                         {currentBranch && (
-                            <p className="text-white/60 mt-1 text-sm">Sucursal: <strong>{currentBranch.name}</strong></p>
+                            <p className="text-muted mt-1 text-sm">Sucursal: <strong>{currentBranch.name}</strong></p>
                         )}
                     </div>
                     <button
                         onClick={() => setShowForm(true)}
                         disabled={!branchId}
-                        className="flex items-center gap-2 bg-rose-600 hover:bg-rose-700 disabled:bg-white/10 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition shadow-sm shadow-rose-200"
+                        className="flex items-center gap-2 bg-brand hover:brightness-90 disabled:opacity-50 text-white px-4 py-2.5 rounded-xl font-semibold text-sm transition "
                     >
                         <Plus className="h-4 w-4" /> Nuevo gasto
                     </button>
@@ -182,12 +177,13 @@ export default function ExpensesPage() {
 
                 {/* Selector de sucursal (solo admin) */}
                 {isAdmin && (
-                    <div className="bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-4 mb-5">
-                        <label className="block text-sm font-semibold text-white/80 mb-2">Sucursal</label>
+                    <div className="bg-surface rounded-2xl shadow-sm border border-line-subtle p-4 mb-5">
+                        <label htmlFor="expenses-branch" className="block text-sm font-semibold text-ink mb-2">Sucursal</label>
                         <select
+                            id="expenses-branch"
                             value={branchId}
                             onChange={e => setBranchId(e.target.value)}
-                            className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
+                            className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300"
                         >
                             <option value="">-- Seleccioná una sucursal --</option>
                             {branches.map(b => (
@@ -199,14 +195,14 @@ export default function ExpensesPage() {
 
                 {/* KPIs */}
                 {branchId && (
-                    <div className="grid grid-cols-2 gap-4 mb-5">
-                        <div className="bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5">
-                            <p className="text-xs text-white/40 font-medium mb-1">Total gastos</p>
-                            <p className="text-3xl font-black text-white/80">{summary.total}</p>
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-5">
+                        <div className="bg-surface rounded-2xl shadow-sm border border-line-subtle p-5">
+                            <p className="text-xs text-muted font-medium mb-1">Total gastos</p>
+                            <p className="text-3xl font-black text-ink">{summary.total}</p>
                         </div>
-                        <div className="bg-rose-500/10 rounded-2xl border border-rose-500/20 backdrop-blur-md p-5">
-                            <p className="text-xs text-rose-400 font-medium mb-1">Monto total</p>
-                            <p className="text-3xl font-black text-rose-700">{fmt(summary.sumAmount)}</p>
+                        <div className="bg-[var(--status-error-bg)] rounded-2xl border border-rose-500/20 p-5">
+                            <p className="text-xs text-danger font-medium mb-1">Monto total</p>
+                            <p className="text-3xl font-black text-danger">{fmt(summary.sumAmount)}</p>
                         </div>
                     </div>
                 )}
@@ -216,7 +212,7 @@ export default function ExpensesPage() {
                     <div className="flex gap-2 flex-wrap mb-4">
                         <button
                             onClick={() => setFilterCat('')}
-                            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition ${!filterCat ? 'bg-rose-600 text-white shadow-lg shadow-rose-500/30' : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10'}`}
+                            className={`px-3 py-1.5 rounded-xl text-xs font-medium transition ${!filterCat ? 'bg-brand text-white ' : 'bg-surface border border-line-subtle text-muted hover:bg-canvas'}`}
                         >
                             Todos
                         </button>
@@ -224,7 +220,7 @@ export default function ExpensesPage() {
                             <button
                                 key={c.value}
                                 onClick={() => setFilterCat(c.value === filterCat ? '' : c.value)}
-                                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition ${filterCat === c.value ? 'bg-rose-600 text-white shadow-lg shadow-rose-500/30' : 'bg-white/5 border border-white/10 text-white/70 hover:bg-white/10'}`}
+                                className={`px-3 py-1.5 rounded-xl text-xs font-medium transition ${filterCat === c.value ? 'bg-brand text-white ' : 'bg-surface border border-line-subtle text-muted hover:bg-canvas'}`}
                             >
                                 {c.label}
                             </button>
@@ -234,19 +230,19 @@ export default function ExpensesPage() {
 
                 {/* Lista de gastos */}
                 {sessionLoading || branchesLoading ? (
-                    <div className="flex flex-col items-center justify-center py-20 text-white/40 gap-3">
-                        <Loader2 className="h-10 w-10 animate-spin text-rose-400" />
+                    <div className="flex flex-col items-center justify-center py-20 text-muted gap-3">
+                        <Loader2 className="h-10 w-10 animate-spin text-danger" />
                         <p className="text-sm">Cargando...</p>
                     </div>
                 ) : !branchId ? (
-                    <div className="text-center py-20 text-white/40">
+                    <div className="text-center py-20 text-muted">
                         <DollarSign className="h-14 w-14 mx-auto mb-4 opacity-20" />
                         <p>{isAdmin ? 'Seleccioná una sucursal para ver sus gastos' : 'No tenés sucursal asignada. Contactá al administrador.'}</p>
                     </div>
                 ) : loading ? (
                     <div className="flex justify-center py-16"><Loader2 className="h-8 w-8 animate-spin text-rose-500" /></div>
                 ) : expenses.length === 0 ? (
-                    <div className="text-center py-16 bg-white/5 rounded-2xl border border-white/10 text-white/40">
+                    <div className="text-center py-16 bg-surface rounded-2xl border border-line-subtle text-muted">
                         <Receipt className="h-10 w-10 mx-auto mb-3 opacity-25" />
                         <p>No hay gastos registrados{filterCat ? ` en la categoría seleccionada` : ''}.</p>
                     </div>
@@ -255,21 +251,21 @@ export default function ExpensesPage() {
                         {expenses.map(ex => {
                             const cat = getCatCfg(ex.category);
                             return (
-                                <div key={ex.id} className="bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5">
+                                <div key={ex.id} className="bg-surface rounded-2xl shadow-sm border border-line-subtle p-5">
                                     <div className="flex items-start justify-between gap-4">
                                         <div className="flex-1 min-w-0">
                                             <div className="flex items-center gap-2 mb-1">
                                                 <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${cat.color}`}>
                                                     {cat.label}
                                                 </span>
-                                                <span className="text-xs text-white/40">
+                                                <span className="text-xs text-muted">
                                                     {ex.paymentMethod === 'CASH' ? '💵' : ex.paymentMethod === 'CARD' ? '💳' : '🏦'}
                                                 </span>
                                             </div>
-                                            <p className="font-semibold text-white/90">{ex.description}</p>
-                                            {ex.supplier && <p className="text-xs text-white/60 mt-0.5">Proveedor: {ex.supplier}</p>}
-                                            {ex.notes && <p className="text-xs text-white/40 mt-0.5 italic">"{ex.notes}"</p>}
-                                            <p className="text-xs text-white/30 mt-1">
+                                            <p className="font-semibold text-ink">{ex.description}</p>
+                                            {ex.supplier && <p className="text-xs text-muted mt-0.5">Proveedor: {ex.supplier}</p>}
+                                            {ex.notes && <p className="text-xs text-muted mt-0.5 italic">"{ex.notes}"</p>}
+                                            <p className="text-xs text-muted mt-1">
                                                 {new Date(ex.expenseDate).toLocaleDateString('es-PE', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' })}
                                             </p>
                                         </div>
@@ -287,23 +283,23 @@ export default function ExpensesPage() {
             {/* Modal: Nuevo gasto */}
             {showForm && (
                 <div className="fixed inset-0 bg-black/50 z-40 flex items-end sm:items-center justify-center p-4">
-                    <div className="bg-slate-900/90 backdrop-blur-xl rounded-2xl shadow-2xl border border-white/10 w-full max-w-md">
-                        <div className="flex items-center justify-between p-5 border-b border-white/10">
-                            <h2 className="text-lg font-bold text-white/90">Registrar Gasto</h2>
-                            <button onClick={() => { setShowForm(false); setForm(BLANK); }} className="text-white/40 hover:text-white/70">
+                    <div className="bg-surface rounded-xl shadow-xl border border-line-subtle w-full max-w-md max-h-[90dvh] overflow-y-auto">
+                        <div className="flex items-center justify-between p-5 border-b border-line-subtle">
+                            <h2 className="text-lg font-bold text-ink">Registrar Gasto</h2>
+                            <button onClick={() => { setShowForm(false); setForm(BLANK); }} className="text-muted hover:text-muted">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-5 space-y-4">
                             {/* Categoría */}
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-2">Categoría *</label>
-                                <div className="grid grid-cols-3 gap-2">
+                                <label className="block text-sm font-semibold text-ink mb-2">Categoría *</label>
+                                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
                                     {CATEGORIES.map(c => (
                                         <button
                                             key={c.value} type="button"
                                             onClick={() => setForm(f => ({ ...f, category: c.value }))}
-                                            className={`py-2 px-1 text-xs rounded-xl border font-medium text-center transition ${form.category === c.value ? 'border-rose-500 bg-rose-50 text-rose-700' : 'border-gray-200 text-white/70 hover:bg-white/10'}`}
+                                            className={`py-2 px-1 text-xs rounded-xl border font-medium text-center transition ${form.category === c.value ? 'border-rose-500 bg-rose-50 text-danger' : 'border-gray-200 text-muted hover:bg-canvas'}`}
                                         >
                                             {c.label}
                                         </button>
@@ -312,53 +308,53 @@ export default function ExpensesPage() {
                             </div>
                             {/* Descripción */}
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Descripción *</label>
-                                <input required type="text" placeholder="Ej: Pago proveedor de açaí, Factura Luz…"
+                                <label className="block text-sm font-semibold text-ink mb-1.5">Descripción *</label>
+                                <input required type="text" aria-label="Descripción del gasto" placeholder="Ej: Pago proveedor de açaí, Factura Luz…"
                                     value={form.description}
                                     onChange={e => setForm(f => ({ ...f, description: e.target.value }))}
-                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                                    className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
                             </div>
                             {/* Monto + Método de pago */}
-                            <div className="grid grid-cols-2 gap-3">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                 <div>
-                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Monto (Bs.) *</label>
-                                    <input required type="number" min="0.01" step="0.01" placeholder=""
+                                    <label className="block text-sm font-semibold text-ink mb-1.5">Monto (Bs.) *</label>
+                                    <input required type="number" aria-label="Monto del gasto en bolivianos" min="0.01" step="0.01" placeholder=""
                                         value={form.amount}
                                         onChange={e => setForm(f => ({ ...f, amount: e.target.value }))}
-                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                                        className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Pago</label>
-                                    <select value={form.paymentMethod}
+                                    <label className="block text-sm font-semibold text-ink mb-1.5">Pago</label>
+                                    <select aria-label="Método de pago" value={form.paymentMethod}
                                         onChange={e => setForm(f => ({ ...f, paymentMethod: e.target.value }))}
-                                        className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300">
+                                        className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300">
                                         {PAY_METHODS.map(m => <option key={m.value} value={m.value}>{m.label}</option>)}
                                     </select>
                                 </div>
                             </div>
                             {/* Proveedor */}
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Proveedor (opcional)</label>
-                                <input type="text" placeholder="Nombre del proveedor"
+                                <label className="block text-sm font-semibold text-ink mb-1.5">Proveedor (opcional)</label>
+                                <input type="text" aria-label="Proveedor" placeholder="Nombre del proveedor"
                                     value={form.supplier}
                                     onChange={e => setForm(f => ({ ...f, supplier: e.target.value }))}
-                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
+                                    className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300" />
                             </div>
                             {/* Notas */}
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Notas</label>
-                                <textarea rows={2} placeholder="Observaciones…"
+                                <label className="block text-sm font-semibold text-ink mb-1.5">Notas</label>
+                                <textarea rows={2} aria-label="Notas del gasto" placeholder="Observaciones…"
                                     value={form.notes}
                                     onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-                                    className="w-full border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 resize-none" />
+                                    className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-rose-300 resize-none" />
                             </div>
                             <div className="flex gap-3 pt-1">
                                 <button type="button" onClick={() => { setShowForm(false); setForm(BLANK); }}
-                                    className="flex-1 py-2.5 border border-white/20 rounded-xl text-sm font-medium text-white/70 hover:bg-white/10">
+                                    className="flex-1 py-2.5 border border-line rounded-xl text-sm font-medium text-muted hover:bg-canvas">
                                     Cancelar
                                 </button>
                                 <button type="submit" disabled={submitting}
-                                    className="flex-1 bg-rose-600 hover:bg-rose-500 disabled:opacity-50 text-white shadow-lg shadow-rose-500/30 py-2.5 rounded-xl text-sm font-bold transition">
+                                    className="flex-1 bg-brand hover:brightness-90 disabled:opacity-50 text-white  py-2.5 rounded-xl text-sm font-bold transition">
                                     {submitting ? <span className="flex items-center justify-center gap-2"><Loader2 className="h-4 w-4 animate-spin" /> Guardando…</span> : 'Registrar gasto'}
                                 </button>
                             </div>
@@ -367,6 +363,6 @@ export default function ExpensesPage() {
                 </div>
             )}
         </div>
-</div>
+</main>
     );
 }

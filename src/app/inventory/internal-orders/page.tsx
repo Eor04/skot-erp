@@ -32,11 +32,11 @@ type Branch = { id: string; name: string; type: string };
 type Product = { id: string; name: string; sku: string; unit: string };
 
 const STATUS_CONFIG: Record<OrderStatus, { label: string; color: string; icon: React.ReactNode }> = {
-    PENDING: { label: 'Pendiente', color: 'bg-yellow-100 text-yellow-400', icon: <Clock className="h-3.5 w-3.5" /> },
-    APPROVED: { label: 'Aprobado', color: 'bg-blue-500/20 text-blue-400', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
-    DISPATCHED: { label: 'Despachado', color: 'bg-purple-100 text-purple-700', icon: <Truck className="h-3.5 w-3.5" /> },
-    RECEIVED: { label: 'Recibido', color: 'bg-green-100 text-green-400', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
-    CANCELLED: { label: 'Cancelado', color: 'bg-red-100 text-red-400', icon: <XCircle className="h-3.5 w-3.5" /> },
+    PENDING: { label: 'Pendiente', color: 'bg-[var(--status-warning-bg)] text-warning', icon: <Clock className="h-3.5 w-3.5" /> },
+    APPROVED: { label: 'Aprobado', color: 'bg-[var(--status-info-bg)] text-info', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
+    DISPATCHED: { label: 'Despachado', color: 'bg-[var(--status-neutral-bg)] text-brand', icon: <Truck className="h-3.5 w-3.5" /> },
+    RECEIVED: { label: 'Recibido', color: 'bg-[var(--status-success-bg)] text-success', icon: <CheckCircle2 className="h-3.5 w-3.5" /> },
+    CANCELLED: { label: 'Cancelado', color: 'bg-[var(--status-error-bg)] text-danger', icon: <XCircle className="h-3.5 w-3.5" /> },
 };
 
 export default function InternalOrdersPage() {
@@ -233,41 +233,36 @@ export default function InternalOrdersPage() {
     }
 
     return (
-        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
-                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
-            </div>
+        <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8">
             {toast && (
-                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-brand' : 'bg-danger'}`}>
                     {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
                     {toast.msg}
                 </div>
             )}
 
-            <div className="max-w-5xl mx-auto">
+            <div className="mx-auto max-w-5xl">
                 <div className="flex items-center justify-between mb-8">
                     <div>
-                        <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
-                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
-                            <Truck className="h-8 w-8 text-blue-400" /> Pedidos Internos
+                        <button onClick={() => window.history.back()} className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
+                        <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink flex items-center gap-3">
+                            <Truck className="h-8 w-8 text-info" /> Pedidos Internos
                         </h1>
-                        <p className="text-white/60 mt-1 text-sm">Solicitudes de stock de sucursales a la fábrica</p>
+                        <p className="text-muted mt-1 text-sm">Solicitudes de stock de sucursales a la fábrica</p>
                     </div>
                     <button
                         onClick={() => setShowModal(true)}
-                        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl font-medium transition-colors"
+                        className="flex items-center gap-2 bg-brand hover:brightness-90 text-white px-4 py-2 rounded-xl font-medium transition-colors"
                     >
                         <Plus className="h-4 w-4" /> Nuevo pedido
                     </button>
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-20 text-white/40">Cargando pedidos...</div>
+                    <div className="text-center py-20 text-muted">Cargando pedidos...</div>
                 ) : orders.length === 0 ? (
-                    <div className="text-center py-20 text-white/40">
-                        <Package className="h-12 w-12 mx-auto mb-3 text-white/30" />
+                    <div className="text-center py-20 text-muted">
+                        <Package className="h-12 w-12 mx-auto mb-3 text-muted" />
                         <p>No hay pedidos internos registrados</p>
                     </div>
                 ) : (
@@ -278,38 +273,38 @@ export default function InternalOrdersPage() {
                             const canApproveOrDispatch = isSystemAdmin || user?.branchIds?.includes(order.toBranch.id);
                             const canReceive = isSystemAdmin || user?.branchIds?.includes(order.fromBranch.id);
                             return (
-                                <div key={order.id} className="bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10">
+                                <div key={order.id} className="bg-surface rounded-2xl shadow-sm border border-line-subtle">
                                     <div
                                         className="flex items-center justify-between p-5 cursor-pointer"
                                         onClick={() => setExpanded(isExpanded ? null : order.id)}
                                     >
                                         <div className="flex items-center gap-4">
                                             <div className="text-center">
-                                                <p className="font-mono font-bold text-white/80 text-sm">{order.orderNumber}</p>
-                                                <p className="text-xs text-white/40">{new Date(order.requestedAt).toLocaleDateString('es')}</p>
+                                                <p className="font-mono font-bold text-ink text-sm">{order.orderNumber}</p>
+                                                <p className="text-xs text-muted">{new Date(order.requestedAt).toLocaleDateString('es')}</p>
                                             </div>
                                             <div>
-                                                <p className="font-medium text-white/90 text-sm">
+                                                <p className="font-medium text-ink text-sm">
                                                     {order.fromBranch.name} → {order.toBranch.name}
                                                 </p>
-                                                <p className="text-xs text-white/60">Solicitado por: {order.requestedBy}</p>
+                                                <p className="text-xs text-muted">Solicitado por: {order.requestedBy}</p>
                                             </div>
                                         </div>
                                         <div className="flex items-center gap-3">
                                             <span className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${config.color}`}>
                                                 {config.icon} {config.label}
                                             </span>
-                                            <span className="text-xs text-white/40">{order.items.length} ítem{order.items.length !== 1 ? 's' : ''}</span>
+                                            <span className="text-xs text-muted">{order.items.length} ítem{order.items.length !== 1 ? 's' : ''}</span>
                                             {/* Botones de acción según estado */}
                                             {canApproveOrDispatch && order.status === 'PENDING' && (
                                                 <div className="flex gap-1.5" onClick={e => e.stopPropagation()}>
                                                     <button onClick={() => handleOrderAction(order.id, 'approve')} disabled={!!actionLoading}
-                                                        className="flex items-center gap-1 px-2.5 py-1 bg-green-600 hover:bg-green-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50">
+                                                        className="flex items-center gap-1 px-2.5 py-1 bg-brand hover:brightness-90 text-white rounded-lg text-xs font-semibold disabled:opacity-50">
                                                         <ThumbsUp className="h-3 w-3" />
                                                         {actionLoading === order.id + 'approve' ? '...' : 'Aprobar'}
                                                     </button>
                                                     <button onClick={() => handleOrderAction(order.id, 'cancel')} disabled={!!actionLoading}
-                                                        className="flex items-center gap-1 px-2.5 py-1 bg-red-500/10 hover:bg-red-100 text-red-400 border border-red-200 rounded-lg text-xs font-semibold disabled:opacity-50">
+                                                        className="flex items-center gap-1 px-2.5 py-1 bg-[var(--status-error-bg)] hover:bg-[var(--status-error-bg)] text-danger border border-red-200 rounded-lg text-xs font-semibold disabled:opacity-50">
                                                         <ThumbsDown className="h-3 w-3" />
                                                         {actionLoading === order.id + 'cancel' ? '...' : 'Rechazar'}
                                                     </button>
@@ -317,42 +312,42 @@ export default function InternalOrdersPage() {
                                             )}
                                             {order.status === 'APPROVED' && canApproveOrDispatch && (
                                                 <button onClick={e => { e.stopPropagation(); handleOrderAction(order.id, 'dispatch'); }} disabled={!!actionLoading}
-                                                    className="flex items-center gap-1 px-2.5 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50">
+                                                    className="flex items-center gap-1 px-2.5 py-1 bg-brand hover:brightness-90 text-white rounded-lg text-xs font-semibold disabled:opacity-50">
                                                     <Truck className="h-3 w-3" />
                                                     {actionLoading === order.id + 'dispatch' ? '...' : 'Despachar'}
                                                 </button>
                                             )}
                                             {order.status === 'DISPATCHED' && canReceive && (
                                                 <button onClick={e => { e.stopPropagation(); handleOrderAction(order.id, 'receive'); }} disabled={!!actionLoading}
-                                                    className="flex items-center gap-1 px-2.5 py-1 bg-purple-600 hover:bg-purple-700 text-white rounded-lg text-xs font-semibold disabled:opacity-50">
+                                                    className="flex items-center gap-1 px-2.5 py-1 bg-brand hover:brightness-90 text-white rounded-lg text-xs font-semibold disabled:opacity-50">
                                                     <PackageCheck className="h-3 w-3" />
                                                     {actionLoading === order.id + 'receive' ? '...' : 'Confirmar recepción'}
                                                 </button>
                                             )}
-                                            {isExpanded ? <ChevronUp className="h-4 w-4 text-white/40" /> : <ChevronDown className="h-4 w-4 text-white/40" />}
+                                            {isExpanded ? <ChevronUp className="h-4 w-4 text-muted" /> : <ChevronDown className="h-4 w-4 text-muted" />}
                                         </div>
                                     </div>
                                             {isExpanded && (
-                                                <div className="border-t border-white/10 p-5">
+                                                <div className="border-t border-line-subtle p-5">
                                                     {(isSystemAdmin || (isManager && user?.branchIds?.includes(order.fromBranch.id))) && order.status === 'PENDING' && (
                                                         <div className="mb-4 flex items-center gap-2 bg-blue-500/10 p-3 rounded-xl border border-blue-100">
-                                                            <Truck className="h-4 w-4 text-blue-400" />
+                                                            <Truck className="h-4 w-4 text-info" />
                                                             <span className="text-sm font-semibold text-blue-900">Reasignar Fábrica:</span>
                                                             <select 
                                                                 value={order.toBranch.id}
                                                                 onChange={e => changeOrderFactory(order.id, e.target.value)}
                                                                 onClick={e => e.stopPropagation()}
-                                                                className="text-xs border border-blue-500/30 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-white/5"
+                                                                className="text-xs border border-blue-500/30 rounded-lg px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-blue-400 bg-surface"
                                                             >
                                                                 {factories.map(b => (
-                                                                    <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>
+                                                                    <option key={b.id} value={b.id} className="bg-surface text-ink">{b.name}</option>
                                                                 ))}
                                                             </select>
                                                         </div>
                                                     )}
                                                     <table className="w-full text-sm">
                                                         <thead>
-                                                            <tr className="text-left text-xs text-white/60 font-semibold">
+                                                            <tr className="text-left text-xs text-muted font-semibold">
                                                                 <th className="pb-2">Producto</th>
                                                                 <th className="pb-2">SKU</th>
                                                                 <th className="pb-2">Solicitado</th>
@@ -364,17 +359,17 @@ export default function InternalOrdersPage() {
                                                 </thead>
                                                 <tbody>
                                                     {order.items.map(item => (
-                                                        <tr key={item.id} className="border-t border-white/5">
-                                                            <td className="py-2 font-medium text-white/90">{item.product.name}</td>
-                                                            <td className="py-2 font-mono text-xs text-white/60">{item.product.sku}</td>
-                                                                <td className="py-2 text-white/80">{item.requestedQty} {item.unit}</td>
-                                                                <td className="py-2 text-white/80">
+                                                        <tr key={item.id} className="border-t border-line-subtle">
+                                                            <td className="py-2 font-medium text-ink">{item.product.name}</td>
+                                                            <td className="py-2 font-mono text-xs text-muted">{item.product.sku}</td>
+                                                                <td className="py-2 text-ink">{item.requestedQty} {item.unit}</td>
+                                                                <td className="py-2 text-ink">
                                                                     {canApproveOrDispatch && order.status === 'PENDING' ? (
                                                                         <input 
                                                                             type="number" 
                                                                             min="0" 
                                                                             step="0.01"
-                                                                            className="w-20 bg-black/40 text-white border border-blue-400/40 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 placeholder-white/30"
+                                                                            className="w-20 bg-surface text-ink border border-blue-400/40 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 placeholder:text-muted"
                                                                             value={(editedQuantities[`${order.id}_${item.id}`] ?? item.requestedQty) === 0 ? '' : (editedQuantities[`${order.id}_${item.id}`] ?? item.requestedQty)}
                                                                             onChange={e => setEditedQuantities(prev => ({ ...prev, [`${order.id}_${item.id}`]: parseFloat(e.target.value) || 0 }))}
                                                                             onClick={e => e.stopPropagation()}
@@ -383,13 +378,13 @@ export default function InternalOrdersPage() {
                                                                         item.approvedQty ?? '—'
                                                                     )}
                                                                 </td>
-                                                                <td className="py-2 text-white/80">
+                                                                <td className="py-2 text-ink">
                                                                     {canApproveOrDispatch && order.status === 'APPROVED' ? (
                                                                         <input 
                                                                             type="number" 
                                                                             min="0" 
                                                                             step="0.01"
-                                                                            className="w-20 bg-black/40 text-white border border-purple-400/40 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-400 placeholder-white/30"
+                                                                            className="w-20 bg-surface text-ink border border-purple-400/40 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-400 placeholder:text-muted"
                                                                             value={(editedQuantities[`${order.id}_${item.id}`] ?? item.approvedQty ?? item.requestedQty) === 0 ? '' : (editedQuantities[`${order.id}_${item.id}`] ?? item.approvedQty ?? item.requestedQty)}
                                                                             onChange={e => setEditedQuantities(prev => ({ ...prev, [`${order.id}_${item.id}`]: parseFloat(e.target.value) || 0 }))}
                                                                             onClick={e => e.stopPropagation()}
@@ -398,9 +393,9 @@ export default function InternalOrdersPage() {
                                                                         item.dispatchedQty ?? '—'
                                                                     )}
                                                                 </td>
-                                                                <td className="py-2 text-white/80">{item.receivedQty ?? '—'}</td>
+                                                                <td className="py-2 text-ink">{item.receivedQty ?? '—'}</td>
                                                                 <td className="py-2 text-right">
-                                                                    <span className={`text-xs font-semibold px-2 py-1 rounded-md ${item.currentFactoryStock < (item.approvedQty ?? item.requestedQty) ? 'bg-red-500/10 text-red-400 border border-red-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
+                                                                    <span className={`text-xs font-semibold px-2 py-1 rounded-md ${item.currentFactoryStock < (item.approvedQty ?? item.requestedQty) ? 'bg-[var(--status-error-bg)] text-danger border border-red-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
                                                                         {item.currentFactoryStock} {item.unit}
                                                                     </span>
                                                                 </td>
@@ -409,7 +404,7 @@ export default function InternalOrdersPage() {
                                                 </tbody>
                                             </table>
                                             {order.notes && (
-                                                <p className="text-xs text-white/60 mt-3 bg-white/5 rounded-lg px-3 py-2">📝 {order.notes}</p>
+                                                <p className="text-xs text-muted mt-3 bg-surface rounded-lg px-3 py-2">📝 {order.notes}</p>
                                             )}
                                         </div>
                                     )}
@@ -423,52 +418,52 @@ export default function InternalOrdersPage() {
             {/* Modal nuevo pedido */}
             {showModal && (
                 <div className="fixed inset-0 bg-black/50 z-40 flex items-start justify-center p-4 overflow-y-auto pt-10">
-                    <div className="bg-[#1a0508] rounded-2xl shadow-xl w-full max-w-lg border border-white/10">
-                        <div className="flex items-center justify-between p-6 border-b border-white/10">
-                            <h2 className="text-lg font-bold text-white/90">Nuevo Pedido Interno</h2>
-                            <button onClick={() => setShowModal(false)} className="text-white/40 hover:text-white/70">
+                    <div className="bg-surface rounded-2xl shadow-xl w-full max-w-lg border border-line-subtle">
+                        <div className="flex items-center justify-between p-6 border-b border-line-subtle">
+                            <h2 className="text-lg font-bold text-ink">Nuevo Pedido Interno</h2>
+                            <button onClick={() => setShowModal(false)} className="text-muted hover:text-muted">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
-                            <div className="grid grid-cols-2 gap-4">
+                            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
-                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal solicitante *</label>
+                                    <label className="block text-sm font-semibold text-ink mb-1.5">Sucursal solicitante *</label>
                                     {isAdmin ? (
                                         <select required value={form.fromBranchId} onChange={e => setForm(f => ({ ...f, fromBranchId: e.target.value }))}
-                                            className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                            <option value="" className="bg-gray-900 text-white">Seleccionar...</option>
-                                            {branches.filter(b => b.type !== 'FABRICA').map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
+                                            className="w-full bg-surface text-ink border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                            <option value="" className="bg-surface text-ink">Seleccionar...</option>
+                                            {branches.filter(b => b.type !== 'FABRICA').map(b => <option key={b.id} value={b.id} className="bg-surface text-ink">{b.name}</option>)}
                                         </select>
                                     ) : (
-                                        <div className="w-full border border-white/10 bg-white/5 rounded-xl px-3 py-2.5 text-sm text-white/80 font-medium">
+                                        <div className="w-full border border-line-subtle bg-surface rounded-xl px-3 py-2.5 text-sm text-ink font-medium">
                                             {branches.find(b => b.id === form.fromBranchId)?.name || 'Mi sucursal'}
                                         </div>
                                     )}
                                 </div>
                                 <div>
-                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal receptora (fábrica) *</label>
+                                    <label className="block text-sm font-semibold text-ink mb-1.5">Sucursal receptora (fábrica) *</label>
                                     <select required value={form.toBranchId} onChange={e => setForm(f => ({ ...f, toBranchId: e.target.value }))}
-                                        className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
-                                        <option value="" className="bg-gray-900 text-white">Seleccionar...</option>
-                                        {factories.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name}</option>)}
+                                        className="w-full bg-surface text-ink border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300">
+                                        <option value="" className="bg-surface text-ink">Seleccionar...</option>
+                                        {factories.map(b => <option key={b.id} value={b.id} className="bg-surface text-ink">{b.name}</option>)}
                                     </select>
-                                    {factoriesError && <p className="text-xs text-red-400 mt-1">{factoriesError}</p>}
+                                    {factoriesError && <p className="text-xs text-danger mt-1">{factoriesError}</p>}
                                     {!factoriesError && factories.length === 0 && <p className="text-xs text-amber-400 mt-1">No hay fábricas activas disponibles.</p>}
                                 </div>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Solicitado por *</label>
+                                <label className="block text-sm font-semibold text-ink mb-1.5">Solicitado por *</label>
                                 <input required type="text" placeholder="Tu nombre" value={form.requestedBy}
                                     onChange={e => setForm(f => ({ ...f, requestedBy: e.target.value }))}
-                                    className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
+                                    className="w-full bg-surface text-ink border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300" />
                             </div>
 
-                            <div className="border border-white/20 rounded-xl p-4">
+                            <div className="border border-line rounded-xl p-4">
                                 <div className="flex items-center justify-between mb-2">
-                                    <h3 className="text-sm font-semibold text-white/80">Productos solicitados</h3>
+                                    <h3 className="text-sm font-semibold text-ink">Productos solicitados</h3>
                                     <button type="button" onClick={addItem}
-                                        className="text-xs text-blue-400 hover:text-blue-300 font-medium flex items-center gap-1">
+                                        className="text-xs text-info hover:text-blue-300 font-medium flex items-center gap-1">
                                         <Plus className="h-3.5 w-3.5" /> Agregar
                                     </button>
                                 </div>
@@ -481,13 +476,13 @@ export default function InternalOrdersPage() {
                                         />
                                         <input type="number" min="0.01" step="0.01" value={item.requestedQty === 0 ? '' : item.requestedQty}
                                             onChange={e => updateItem(idx, 'requestedQty', parseFloat(e.target.value))}
-                                            className="w-20 bg-[#1a0508] text-white border border-white/20 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300" />
+                                            className="w-20 bg-surface text-ink border border-line rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300" />
                                         <select value={item.unit} onChange={e => updateItem(idx, 'unit', e.target.value)}
-                                            className="w-20 bg-[#1a0508] text-white border border-white/20 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300">
-                                            {['unit', 'kg', 'gr', 'litro', 'ml', 'bolsa'].map(u => <option key={u} className="bg-gray-900 text-white">{u}</option>)}
+                                            className="w-20 bg-surface text-ink border border-line rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300">
+                                            {['unit', 'kg', 'gr', 'litro', 'ml', 'bolsa'].map(u => <option key={u} className="bg-surface text-ink">{u}</option>)}
                                         </select>
                                         {form.items.length > 1 && (
-                                            <button type="button" onClick={() => removeItem(idx)} className="text-red-400 hover:text-red-400">
+                                            <button type="button" onClick={() => removeItem(idx)} className="text-danger hover:text-danger">
                                                 <X className="h-4 w-4" />
                                             </button>
                                         )}
@@ -496,19 +491,19 @@ export default function InternalOrdersPage() {
                             </div>
 
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Notas</label>
+                                <label className="block text-sm font-semibold text-ink mb-1.5">Notas</label>
                                 <textarea rows={2} value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
                                     placeholder="Observaciones opcionales..."
-                                    className="w-full bg-[#1a0508] text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none" />
+                                    className="w-full bg-surface text-ink border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-blue-300 resize-none" />
                             </div>
 
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowModal(false)}
-                                    className="flex-1 py-2.5 border border-white/20 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 transition-colors">
+                                    className="flex-1 py-2.5 border border-line rounded-xl text-sm font-medium text-muted hover:bg-canvas transition-colors">
                                     Cancelar
                                 </button>
                                 <button type="submit" disabled={submitting}
-                                    className="flex-1 bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
+                                    className="flex-1 bg-brand hover:brightness-90 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
                                     {submitting ? 'Enviando...' : 'Enviar pedido'}
                                 </button>
                             </div>
@@ -516,7 +511,7 @@ export default function InternalOrdersPage() {
                     </div>
                 </div>
             )}
-        </div>
+        </main>
     );
 }
 
@@ -548,14 +543,14 @@ function ProductCombobox({ products, value, onChange }: { products: any[], value
                 }}
                 onFocus={() => setShow(true)}
                 onBlur={() => setTimeout(() => setShow(false), 200)}
-                className="w-full bg-[#1a0508] text-white border border-white/20 rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
+                className="w-full bg-surface text-ink border border-line rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300"
             />
             {show && (
-                <div className="absolute z-50 mt-1 w-full bg-gray-900 border border-white/20 rounded-lg shadow-xl max-h-48 overflow-y-auto">
+                <div className="absolute z-50 mt-1 w-full bg-surface border border-line rounded-lg shadow-xl max-h-48 overflow-y-auto">
                     {filtered.length > 0 ? filtered.map(p => (
                         <div 
                             key={p.id}
-                            className="px-2 py-2 hover:bg-white/10 cursor-pointer text-xs text-white border-b border-white/5 last:border-0"
+                            className="px-2 py-2 hover:bg-canvas cursor-pointer text-xs text-ink border-b border-line-subtle last:border-0"
                             onClick={() => {
                                 onChange(p.id);
                                 setSearch(`${p.name} ${p.sku ? `(${p.sku})` : ''}`);
@@ -565,7 +560,7 @@ function ProductCombobox({ products, value, onChange }: { products: any[], value
                             {p.name} {p.sku ? `(${p.sku})` : ''}
                         </div>
                     )) : (
-                        <div className="px-2 py-2 text-xs text-white/40">No hay resultados</div>
+                        <div className="px-2 py-2 text-xs text-muted">No hay resultados</div>
                     )}
                 </div>
             )}

@@ -3,6 +3,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Scale, Save, CheckCircle2, AlertCircle, Settings2, Power } from 'lucide-react';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { StatusBadge } from '@/components/ui/status-badge';
 
 type ScaleConfig = {
     id?: string;
@@ -89,7 +92,7 @@ export default function ScaleConfigPage() {
             });
             const d = await res.json();
             if (d.success) {
-                showToast('success', '✅ Configuración guardada correctamente');
+                showToast('success', 'Configuración guardada correctamente');
                 loadConfig(selected);
             } else {
                 showToast('error', d.error || 'Error al guardar');
@@ -100,136 +103,29 @@ export default function ScaleConfigPage() {
 
     const branch = branches.find(b => b.id === selected);
 
-    return (
-        <div className="min-h-screen relative overflow-hidden p-4 md:p-8" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
-                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
-            </div>
-            {toast && (
-                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
-                    {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-                    {toast.msg}
-                </div>
-            )}
-
-            <div className="max-w-2xl mx-auto">
-                {/* Header */}
-                <div className="mb-8">
-                    <Link href="/admin" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
-                        <ArrowLeft className="h-4 w-4" /> Volver a Admin
-                    </Link>
-                    <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
-                        <Scale className="h-8 w-8 text-indigo-600" /> Configuración de Balanza
-                    </h1>
-                    <p className="text-white/60 mt-1">Parámetros de comunicación con la balanza Prix 4 por sucursal</p>
-                </div>
-
-                {/* Selector de sucursal */}
-                <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow p-6 mb-6">
-                    <label className="block text-sm font-semibold text-white/80 mb-2">Sucursal</label>
-                    <div className="flex flex-wrap gap-2">
-                        {branches.map(b => (
-                            <button key={b.id} onClick={() => setSelected(b.id)}
-                                className={`px-4 py-2 rounded-xl text-sm font-medium transition ${selected === b.id ? 'bg-indigo-600 text-white shadow' : 'bg-white/10 text-white/70 hover:bg-gray-200'}`}>
-                                {b.type === 'ACAI' ? '🥤' : b.type === 'HAMBURGUESAS' ? '🍔' : '🏭'} {b.name}
-                            </button>
-                        ))}
-                    </div>
-                    {selected && (
-                        <p className="text-xs mt-3 text-white/40">
-                            {config ? '⚙️ Configuración existente encontrada' : '🆕 No hay configuración — se creará nueva'}
-                        </p>
-                    )}
-                </div>
-
-                {!selected ? (
-                    <div className="text-center py-16 text-white/40">
-                        <Scale className="h-12 w-12 mx-auto mb-3 opacity-30" />
-                        <p>Seleccioná una sucursal para configurar su balanza</p>
-                    </div>
-                ) : loading ? (
-                    <div className="text-center py-16 text-white/40">Cargando…</div>
-                ) : (
-                    <form onSubmit={handleSave} className="space-y-5">
-                        {/* Estado */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow p-6">
-                            <div className="flex items-center justify-between">
-                                <div>
-                                    <p className="font-semibold text-white/90">Estado de la balanza</p>
-                                    <p className="text-sm text-white/40 mt-0.5">Activar o desactivar la integración</p>
-                                </div>
-                                <button type="button" onClick={() => setForm(f => ({ ...f, active: !f.active }))}
-                                    className="flex items-center gap-2 px-4 py-2 rounded-xl border transition"
-                                    style={{
-                                        borderColor: form.active ? '#4f46e5' : '#d1d5db',
-                                        background: form.active ? '#eef2ff' : '#f9fafb',
-                                        color: form.active ? '#4f46e5' : '#9ca3af',
-                                    }}>
-                                    <Power className="h-4 w-4" />
-                                    {form.active ? 'Activa' : 'Desactivada'}
-                                </button>
-                            </div>
-                        </div>
-
-                        {/* Parámetros de conexión */}
-                        <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow p-6">
-                            <h2 className="font-semibold text-white/90 mb-5 flex items-center gap-2">
-                                <Settings2 className="h-5 w-5 text-indigo-500" /> Parámetros de conexión
-                            </h2>
-                            <div className="grid grid-cols-2 gap-5">
-                                <div>
-                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Modelo</label>
-                                    <input type="text" value={form.modelName}
-                                        onChange={e => setForm(f => ({ ...f, modelName: e.target.value }))}
-                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">N° Serie</label>
-                                    <input type="text" value={form.serialNumber ?? ''} placeholder="Opcional"
-                                        onChange={e => setForm(f => ({ ...f, serialNumber: e.target.value || null }))}
-                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300" />
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Puerto COM</label>
-                                    <select value={form.port} onChange={e => setForm(f => ({ ...f, port: e.target.value }))}
-                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                                        {COM_PORTS.map(p => <option key={p} value={p}>{p}</option>)}
-                                    </select>
-                                </div>
-                                <div>
-                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">Baud Rate</label>
-                                    <select value={form.baudRate} onChange={e => setForm(f => ({ ...f, baudRate: parseInt(e.target.value) }))}
-                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300">
-                                        {BAUD_RATES.map(r => <option key={r} value={r}>{r}</option>)}
-                                    </select>
-                                </div>
-                                <div className="col-span-2">
-                                    <label className="block text-sm font-semibold text-white/80 mb-1.5">
-                                        Tara (kg) — Peso del recipiente (ej: bowl)
-                                    </label>
-                                    <div className="flex gap-3 items-center">
-                                        <input type="number" min="0" step="0.01" value={form.tara === 0 ? '' : form.tara}
-                                            onChange={e => setForm(f => ({ ...f, tara: parseFloat(e.target.value) || 0 }))}
-                                            className="w-32 border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-300 text-right" />
-                                        <span className="text-sm text-white/40">kg = {(form.tara * 1000).toFixed(0)} gr</span>
-                                    </div>
-                                    <p className="text-xs text-white/40 mt-1.5">
-                                        Se resta automáticamente del peso bruto. Prix 4 estándar: 0.15 kg (150 gr).
-                                    </p>
-                                </div>
-                            </div>
-                        </div>
-
-                        <button type="submit" disabled={saving}
-                            className="w-full flex items-center justify-center gap-2 bg-indigo-600 hover:bg-indigo-700 disabled:opacity-50 text-white py-3 rounded-2xl font-semibold transition shadow">
-                            <Save className="h-5 w-5" />
-                            {saving ? 'Guardando…' : 'Guardar configuración'}
-                        </button>
-                    </form>
-                )}
-            </div>
-        </div>
-    );
+    const fieldClass = 'min-h-12 w-full rounded-lg border border-line bg-surface px-3 text-ink';
+    return <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8"><div className="mx-auto max-w-3xl space-y-5">
+        {toast && <div role={toast.type === 'error' ? 'alert' : 'status'} className={`fixed left-4 right-4 top-4 z-50 flex items-center gap-2 rounded-lg p-4 text-sm font-semibold text-white shadow-lg sm:left-auto ${toast.type === 'success' ? 'bg-success' : 'bg-danger'}`}>
+            {toast.type === 'success' ? <CheckCircle2 size={18} aria-hidden="true" /> : <AlertCircle size={18} aria-hidden="true" />}{toast.msg}</div>}
+        <header><Link href="/admin" className="mb-4 inline-flex min-h-11 items-center gap-2 font-semibold text-brand hover:underline"><ArrowLeft size={18} aria-hidden="true" /> Volver a administración</Link>
+            <div className="mb-2 flex items-center gap-2 text-sm text-muted"><Scale size={16} aria-hidden="true" /> Administración <span aria-hidden="true">›</span> Configuración de balanza</div>
+            <h1 className="font-display text-2xl font-semibold sm:text-3xl">Configuración de balanza</h1><p className="mt-2 text-muted">Parámetros de comunicación Prix 4 por sucursal.</p></header>
+        <Card className="p-4 sm:p-5"><h2 className="mb-3 font-display font-semibold">Sucursal</h2><div role="group" aria-label="Seleccionar sucursal" className="flex flex-wrap gap-2">{branches.map(b => <button key={b.id} type="button" aria-pressed={selected === b.id} onClick={() => setSelected(b.id)} className={`min-h-11 rounded-lg border px-4 py-2 text-sm font-semibold ${selected === b.id ? 'border-brand bg-brand text-white' : 'border-line bg-surface text-ink hover:bg-canvas'}`}>{b.name}</button>)}</div>
+            {selected && <p className="mt-3 text-sm text-muted">{config ? 'Configuración existente' : 'Se creará una configuración nueva'}{branch ? ` · ${branch.name}` : ''}</p>}</Card>
+        {!selected ? <Card className="p-10 text-center text-muted"><Scale size={30} className="mx-auto mb-3" aria-hidden="true" />Seleccioná una sucursal para configurar su balanza</Card>
+            : loading ? <Card role="status" className="p-10 text-center text-muted">Cargando configuración…</Card>
+                : <form onSubmit={handleSave} className="space-y-4"><Card className="flex flex-wrap items-center justify-between gap-4 p-5"><div><h2 className="font-display font-semibold">Estado de la balanza</h2><p className="mt-1 text-sm text-muted">Activar o desactivar la integración</p></div>
+                    <button type="button" aria-pressed={form.active} onClick={() => setForm(previous => ({ ...previous, active: !previous.active }))} className={`inline-flex min-h-11 items-center gap-2 rounded-lg border px-4 font-semibold ${form.active ? 'border-success bg-[var(--status-success-bg)] text-success' : 'border-line bg-surface text-muted'}`}><Power size={18} aria-hidden="true" />{form.active ? 'Activa' : 'Desactivada'}</button></Card>
+                    <Card className="p-5"><h2 className="mb-5 flex items-center gap-2 font-display font-semibold"><Settings2 size={19} className="text-brand" aria-hidden="true" /> Parámetros de conexión</h2>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                            <div><label htmlFor="scale-model" className="mb-1 block text-sm font-semibold">Modelo</label><input id="scale-model" type="text" value={form.modelName} onChange={e => setForm(f => ({ ...f, modelName: e.target.value }))} className={fieldClass} /></div>
+                            <div><label htmlFor="scale-serial" className="mb-1 block text-sm font-semibold">N° Serie</label><input id="scale-serial" type="text" value={form.serialNumber ?? ''} placeholder="Opcional" onChange={e => setForm(f => ({ ...f, serialNumber: e.target.value || null }))} className={fieldClass} /></div>
+                            <div><label htmlFor="scale-port" className="mb-1 block text-sm font-semibold">Puerto COM</label><select id="scale-port" value={form.port} onChange={e => setForm(f => ({ ...f, port: e.target.value }))} className={fieldClass}>{COM_PORTS.map(port => <option key={port} value={port}>{port}</option>)}</select></div>
+                            <div><label htmlFor="scale-baud" className="mb-1 block text-sm font-semibold">Baud Rate</label><select id="scale-baud" value={form.baudRate} onChange={e => setForm(f => ({ ...f, baudRate: parseInt(e.target.value) }))} className={fieldClass}>{BAUD_RATES.map(rate => <option key={rate} value={rate}>{rate}</option>)}</select></div>
+                            <div className="sm:col-span-2"><label htmlFor="scale-tara" className="mb-1 block text-sm font-semibold">Tara (kg) · peso del recipiente</label><div className="flex flex-wrap items-center gap-3"><input id="scale-tara" type="number" min="0" step="0.01" value={form.tara === 0 ? '' : form.tara} onChange={e => setForm(f => ({ ...f, tara: parseFloat(e.target.value) || 0 }))} className={`${fieldClass} max-w-36 text-right tabular-nums`} /><StatusBadge>{(form.tara * 1000).toFixed(0)} gr</StatusBadge></div>
+                                <p className="mt-2 text-sm text-muted">Se resta automáticamente del peso bruto. Prix 4 estándar: 0.15 kg (150 gr).</p></div>
+                        </div></Card>
+                    <Button type="submit" size="touch" disabled={saving} className="w-full"><Save size={18} aria-hidden="true" />{saving ? 'Guardando…' : 'Guardar configuración'}</Button>
+                </form>}
+    </div></main>;
 }

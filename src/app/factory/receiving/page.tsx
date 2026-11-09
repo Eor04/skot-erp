@@ -72,13 +72,13 @@ function QuickProductModal({
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm p-4">
-            <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-2xl w-full max-w-md">
-                <div className="flex items-center justify-between px-6 py-4 border-b border-white/10">
-                    <h2 className="font-bold text-white/90 flex items-center gap-2">
-                        <Plus className="h-5 w-5 text-green-600" /> Nuevo Producto
+        <div role="dialog" aria-modal="true" aria-labelledby="new-receiving-product-title" className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
+            <div className="bg-surface border border-line-subtle  rounded-xl shadow-2xl w-full max-w-md">
+                <div className="flex items-center justify-between px-6 py-4 border-b border-line-subtle">
+                    <h2 id="new-receiving-product-title" className="flex items-center gap-2 font-display font-semibold text-ink">
+                        <Plus className="h-5 w-5 text-brand" /> Nuevo Producto
                     </h2>
-                    <button onClick={onClose} className="p-1.5 rounded-lg hover:bg-white/5 border border-white/10 backdrop-blur-md/10 text-white/40 hover:text-white/70 transition">
+                    <button type="button" onClick={onClose} aria-label="Cerrar nuevo producto" className="grid h-11 w-11 place-items-center rounded-lg border border-line-subtle text-muted hover:bg-canvas">
                         <X className="h-5 w-5" />
                     </button>
                 </div>
@@ -89,48 +89,48 @@ function QuickProductModal({
                         </div>
                     )}
                     <div>
-                        <label className="block text-xs font-semibold text-white/70 mb-1">Nombre *</label>
-                        <input required type="text" value={name} onChange={e => { setName(e.target.value); if (!sku) setSku(suggestSku(e.target.value)); }}
+                        <label htmlFor="quick-product-name" className="block text-xs font-semibold text-muted mb-1">Nombre *</label>
+                        <input id="quick-product-name" required type="text" value={name} onChange={e => { setName(e.target.value); if (!sku) setSku(suggestSku(e.target.value)); }}
                             placeholder="Ej: Harina de trigo"
-                            className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                            className="w-full border border-line-subtle rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-semibold text-white/70 mb-1">SKU *</label>
-                            <input required type="text" value={sku} onChange={e => setSku(e.target.value.toUpperCase())}
+                            <label htmlFor="quick-product-sku" className="block text-xs font-semibold text-muted mb-1">SKU *</label>
+                            <input id="quick-product-sku" required type="text" value={sku} onChange={e => setSku(e.target.value.toUpperCase())}
                                 placeholder="HARINA-1"
-                                className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                className="w-full border border-line-subtle rounded-xl px-3 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-brand" />
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-white/70 mb-1">Unidad *</label>
-                            <select value={unit} onChange={e => setUnit(e.target.value)}
-                                className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                            <label htmlFor="quick-product-unit" className="block text-xs font-semibold text-muted mb-1">Unidad *</label>
+                            <select id="quick-product-unit" value={unit} onChange={e => setUnit(e.target.value)}
+                                className="w-full border border-line-subtle rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
                                 {UNITS.map(u => <option key={u} value={u}>{u}</option>)}
                             </select>
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-3">
                         <div>
-                            <label className="block text-xs font-semibold text-white/70 mb-1">Tipo *</label>
-                            <select value={type} onChange={e => setType(e.target.value)}
-                                className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                            <label htmlFor="quick-product-type" className="block text-xs font-semibold text-muted mb-1">Tipo *</label>
+                            <select id="quick-product-type" value={type} onChange={e => setType(e.target.value)}
+                                className="w-full border border-line-subtle rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
                                 {PRODUCT_TYPES.map(t => <option key={t.value} value={t.value}>{t.label}</option>)}
                             </select>
                         </div>
                         <div>
-                            <label className="block text-xs font-semibold text-white/70 mb-1">Categoría</label>
-                            <input type="text" value={category} onChange={e => setCategory(e.target.value)}
+                            <label htmlFor="quick-product-category" className="block text-xs font-semibold text-muted mb-1">Categoría</label>
+                            <input id="quick-product-category" type="text" value={category} onChange={e => setCategory(e.target.value)}
                                 placeholder="Lácteos, Carnes…"
-                                className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                className="w-full border border-line-subtle rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                         </div>
                     </div>
                     <div className="flex gap-3 pt-1">
                         <button type="button" onClick={onClose}
-                            className="flex-1 border border-white/10 text-white/70 py-2.5 rounded-xl font-semibold text-sm hover:bg-white/5 transition">
+                            className="min-h-12 flex-1 rounded-lg border border-line bg-surface px-4 font-semibold text-ink hover:bg-canvas">
                             Cancelar
                         </button>
                         <button type="submit" disabled={saving}
-                            className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-2.5 rounded-xl font-bold text-sm transition flex items-center justify-center gap-2">
+                            className="flex min-h-12 flex-1 items-center justify-center gap-2 rounded-lg bg-brand px-4 font-semibold text-white hover:brightness-90 disabled:opacity-50">
                             {saving ? <Loader2 className="h-4 w-4 animate-spin" /> : <Check className="h-4 w-4" />}
                             Crear Producto
                         </button>
@@ -304,16 +304,11 @@ export default function FactoryReceivingPage() {
     }
 
     return (
-        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
-                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E\")", backgroundSize: '56px 100px' }} />
-            </div>
-            <div className="relative z-10 h-full w-full">
+        <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+            <div className="min-w-0">
             {/* Toast */}
             {toast && (
-                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-brand' : 'bg-danger'}`}>
                     {toast.type === 'success' ? <Check className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
                     {toast.msg}
                 </div>
@@ -328,22 +323,22 @@ export default function FactoryReceivingPage() {
             )}
 
             {/* Header */}
-            <div className="bg-white/5 border border-white/10 backdrop-blur-md border-b border-white/10 px-6 py-5">
+            <div className="border-b border-line-subtle bg-surface px-6 py-5">
                 <div className="max-w-6xl mx-auto">
-                    <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-1">
+                    <Link href="/factory" className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-1">
                         <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
                     </Link>
                     <div className="flex items-center gap-3">
-                        <div className="bg-green-100 rounded-xl p-2.5">
-                            <PackagePlus className="h-6 w-6 text-green-600" />
+                        <div className="bg-[var(--status-neutral-bg)] rounded-xl p-2.5">
+                            <PackagePlus className="h-6 w-6 text-brand" />
                         </div>
                         <div>
-                            <h1 className="text-2xl font-bold text-white/90">Recepción de Mercancía</h1>
-                            <p className="text-sm text-white/60 mt-0.5">
+                            <h1 className="text-2xl font-bold text-ink">Recepción de Mercancía</h1>
+                            <p className="text-sm text-muted mt-0.5">
                                 Registrá la entrada de productos al almacén ·{' '}
                                 {productsLoading
-                                    ? <span className="text-white/40">cargando catálogo…</span>
-                                    : <span className="text-green-600 font-semibold">{allProducts.length} productos disponibles</span>
+                                    ? <span className="text-muted">cargando catálogo…</span>
+                                    : <span className="text-brand font-semibold">{allProducts.length} productos disponibles</span>
                                 }
                             </p>
                         </div>
@@ -351,41 +346,41 @@ export default function FactoryReceivingPage() {
                 </div>
             </div>
 
-            <div className="max-w-6xl mx-auto p-6 grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="mx-auto grid max-w-6xl grid-cols-1 gap-6 py-6 lg:grid-cols-3">
 
                 {/* ── Formulario ── */}
                 <div className="lg:col-span-2 space-y-4">
-                    <form onSubmit={handleSubmit} className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-6 space-y-5">
+                    <form onSubmit={handleSubmit} className="rounded-xl border border-line-subtle bg-surface p-6 space-y-5">
 
                         {/* Encabezado del remito */}
                         <div>
-                            <h2 className="font-bold text-white/90 mb-4 flex items-center gap-2">
-                                <Truck className="h-5 w-5 text-white/60" /> Datos del remito
+                            <h2 className="font-bold text-ink mb-4 flex items-center gap-2">
+                                <Truck className="h-5 w-5 text-muted" /> Datos del remito
                             </h2>
                             <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                                 <div>
-                                    <label className="block text-xs font-semibold text-white/70 mb-1">Almacén destino *</label>
-                                    <select required value={branchId} onChange={e => setBranchId(e.target.value)}
-                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300">
+                                    <label htmlFor="receiving-branch" className="block text-xs font-semibold text-muted mb-1">Almacén destino *</label>
+                                    <select id="receiving-branch" required value={branchId} onChange={e => setBranchId(e.target.value)}
+                                        className="w-full border border-line-subtle rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand">
                                         <option value="">Seleccioná…</option>
                                         {branches.map(b => <option key={b.id} value={b.id}>{b.name}</option>)}
                                     </select>
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-semibold text-white/70 mb-1">Proveedor *</label>
-                                    <input required type="text" value={supplier} onChange={e => setSupplier(e.target.value)}
+                                    <label htmlFor="receiving-supplier" className="block text-xs font-semibold text-muted mb-1">Proveedor *</label>
+                                    <input id="receiving-supplier" required type="text" value={supplier} onChange={e => setSupplier(e.target.value)}
                                         placeholder="Nombre del proveedor o empresa…"
-                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                        className="w-full border border-line-subtle rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                                 </div>
                                 <div>
-                                    <label className="block text-xs font-semibold text-white/70 mb-1">N° Factura / Remito</label>
-                                    <input type="text" value={invoiceRef} onChange={e => setInvoiceRef(e.target.value)} placeholder="FAC-0001"
-                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                    <label htmlFor="receiving-invoice" className="block text-xs font-semibold text-muted mb-1">N° Factura / Remito</label>
+                                    <input id="receiving-invoice" type="text" value={invoiceRef} onChange={e => setInvoiceRef(e.target.value)} placeholder="FAC-0001"
+                                        className="w-full border border-line-subtle rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                                 </div>
                                 <div className="sm:col-span-2">
-                                    <label className="block text-xs font-semibold text-white/70 mb-1">Observaciones</label>
-                                    <input type="text" value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder="Opcional…"
-                                        className="w-full border border-white/10 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300" />
+                                    <label htmlFor="receiving-notes" className="block text-xs font-semibold text-muted mb-1">Observaciones</label>
+                                    <input id="receiving-notes" type="text" value={formNotes} onChange={e => setFormNotes(e.target.value)} placeholder="Opcional…"
+                                        className="w-full border border-line-subtle rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-brand" />
                                 </div>
                             </div>
                         </div>
@@ -393,26 +388,26 @@ export default function FactoryReceivingPage() {
                         {/* Líneas de producto */}
                         <div>
                             <div className="flex items-center justify-between mb-3">
-                                <h2 className="font-bold text-white/90 flex items-center gap-2">
-                                    <Package className="h-5 w-5 text-white/60" /> Productos recibidos
+                                <h2 className="font-bold text-ink flex items-center gap-2">
+                                    <Package className="h-5 w-5 text-muted" /> Productos recibidos
                                 </h2>
                                 <button type="button" onClick={() => { setNewProductForRow(null); setShowNewProduct(true); }}
-                                    className="flex items-center gap-1.5 text-xs text-green-600 hover:text-green-700 font-semibold bg-green-50 hover:bg-green-100 px-3 py-1.5 rounded-lg transition">
+                                    className="flex items-center gap-1.5 text-xs text-brand hover:text-brand font-semibold bg-green-50 hover:bg-canvas px-3 py-1.5 rounded-lg transition">
                                     <Plus className="h-3.5 w-3.5" /> Nuevo producto
                                 </button>
                             </div>
 
                             <div className="space-y-3" ref={dropdownRef}>
                                 {items.map((item, i) => (
-                                    <div key={i} className="border border-white/10 rounded-xl p-3 bg-white/5/50 space-y-2">
+                                    <div key={i} className="space-y-2 rounded-xl border border-line-subtle bg-canvas p-3">
                                         <div className="grid grid-cols-1 sm:grid-cols-12 gap-2">
 
                                             {/* Búsqueda producto */}
                                             <div className="sm:col-span-5 relative">
-                                                <label className="block text-xs text-white/60 mb-1">Producto *</label>
+                                                <label htmlFor={`receiving-product-${i}`} className="mb-1 block text-xs text-muted">Producto *</label>
                                                 <div className="relative">
-                                                    <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-white/40" />
-                                                    <input
+                                                    <Search className="absolute left-2.5 top-2.5 h-3.5 w-3.5 text-muted" />
+                                                    <input id={`receiving-product-${i}`}
                                                         type="text"
                                                         value={productSearch[i] ?? item.productName}
                                                         onChange={e => {
@@ -423,28 +418,30 @@ export default function FactoryReceivingPage() {
                                                         onFocus={() => setProductDropdown(i)}
                                                         placeholder={productsLoading ? 'Cargando…' : 'Buscar producto…'}
                                                         disabled={productsLoading}
-                                                        className="w-full pl-8 pr-3 py-2 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300 bg-white/5 border border-white/10 backdrop-blur-md disabled:opacity-60"
+                                                        className="w-full pl-8 pr-3 py-2 border border-line-subtle rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-surface border border-line-subtle  disabled:opacity-60"
                                                     />
                                                 </div>
 
                                                 {/* Dropdown */}
                                                 {productDropdown === i && (
-                                                    <div className="absolute z-20 top-full left-0 right-0 bg-white/5 border border-white/10 backdrop-blur-md border border-white/10 rounded-xl shadow-lg max-h-60 overflow-y-auto mt-1">
+                                                    <div className="absolute z-20 top-full left-0 right-0 bg-surface border border-line-subtle  border border-line-subtle rounded-xl shadow-lg max-h-60 overflow-y-auto mt-1">
                                                         {filteredProducts(productSearch[i] ?? '').map(prod => (
                                                             <button key={prod.id} type="button"
                                                                 onMouseDown={() => selectProduct(i, prod)}
-                                                                className="w-full text-left px-3 py-2.5 hover:bg-green-50 flex items-center justify-between gap-2 border-b border-gray-50 last:border-0">
+                                                                onClick={() => selectProduct(i, prod)}
+                                                                className="w-full text-left px-3 py-2.5 hover:bg-canvas flex items-center justify-between gap-2 border-b border-gray-50 last:border-0">
                                                                 <div>
-                                                                    <p className="text-sm font-medium text-white/90">{prod.name}</p>
-                                                                    <p className="text-xs text-white/40">{prod.sku} · {TYPE_LABEL[prod.type] ?? prod.type}</p>
+                                                                    <p className="text-sm font-medium text-ink">{prod.name}</p>
+                                                                    <p className="text-xs text-muted">{prod.sku} · {TYPE_LABEL[prod.type] ?? prod.type}</p>
                                                                 </div>
-                                                                <span className="text-xs text-white/40 flex-shrink-0">{prod.unit}</span>
+                                                                <span className="text-xs text-muted flex-shrink-0">{prod.unit}</span>
                                                             </button>
                                                         ))}
                                                         {/* Botón crear nuevo */}
                                                         <button type="button"
                                                             onMouseDown={() => handleNewProduct(i)}
-                                                            className="w-full text-left px-3 py-2.5 text-green-600 hover:bg-green-50 flex items-center gap-2 font-semibold text-sm border-t border-white/10">
+                                                            onClick={() => handleNewProduct(i)}
+                                                            className="w-full text-left px-3 py-2.5 text-brand hover:bg-canvas flex items-center gap-2 font-semibold text-sm border-t border-line-subtle">
                                                             <Plus className="h-4 w-4 flex-shrink-0" />
                                                             {productSearch[i] ? `Crear "${productSearch[i]}"` : 'Crear nuevo producto'}
                                                         </button>
@@ -454,29 +451,29 @@ export default function FactoryReceivingPage() {
 
                                             {/* Cantidad */}
                                             <div className="sm:col-span-3">
-                                                <label className="block text-xs text-white/60 mb-1">
+                                                <label htmlFor={`receiving-quantity-${i}`} className="mb-1 block text-xs text-muted">
                                                     Cantidad{item.unit ? ` (${item.unit})` : ''} *
                                                 </label>
-                                                <input type="number" min="0.001" step="0.001" value={item.quantity}
+                                                <input id={`receiving-quantity-${i}`} type="number" min="0.001" step="0.001" value={item.quantity}
                                                     onChange={e => updateItem(i, 'quantity', e.target.value)}
                                                     placeholder=""
-                                                    className="w-full px-3 py-2 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300 bg-white/5 border border-white/10 backdrop-blur-md" />
+                                                    className="w-full px-3 py-2 border border-line-subtle rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-surface border border-line-subtle " />
                                             </div>
 
                                             {/* Nota */}
                                             <div className="sm:col-span-3">
-                                                <label className="block text-xs text-white/60 mb-1">Nota</label>
-                                                <input type="text" value={item.notes}
+                                                <label htmlFor={`receiving-item-note-${i}`} className="mb-1 block text-xs text-muted">Nota</label>
+                                                <input id={`receiving-item-note-${i}`} type="text" value={item.notes}
                                                     onChange={e => updateItem(i, 'notes', e.target.value)}
                                                     placeholder="Opcional"
-                                                    className="w-full px-3 py-2 border border-white/10 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-green-300 bg-white/5 border border-white/10 backdrop-blur-md" />
+                                                    className="w-full px-3 py-2 border border-line-subtle rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-brand bg-surface border border-line-subtle " />
                                             </div>
 
                                             {/* Eliminar */}
                                             <div className="sm:col-span-1 flex items-end justify-center pb-0.5">
                                                 <button type="button" onClick={() => removeItem(i)}
                                                     disabled={items.length === 1}
-                                                    className="p-2 text-white/40 hover:text-red-500 disabled:opacity-30 transition rounded-lg hover:bg-red-50">
+                                                    className="p-2 text-muted hover:text-red-500 disabled:opacity-30 transition rounded-lg hover:bg-red-50">
                                                     <Trash2 className="h-4 w-4" />
                                                 </button>
                                             </div>
@@ -484,9 +481,9 @@ export default function FactoryReceivingPage() {
 
                                         {/* Preview nuevo stock */}
                                         {item.productId && (
-                                            <p className="text-xs text-white/40 pl-1">
+                                            <p className="text-xs text-muted pl-1">
                                                 {item.quantity && parseFloat(item.quantity) > 0 ? (
-                                                    <span className="text-green-600 font-semibold">
+                                                    <span className="text-brand font-semibold">
                                                         + {parseFloat(item.quantity).toFixed(3)} {item.unit} → stock actualizado al confirmar
                                                     </span>
                                                 ) : (
@@ -499,13 +496,13 @@ export default function FactoryReceivingPage() {
                             </div>
 
                             <button type="button" onClick={addItem}
-                                className="mt-3 flex items-center gap-2 text-sm text-green-600 hover:text-green-700 font-medium px-3 py-2 rounded-xl hover:bg-green-50 transition">
+                                className="mt-3 flex items-center gap-2 text-sm text-brand hover:text-brand font-medium px-3 py-2 rounded-xl hover:bg-canvas transition">
                                 <Plus className="h-4 w-4" /> Agregar otro producto
                             </button>
                         </div>
 
                         <button type="submit" disabled={submitting}
-                            className="w-full bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-3.5 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm">
+                            className="flex min-h-12 w-full items-center justify-center gap-2 rounded-lg bg-brand px-4 py-3 font-semibold text-white hover:brightness-90 disabled:opacity-50">
                             {submitting ? <Loader2 className="h-4 w-4 animate-spin" /> : <PackagePlus className="h-4 w-4" />}
                             Confirmar Recepción de Mercancía
                         </button>
@@ -514,52 +511,52 @@ export default function FactoryReceivingPage() {
 
                 {/* ── Historial ── */}
                 <div className="lg:col-span-1">
-                    <div className="bg-white/5 border border-white/10 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-5">
+                    <div className="rounded-xl border border-line-subtle bg-surface p-5">
                         <div className="flex items-center justify-between mb-4">
-                            <h2 className="font-bold text-white/90 flex items-center gap-2">
-                                <ClipboardCheck className="h-5 w-5 text-white/60" /> Últimas entradas
+                            <h2 className="font-bold text-ink flex items-center gap-2">
+                                <ClipboardCheck className="h-5 w-5 text-muted" /> Últimas entradas
                             </h2>
-                            <button onClick={loadHistory} disabled={histLoading} className="p-1 text-white/40 hover:text-white/70 transition">
+                            <button onClick={loadHistory} disabled={histLoading} className="p-1 text-muted hover:text-muted transition">
                                 <RefreshCw className={`h-4 w-4 ${histLoading ? 'animate-spin' : ''}`} />
                             </button>
                         </div>
 
                         {histLoading ? (
-                            <div className="text-center py-8"><Loader2 className="h-5 w-5 animate-spin mx-auto text-white/40" /></div>
+                            <div className="text-center py-8"><Loader2 className="h-5 w-5 animate-spin mx-auto text-muted" /></div>
                         ) : history.length === 0 ? (
-                            <div className="text-center py-10 text-white/40">
+                            <div className="text-center py-10 text-muted">
                                 <PackagePlus className="h-10 w-10 mx-auto mb-2 opacity-30" />
                                 <p className="text-xs">Sin entradas registradas{!branchId && ' — seleccioná un almacén'}</p>
                             </div>
                         ) : (
                             <div className="space-y-2 max-h-[600px] overflow-y-auto">
                                 {history.map(rec => (
-                                    <div key={rec.reference} className="border border-white/10 rounded-xl overflow-hidden">
+                                    <div key={rec.reference} className="border border-line-subtle rounded-xl overflow-hidden">
                                         <button onClick={() => setExpandedRef(p => p === rec.reference ? null : rec.reference)}
-                                            className="w-full text-left px-3 py-3 hover:bg-white/5 transition flex items-center justify-between gap-2">
+                                            className="w-full text-left px-3 py-3 hover:bg-surface transition flex items-center justify-between gap-2">
                                             <div className="min-w-0">
-                                                <p className="font-semibold text-white/90 text-sm truncate">{rec.supplier}</p>
-                                                <p className="text-xs text-white/40 font-mono">{rec.reference}</p>
-                                                <p className="text-xs text-white/40">
+                                                <p className="font-semibold text-ink text-sm truncate">{rec.supplier}</p>
+                                                <p className="text-xs text-muted font-mono">{rec.reference}</p>
+                                                <p className="text-xs text-muted">
                                                     {new Date(rec.date).toLocaleString('es-BO', { dateStyle: 'short', timeStyle: 'short' })}
                                                     {' · '}{rec.itemsCount} prod.
                                                 </p>
                                             </div>
                                             {expandedRef === rec.reference
-                                                ? <ChevronUp className="h-4 w-4 text-white/40 flex-shrink-0" />
-                                                : <ChevronDown className="h-4 w-4 text-white/40 flex-shrink-0" />}
+                                                ? <ChevronUp className="h-4 w-4 text-muted flex-shrink-0" />
+                                                : <ChevronDown className="h-4 w-4 text-muted flex-shrink-0" />}
                                         </button>
                                         {expandedRef === rec.reference && (
-                                            <div className="border-t border-white/10 divide-y divide-gray-50">
+                                            <div className="border-t border-line-subtle divide-y divide-gray-50">
                                                 {rec.items.map(it => (
-                                                    <div key={it.id} className="px-3 py-2 bg-green-50/40 flex items-center justify-between gap-2">
+                                                    <div key={it.id} className="px-3 py-2 bg-[var(--status-success-bg)] flex items-center justify-between gap-2">
                                                         <div className="min-w-0">
-                                                            <p className="text-xs font-medium text-white/90 truncate">{it.product.name}</p>
-                                                            <p className="text-xs text-white/40">{it.product.sku}</p>
+                                                            <p className="text-xs font-medium text-ink truncate">{it.product.name}</p>
+                                                            <p className="text-xs text-muted">{it.product.sku}</p>
                                                         </div>
                                                         <div className="text-right flex-shrink-0">
-                                                            <p className="text-sm font-bold text-green-700">+{it.quantity} {it.product.unit}</p>
-                                                            <p className="text-xs text-white/40">{it.previousStock.toFixed(1)} → {it.newStock.toFixed(1)}</p>
+                                                            <p className="text-sm font-bold text-success">+{it.quantity} {it.product.unit}</p>
+                                                            <p className="text-xs text-muted">{it.previousStock.toFixed(1)} → {it.newStock.toFixed(1)}</p>
                                                         </div>
                                                     </div>
                                                 ))}
@@ -573,6 +570,6 @@ export default function FactoryReceivingPage() {
                 </div>
             </div>
         </div>
-    </div>
+    </main>
         );
 }

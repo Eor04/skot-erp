@@ -18,10 +18,10 @@ type Recipe = { id: string; name: string; yield: number; yieldUnit: string; prod
 type Branch = { id: string; name: string; type: string };
 
 const statusConfig: Record<string, { label: string; color: string; Icon: React.ElementType }> = {
-    SCHEDULED:   { label: 'Programada', color: 'bg-yellow-500/20 text-yellow-300 border border-yellow-500/30', Icon: Clock },
-    IN_PROGRESS: { label: 'En Proceso', color: 'bg-blue-500/20 text-blue-300 border border-blue-500/30', Icon: Loader },
-    COMPLETED:   { label: 'Completada', color: 'bg-green-500/20 text-green-300 border border-green-500/30', Icon: CheckCircle },
-    CANCELLED:   { label: 'Cancelada', color: 'bg-red-500/20 text-red-300 border border-red-500/30', Icon: X },
+    SCHEDULED:   { label: 'Programada', color: 'bg-[var(--status-warning-bg)] text-warning border border-line-subtle', Icon: Clock },
+    IN_PROGRESS: { label: 'En Proceso', color: 'bg-[var(--status-info-bg)] text-info border border-line-subtle', Icon: Loader },
+    COMPLETED:   { label: 'Completada', color: 'bg-[var(--status-success-bg)] text-success border border-line-subtle', Icon: CheckCircle },
+    CANCELLED:   { label: 'Cancelada', color: 'bg-[var(--status-error-bg)] text-danger border border-line-subtle', Icon: X },
 };
 
 // Tipos de productos que aplican a producción en fábrica (hamburguesas)
@@ -120,57 +120,53 @@ export default function ProductionPage() {
     }
 
     return (
-        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
-                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
-            </div>
-            <div className="relative z-10 h-full w-full">
+        <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+            <div className="min-w-0">
             {toast && (
-                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-green-600' : 'bg-red-600'}`}>
+                <div className={`fixed top-4 right-4 z-50 flex items-center gap-2 px-4 py-3 rounded-xl shadow-lg text-white text-sm font-medium ${toast.type === 'success' ? 'bg-brand' : 'bg-danger'}`}>
                     {toast.type === 'success' ? <CheckCircle2 className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
                     {toast.msg}
                 </div>
             )}
 
-            <div className="max-w-5xl mx-auto px-4 py-8">
+            <div className="mx-auto max-w-5xl">
                 <div className="flex items-center justify-between mb-6">
                     <div>
-                        <Link href="/factory" className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-2">
+                        <Link href="/factory" className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-2">
                             <ArrowLeft className="h-4 w-4" /> Volver a Fábrica
                         </Link>
-                        <h1 className="text-3xl font-bold text-white/90 flex items-center gap-3">
-                            <PlayCircle className="h-8 w-8 text-green-400" /> Órdenes de Producción
+                        <h1 className="text-3xl font-display font-semibold text-ink flex items-center gap-3">
+                            <PlayCircle className="h-8 w-8 text-success" /> Órdenes de Producción
                         </h1>
-                        <p className="text-white/50 text-sm mt-1 flex items-center gap-2">
-                            <Beef className="h-4 w-4 text-orange-400" />
+                        <p className="text-muted text-sm mt-1 flex items-center gap-2">
+                            <Beef className="h-4 w-4 text-warning" />
                             Preparación de carnes, panes y mezclas — Hamburguesas únicamente
                         </p>
                     </div>
                     <button onClick={() => setShowModal(true)}
-                        className="flex items-center gap-2 bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-xl font-medium transition-colors shadow-lg shadow-green-500/20">
+                        className="flex items-center gap-2 bg-brand hover:brightness-90 text-white px-4 py-2 rounded-xl font-medium transition-colors ">
                         <Plus className="h-4 w-4" /> Nueva orden
                     </button>
                 </div>
 
                 {/* Aviso informativo */}
-                <div className="bg-orange-500/10 border border-orange-500/25 rounded-xl px-4 py-3 mb-6 flex items-start gap-3">
-                    <Beef className="h-5 w-5 text-orange-400 mt-0.5 flex-shrink-0" />
+                <div className="bg-[var(--status-warning-bg)] border border-line-subtle rounded-xl px-4 py-3 mb-6 flex items-start gap-3">
+                    <Beef className="h-5 w-5 text-warning mt-0.5 flex-shrink-0" />
                     <div className="text-sm">
-                        <p className="text-orange-300 font-semibold">Solo para preparaciones de hamburguesas</p>
-                        <p className="text-white/50 text-xs mt-0.5">
-                            Los productos Açaí (pulpa, toppings, bases) se reciben directamente de proveedores vía <Link href="/factory/receiving" className="underline hover:text-white/70">Recepción de mercadería</Link>. Las órdenes de producción son para: mezclas de carne, amasado de harina, preparación de panes, etc.
+                        <p className="text-warning font-semibold">Solo para preparaciones de hamburguesas</p>
+                        <p className="text-muted text-xs mt-0.5">
+                            Los productos Açaí (pulpa, toppings, bases) se reciben directamente de proveedores vía <Link href="/factory/receiving" className="underline hover:text-muted">Recepción de mercadería</Link>. Las órdenes de producción son para: mezclas de carne, amasado de harina, preparación de panes, etc.
                         </p>
                     </div>
                 </div>
 
                 {loading ? (
-                    <div className="text-center py-20 text-white/40">Cargando órdenes…</div>
+                    <div className="text-center py-20 text-muted">Cargando órdenes…</div>
                 ) : orders.length === 0 ? (
-                    <div className="text-center py-20 bg-white/5 border border-white/10 rounded-2xl text-white/40">
+                    <div className="text-center py-20 bg-surface border border-line-subtle rounded-xl text-muted">
                         <PlayCircle className="h-12 w-12 mx-auto mb-3 opacity-30" />
                         <p>No hay órdenes de producción.</p>
-                        <button onClick={() => setShowModal(true)} className="mt-4 text-green-400 font-medium hover:underline">Crear primera orden →</button>
+                        <button onClick={() => setShowModal(true)} className="mt-4 text-success font-medium hover:underline">Crear primera orden →</button>
                     </div>
                 ) : (
                     <div className="space-y-4">
@@ -178,18 +174,18 @@ export default function ProductionPage() {
                             const cfg = statusConfig[order.status] || statusConfig['SCHEDULED'];
                             const Icon = cfg.Icon;
                             return (
-                                <div key={order.id} className="bg-white/5 border border-white/10 rounded-2xl p-6">
-                                    <div className="flex items-center justify-between">
-                                        <div className="flex items-center gap-4">
-                                            <span className="font-mono text-sm text-white/40">{order.orderNumber}</span>
+                                <div key={order.id} className="bg-surface border border-line-subtle rounded-xl p-6">
+                                    <div className="flex flex-wrap items-center justify-between gap-3">
+                                        <div className="flex flex-wrap items-center gap-3">
+                                            <span className="font-mono text-sm text-muted">{order.orderNumber}</span>
                                             <div>
-                                                <p className="font-semibold text-white/90">{order.recipe?.name || order.recipe?.product?.name}</p>
-                                                <p className="text-sm text-white/60">
+                                                <p className="font-semibold text-ink">{order.recipe?.name || order.recipe?.product?.name}</p>
+                                                <p className="text-sm text-muted">
                                                     {order.plannedYield} uds · {order.branch?.name} · {new Date(order.createdAt).toLocaleDateString('es-PE')}
                                                 </p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex flex-wrap items-center gap-2">
                                             <span className={`flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-medium ${cfg.color}`}>
                                                 <Icon className="h-3.5 w-3.5" /> {cfg.label}
                                             </span>
@@ -198,7 +194,7 @@ export default function ProductionPage() {
                                                     setCompletingOrder(order);
                                                     setCompleteForm({ actualYield: order.plannedYield, completedBy: '' });
                                                 }}
-                                                    className="text-xs font-semibold px-3 py-1.5 bg-green-600 hover:bg-green-700 text-white rounded-lg transition-colors disabled:opacity-50">
+                                                    className="text-xs font-semibold px-3 py-1.5 bg-brand hover:brightness-90 text-white rounded-lg transition-colors disabled:opacity-50">
                                                     ✓ Completar
                                                 </button>
                                             )}
@@ -213,25 +209,25 @@ export default function ProductionPage() {
 
             {/* Modal nueva orden */}
             {showModal && (
-                <div className="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4">
-                    <div className="bg-[#1a0f2e] border border-white/10 rounded-2xl shadow-xl w-full max-w-md">
-                        <div className="flex items-center justify-between p-6 border-b border-white/10">
+                <div role="dialog" aria-modal="true" aria-labelledby="new-production-title" className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
+                    <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl border border-line-subtle bg-surface">
+                        <div className="flex items-center justify-between p-6 border-b border-line-subtle">
                             <div>
-                                <h2 className="text-lg font-bold text-white/90">Nueva Orden de Producción</h2>
-                                <p className="text-xs text-white/40 mt-0.5 flex items-center gap-1">
-                                    <Beef className="h-3.5 w-3.5 text-orange-400" /> Solo recetas de hamburguesas
+                                <h2 id="new-production-title" className="text-lg font-display font-semibold text-ink">Nueva Orden de Producción</h2>
+                                <p className="text-xs text-muted mt-0.5 flex items-center gap-1">
+                                    <Beef className="h-3.5 w-3.5 text-warning" /> Solo recetas de hamburguesas
                                 </p>
                             </div>
-                            <button onClick={() => setShowModal(false)} className="text-white/40 hover:text-white/70">
+                            <button onClick={() => setShowModal(false)} aria-label="Cerrar nueva orden" className="grid h-11 w-11 place-items-center rounded-lg text-muted hover:bg-canvas">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Receta *</label>
-                                <select required value={form.recipeId}
+                                <label htmlFor="order-recipe" className="block text-sm font-semibold text-ink mb-1.5">Receta *</label>
+                                <select id="order-recipe" required value={form.recipeId}
                                     onChange={e => setForm(f => ({ ...f, recipeId: e.target.value }))}
-                                    className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                                    className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand">
                                     <option value="" className="bg-gray-900">Seleccionar receta…</option>
                                     {recipes.map(r => (
                                         <option key={r.id} value={r.id} className="bg-gray-900">
@@ -240,52 +236,52 @@ export default function ProductionPage() {
                                     ))}
                                 </select>
                                 {recipes.length === 0 && (
-                                    <p className="text-xs text-orange-400 mt-1">
+                                    <p className="text-xs text-warning mt-1">
                                         No hay recetas de hamburguesas activas. <Link href="/factory/recipes/new" className="underline">Crear receta →</Link>
                                     </p>
                                 )}
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Sucursal / Fábrica *</label>
-                                <select required value={form.branchId}
+                                <label htmlFor="order-branch" className="block text-sm font-semibold text-ink mb-1.5">Sucursal / Fábrica *</label>
+                                <select id="order-branch" required value={form.branchId}
                                     onChange={e => setForm(f => ({ ...f, branchId: e.target.value }))}
-                                    className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400">
+                                    className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand">
                                     <option value="" className="bg-gray-900">Seleccionar…</option>
                                     {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900">{b.name}</option>)}
                                 </select>
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Cantidad a producir (kg / unidades) *</label>
-                                <input type="number" min="1" step="0.01" required
+                                <label htmlFor="order-quantity" className="block text-sm font-semibold text-ink mb-1.5">Cantidad a producir (kg / unidades) *</label>
+                                <input id="order-quantity" type="number" min="1" step="0.01" required
                                     value={form.plannedYield === 0 ? '' : form.plannedYield}
                                     onChange={e => setForm(f => ({ ...f, plannedYield: parseFloat(e.target.value) }))}
-                                    className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+                                    className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand" />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Fecha programada</label>
-                                <input type="datetime-local" value={form.scheduledDate}
+                                <label htmlFor="order-scheduled" className="block text-sm font-semibold text-ink mb-1.5">Fecha programada</label>
+                                <input id="order-scheduled" type="datetime-local" value={form.scheduledDate}
                                     onChange={e => setForm(f => ({ ...f, scheduledDate: e.target.value }))}
-                                    className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+                                    className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand" />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Responsable *</label>
-                                <input type="text" required placeholder="Nombre del operador" value={form.createdBy}
+                                <label htmlFor="order-operator" className="block text-sm font-semibold text-ink mb-1.5">Responsable *</label>
+                                <input id="order-operator" type="text" required placeholder="Nombre del operador" value={form.createdBy}
                                     onChange={e => setForm(f => ({ ...f, createdBy: e.target.value }))}
-                                    className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 placeholder-white/30" />
+                                    className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand placeholder:text-muted" />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Notas</label>
-                                <textarea rows={2} placeholder="Ej: Lote de carne clásica para el fin de semana…" value={form.notes}
+                                <label htmlFor="order-notes" className="block text-sm font-semibold text-ink mb-1.5">Notas</label>
+                                <textarea id="order-notes" rows={2} placeholder="Ej: Lote de carne clásica para el fin de semana…" value={form.notes}
                                     onChange={e => setForm(f => ({ ...f, notes: e.target.value }))}
-                                    className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 resize-none placeholder-white/30" />
+                                    className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand resize-none placeholder:text-muted" />
                             </div>
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setShowModal(false)}
-                                    className="flex-1 py-2.5 border border-white/20 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 transition-colors">
+                                    className="flex-1 py-2.5 border border-line rounded-xl text-sm font-medium text-muted hover:bg-surface transition-colors">
                                     Cancelar
                                 </button>
                                 <button type="submit" disabled={submitting}
-                                    className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
+                                    className="flex-1 bg-brand hover:brightness-90 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
                                     {submitting ? 'Creando…' : 'Crear orden'}
                                 </button>
                             </div>
@@ -296,38 +292,38 @@ export default function ProductionPage() {
 
             {/* Modal Completar Orden */}
             {completingOrder && (
-                <div className="fixed inset-0 bg-black/60 z-40 flex items-center justify-center p-4">
-                    <div className="bg-[#1a0f2e] border border-white/10 rounded-2xl shadow-xl w-full max-w-md">
-                        <div className="flex items-center justify-between p-6 border-b border-white/10">
+                <div role="dialog" aria-modal="true" aria-labelledby="complete-production-title" className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
+                    <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl border border-line-subtle bg-surface">
+                        <div className="flex items-center justify-between p-6 border-b border-line-subtle">
                             <div>
-                                <h2 className="text-lg font-bold text-white/90">Completar Producción</h2>
-                                <p className="text-xs text-white/40 mt-0.5">{completingOrder.orderNumber}</p>
+                                <h2 id="complete-production-title" className="text-lg font-display font-semibold text-ink">Completar Producción</h2>
+                                <p className="text-xs text-muted mt-0.5">{completingOrder.orderNumber}</p>
                             </div>
-                            <button onClick={() => setCompletingOrder(null)} className="text-white/40 hover:text-white/70">
+                            <button onClick={() => setCompletingOrder(null)} aria-label="Cerrar confirmación" className="grid h-11 w-11 place-items-center rounded-lg text-muted hover:bg-canvas">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
                         <form onSubmit={handleCompleteSubmit} className="p-6 space-y-4">
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Cantidad Real Producida *</label>
-                                <input type="number" min="0.01" step="0.01" required
+                                <label htmlFor="complete-quantity" className="block text-sm font-semibold text-ink mb-1.5">Cantidad Real Producida *</label>
+                                <input id="complete-quantity" type="number" min="0.01" step="0.01" required
                                     value={completeForm.actualYield === 0 ? '' : completeForm.actualYield}
                                     onChange={e => setCompleteForm(f => ({ ...f, actualYield: parseFloat(e.target.value) }))}
-                                    className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
+                                    className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand" />
                             </div>
                             <div>
-                                <label className="block text-sm font-semibold text-white/80 mb-1.5">Completado por (Operador) *</label>
-                                <input type="text" required placeholder="Nombre del operador" value={completeForm.completedBy}
+                                <label htmlFor="complete-operator" className="block text-sm font-semibold text-ink mb-1.5">Completado por (Operador) *</label>
+                                <input id="complete-operator" type="text" required placeholder="Nombre del operador" value={completeForm.completedBy}
                                     onChange={e => setCompleteForm(f => ({ ...f, completedBy: e.target.value }))}
-                                    className="w-full bg-black/30 text-white border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 placeholder-white/30" />
+                                    className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 py-2.5 text-sm text-ink focus:outline-none focus:ring-2 focus:ring-brand placeholder:text-muted" />
                             </div>
                             <div className="flex gap-3 pt-2">
                                 <button type="button" onClick={() => setCompletingOrder(null)}
-                                    className="flex-1 py-2.5 border border-white/20 rounded-xl text-sm font-medium text-white/70 hover:bg-white/5 transition-colors">
+                                    className="flex-1 py-2.5 border border-line rounded-xl text-sm font-medium text-muted hover:bg-surface transition-colors">
                                     Cancelar
                                 </button>
                                 <button type="submit" disabled={submitting}
-                                    className="flex-1 bg-green-600 hover:bg-green-700 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
+                                    className="flex-1 bg-brand hover:brightness-90 disabled:opacity-50 text-white py-2.5 rounded-xl text-sm font-semibold transition-colors">
                                     {submitting ? 'Guardando…' : 'Completar Orden'}
                                 </button>
                             </div>
@@ -336,6 +332,6 @@ export default function ProductionPage() {
                 </div>
             )}
         </div>
-        </div>
+        </main>
     );
 }
