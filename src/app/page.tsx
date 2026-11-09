@@ -130,13 +130,14 @@ export default function HomePage() {
 
                 <main id="main-content" className="mx-auto max-w-[1280px] space-y-6 px-4 py-7 sm:px-8">
                     <div><h1 className="text-2xl font-semibold sm:text-3xl">Operación de hoy</h1><p className="mt-1 text-muted">Accedé a las tareas y revisá el estado de la jornada.</p></div>
-                    {canSeeMetrics && statsLoaded && <section aria-labelledby="summary-title">
+                    {canSeeMetrics && <section aria-labelledby="summary-title" aria-busy={!statsLoaded}>
                         <div className="mb-3 flex items-center justify-between"><h2 id="summary-title" className="text-lg font-semibold">Resumen</h2><Button variant="quiet" onClick={loadStats} className="text-sm"><RefreshCw size={16} /> Actualizar datos</Button></div>
+                        {!statsLoaded && <p role="status" className="sr-only">Cargando resumen de la jornada…</p>}
                         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-                            <Card className="border-l-4 border-l-brand p-5 sm:col-span-2 xl:col-span-1"><p className="text-sm text-muted">Ventas del día</p><p className="mt-3 break-words font-display text-2xl font-semibold tabular-nums text-brand">{dayStats ? `Bs. ${dayStats.totalSales.toFixed(2)}` : 'Sin datos'}</p></Card>
-                            <Card className="p-5"><p className="text-sm text-muted">Pedidos</p><p className="mt-3 font-display text-2xl font-semibold tabular-nums">{dayStats?.totalOrders ?? 'Sin datos'}</p></Card>
-                            <Card className="p-5"><p className="text-sm text-muted">Cajas abiertas</p><p className="mt-3 font-display text-2xl font-semibold tabular-nums">{cashStatus?.openCount ?? 'Sin datos'}</p></Card>
-                            <Card className="p-5"><p className="text-sm text-muted">Alertas críticas</p><p className={`mt-3 font-display text-2xl font-semibold tabular-nums ${hasCritical ? 'text-danger' : ''}`}>{alertStats?.critical ?? 'Sin datos'}</p></Card>
+                            <Card className="border-l-4 border-l-brand p-5 sm:col-span-2 xl:col-span-1"><p className="text-sm text-muted">Ventas del día</p>{!statsLoaded ? <SummarySkeleton /> : <p className="mt-3 break-words font-display text-2xl font-semibold tabular-nums text-brand">{dayStats ? `Bs. ${dayStats.totalSales.toFixed(2)}` : 'Sin datos'}</p>}</Card>
+                            <Card className="p-5"><p className="text-sm text-muted">Pedidos</p>{!statsLoaded ? <SummarySkeleton /> : <p className="mt-3 font-display text-2xl font-semibold tabular-nums">{dayStats?.totalOrders ?? 'Sin datos'}</p>}</Card>
+                            <Card className="p-5"><p className="text-sm text-muted">Cajas abiertas</p>{!statsLoaded ? <SummarySkeleton /> : <p className="mt-3 font-display text-2xl font-semibold tabular-nums">{cashStatus?.openCount ?? 'Sin datos'}</p>}</Card>
+                            <Card className="p-5"><p className="text-sm text-muted">Alertas críticas</p>{!statsLoaded ? <SummarySkeleton /> : <p className={`mt-3 font-display text-2xl font-semibold tabular-nums ${hasCritical ? 'text-danger' : ''}`}>{alertStats?.critical ?? 'Sin datos'}</p>}</Card>
                         </div>
                     </section>}
 
@@ -154,4 +155,8 @@ export default function HomePage() {
             </div>
         </div>
     );
+}
+
+function SummarySkeleton() {
+    return <span aria-hidden="true" className="mt-3 block h-8 w-28 max-w-full animate-pulse rounded-md bg-[var(--status-neutral-bg)] motion-reduce:animate-none" />;
 }
