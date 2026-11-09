@@ -4,6 +4,10 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireBranchAccess } from '@/lib/branch-access';
+import { consumptionConfig, consumptionInclude, consumptionVersion } from '@/lib/consumption-config';
+import { availableQuantity } from '@/lib/inventory-consumption';
+import type { ConsumptionProduct } from '@/lib/inventory-consumption';
+import { signOfflineAuthorization } from '@/lib/offline-sale-authorization';
 
 /**
  * GET /api/pos/products?branchId=xxx&type=BURGER|ACAI
@@ -28,7 +32,7 @@ export async function GET(request: NextRequest) {
         // Construir filtro de tipos
         const typeFilter: string[] = [];
         if (type === 'BURGER') {
-            typeFilter.push('BURGER', 'BEVERAGE');
+            typeFilter.push('BURGER', 'BURGER_EXTRA', 'BEVERAGE');
         } else if (type === 'ACAI') {
             typeFilter.push('ACAI_BASE', 'ACAI_TOPPING', 'BEVERAGE');
         } else if (type) {
@@ -43,6 +47,7 @@ export async function GET(request: NextRequest) {
                 ...(typeFilter.length > 0 ? { type: { in: typeFilter as any } } : {}),
             },
             include: {
+                ...consumptionInclude,
                 branchProducts: {
                     where: { branchId, active: true },
                     take: 1,
@@ -55,11 +60,49 @@ export async function GET(request: NextRequest) {
             orderBy: [{ category: 'asc' }, { name: 'asc' }],
         });
 
-        // Mapear con precio de sucursal
+        const ingredientIds = [...new Set(products.flatMap(p => p.saleRecipe?.ingredients.map(i => i.ingredientId) ?? []))];
+        const ingredientInventory = await prisma.inventory.findMany({
+            where: { branchId, productId: { in: ingredientIds } },
+            select: { productId: true, currentStock: true },
+        });
+        const ingredientStocks = new Map(ingredientInventory.map(i => [i.productId, i.currentStock]));
+
+        // El catálogo y la venta comparten las mismas cantidades de receta.
         const data = products.map((p) => {
             const bp = p.branchProducts[0];
             const customPrice = bp?.customPrice ?? 0;
             const pricePerKg = bp?.pricePerKg ?? 0;
+            let currentStock = p.inventory[0]?.currentStock ?? 0;
+            let consumptionError: string | null = null;
+            let configVersion: string | null = null;
+            let consumptionSnapshot: ConsumptionProduct | null = null;
+            let offlineAuthorization: string | null = null;
+            if (!p.consumptionMode && process.env.REQUIRE_CLASSIFIED_CONSUMPTION === 'true') {
+                currentStock = 0;
+                consumptionError = 'Falta configurar la preparación del producto';
+            }
+            if (p.consumptionMode) {
+                try {
+                    const config = consumptionConfig(p)!;
+                    configVersion = consumptionVersion(config);
+                    consumptionSnapshot = config;
+                    if (config.mode === 'RECIPE') currentStock = availableQuantity(config, ingredientStocks);
+                } catch (error) {
+                    currentStock = 0;
+                    consumptionError = error instanceof Error ? error.message : 'Configuración de consumo inválida';
+                }
+            }
+            if ((p.type === 'BURGER' || p.type === 'BEVERAGE' || p.type === 'BURGER_EXTRA') && customPrice <= 0 ||
+                p.type === 'ACAI_BASE' && pricePerKg <= 0) {
+                currentStock = 0;
+                consumptionError = 'Falta definir un precio de venta';
+            }
+            if (configVersion && (p.type === 'ACAI_BASE' ? pricePerKg : customPrice) > 0) {
+                try { offlineAuthorization = signOfflineAuthorization({ kind: 'product', branchId, userId: access.userId,
+                    productId: p.id, productType: p.type, unit: p.unit, priceKind: p.type === 'ACAI_BASE' ? 'PER_KG' : 'UNIT',
+                    price: p.type === 'ACAI_BASE' ? pricePerKg : customPrice, configVersion, consumptionSnapshot }); }
+                catch (error) { console.error('No se pudo firmar la autorización offline:', error); }
+            }
             return {
                 id: p.id,
                 name: p.name,
@@ -73,7 +116,11 @@ export async function GET(request: NextRequest) {
                 price: customPrice,
                 customPrice,
                 pricePerKg,
-                currentStock: p.inventory[0]?.currentStock ?? 0,
+                currentStock,
+                consumptionError,
+                configVersion,
+                consumptionSnapshot,
+                offlineAuthorization,
             };
         });
 

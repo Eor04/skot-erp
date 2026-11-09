@@ -3,18 +3,22 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
+import { calculateConsumption, type Consumption } from '@/lib/inventory-consumption';
 
 // GET: Listar órdenes de producción
 export async function GET(request: NextRequest) {
     try {
         const { searchParams } = new URL(request.url);
         const branchId = searchParams.get('branchId');
+        const access = await requireBranchAccess(request, branchId, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
+        if (access instanceof NextResponse) return access;
         const status = searchParams.get('status');
         const recipeId = searchParams.get('recipeId');
 
         const productionOrders = await prisma.productionOrder.findMany({
             where: {
-                ...(branchId && { branchId }),
+                branchId: branchId || { in: access.allowedBranchIds },
                 ...(status && { status: status as any }),
                 ...(recipeId && { recipeId }),
             },
@@ -73,7 +77,7 @@ export async function POST(request: NextRequest) {
         } = body;
 
         // Validaciones
-        if (!branchId || !recipeId || !plannedYield || !createdBy) {
+        if (!branchId || !recipeId || !Number.isFinite(plannedYield) || plannedYield <= 0 || typeof createdBy !== 'string' || !createdBy.trim()) {
             return NextResponse.json(
                 {
                     success: false,
@@ -82,11 +86,16 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
+        const access = await requireBranchAccess(request, branchId, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
+        if (access instanceof NextResponse) return access;
+        const branch = await prisma.branch.findFirst({ where: { id: branchId, type: 'FABRICA', active: true, deletedAt: null } });
+        if (!branch) return NextResponse.json({ success: false, error: 'Selecciona una fábrica activa' }, { status: 400 });
 
         // Obtener receta con ingredientes
         const recipe = await prisma.recipe.findUnique({
             where: { id: recipeId },
             include: {
+                product: true,
                 ingredients: {
                     include: {
                         ingredient: true,
@@ -95,7 +104,7 @@ export async function POST(request: NextRequest) {
             },
         });
 
-        if (!recipe) {
+        if (!recipe || !recipe.active) {
             return NextResponse.json(
                 {
                     success: false,
@@ -104,14 +113,24 @@ export async function POST(request: NextRequest) {
                 { status: 404 }
             );
         }
+        if (!recipe.product.active || recipe.product.deletedAt || recipe.ingredients.some(i => !i.ingredient.active || i.ingredient.deletedAt)) {
+            return NextResponse.json({ success: false, error: 'La receta contiene productos inactivos' }, { status: 400 });
+        }
+
+        let consumption: Consumption[];
+        try {
+            consumption = calculateConsumption([{ quantity: plannedYield, product: { id: recipe.product.id, name: recipe.product.name,
+                unit: recipe.product.unit, mode: 'RECIPE', recipe: { productId: recipe.productId, yield: recipe.yield,
+                    yieldUnit: recipe.yieldUnit, ingredients: recipe.ingredients.map(i => ({ id: i.ingredientId,
+                        name: i.ingredient.name, quantity: i.quantity, unit: i.unit, inventoryUnit: i.ingredient.unit })) } } }]);
+        } catch (error) { return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Receta inválida' }, { status: 400 }); }
 
         // Calcular materia prima necesaria basada en la cantidad planeada
-        const multiplier = plannedYield / recipe.yield;
-        const requiredIngredients = recipe.ingredients.map((ing) => ({
-            ingredientId: ing.ingredientId,
-            ingredientName: ing.ingredient.name,
-            required: ing.quantity * multiplier,
-            unit: ing.unit,
+        const requiredIngredients = consumption.map((ing) => ({
+            ingredientId: ing.productId,
+            ingredientName: ing.name,
+            required: ing.quantity,
+            unit: recipe.ingredients.find(i => i.ingredientId === ing.productId)!.unit,
         }));
 
         // Validar disponibilidad de inventario
@@ -183,8 +202,8 @@ export async function POST(request: NextRequest) {
                 plannedYield,
                 scheduledDate: scheduledDate ? new Date(scheduledDate) : null,
                 expirationDate: expirationDate ? new Date(expirationDate) : null,
-                notes,
-                createdBy,
+                notes: [notes, `Operador: ${createdBy.trim()}`].filter(Boolean).join(' | '),
+                createdBy: access.userId,
                 status: 'SCHEDULED',
             },
             include: {

@@ -77,7 +77,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { fromBranchId, toBranchId, items, notes, requestedBy } = body;
 
-        if (!fromBranchId || !toBranchId || !items || items.length === 0 || !requestedBy) {
+        if (!fromBranchId || !toBranchId || !Array.isArray(items) || items.length === 0 || !requestedBy) {
             return NextResponse.json(
                 {
                     success: false,
@@ -99,8 +99,15 @@ export async function POST(request: NextRequest) {
 
         const access = await requireBranchAccess(request, fromBranchId, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
         if (access instanceof NextResponse) return access;
+        if (requestedBy !== access.userId) return NextResponse.json({ success: false, error: 'Usuario no permitido' }, { status: 403 });
+        const destination = await prisma.branch.findFirst({ where: { id: toBranchId, active: true, deletedAt: null }, select: { id: true } });
+        if (!destination) return NextResponse.json({ success: false, error: 'Sucursal de destino no disponible' }, { status: 400 });
         if (items.some((item: any) => !Number.isFinite(item.requestedQty) || item.requestedQty <= 0)) {
             return NextResponse.json({ success: false, error: 'Cantidad de transferencia inválida' }, { status: 400 });
+        }
+        if (items.some((item: any) => typeof item.productId !== 'string' || !item.productId) ||
+            new Set(items.map((item: any) => item.productId)).size !== items.length) {
+            return NextResponse.json({ success: false, error: 'Revisa los productos de la transferencia' }, { status: 400 });
         }
 
         // Validar disponibilidad de stock

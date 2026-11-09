@@ -18,6 +18,9 @@ export interface Product {
     price?: number;
     pricePerKg?: number;
     currentStock?: number;
+    configVersion?: string | null;
+    consumptionSnapshot?: unknown;
+    offlineAuthorization?: string | null;
 }
 
 export interface ExtraItem {

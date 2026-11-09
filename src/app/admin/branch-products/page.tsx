@@ -46,7 +46,11 @@ export default function BranchProductsPage() {
 
     useEffect(() => {
         fetch('/api/admin/branches').then(r => r.json()).then(d => {
-            if (d.success) setBranches(d.data);
+            if (d.success) {
+                setBranches(d.data);
+                const requested = new URLSearchParams(window.location.search).get('branchId');
+                if (requested && d.data.some((branch: Branch) => branch.id === requested)) setSelectedBranch(requested);
+            }
         });
     }, []);
 
@@ -57,7 +61,12 @@ export default function BranchProductsPage() {
         try {
             const res = await fetch(`/api/admin/branch-products?branchId=${branchId}`);
             const d = await res.json();
-            if (d.success) setRows(d.data);
+            if (d.success) {
+                setRows(d.data);
+                const productId = new URLSearchParams(window.location.search).get('product');
+                const product = d.data.find((row: BPRow) => row.productId === productId);
+                if (product) setSearch(product.productName);
+            }
         } catch { showToast('error', 'Error al cargar productos'); }
         finally { setLoading(false); }
     }, []);
@@ -143,7 +152,7 @@ export default function BranchProductsPage() {
             if (d.success) {
                 showToast('success', newActive ? ` ${row.productName} activado` : ` ${row.productName} desactivado`);
                 loadProducts(selectedBranch);
-            }
+            } else showToast('error', d.error || 'Error al cambiar el estado');
         } catch { showToast('error', 'Error de conexión'); }
         finally { setSaving(null); }
     }

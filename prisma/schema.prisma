@@ -37,6 +37,11 @@ enum ProductType {
   RAW_MATERIAL
 }
 
+enum InventoryConsumptionMode {
+  STOCK
+  RECIPE
+}
+
 
 enum PaymentMethod {
   CASH        // Efectivo
@@ -164,7 +169,7 @@ model Branch {
   syncQueue      SyncQueue[]
   branchProducts BranchProduct[]
   cashCloses     CashRegisterClose[]
-  
+
   // NUEVAS RELACIONES - Módulo Fábrica
   transfersFrom    StockTransfer[]  @relation("TransfersFrom")
   transfersTo      StockTransfer[]  @relation("TransfersTo")
@@ -200,14 +205,18 @@ model Product {
   createdAt   DateTime    @default(now())
   updatedAt   DateTime    @updatedAt
   deletedAt   DateTime?
+  consumptionMode InventoryConsumptionMode?
+  saleRecipeId String?
+  setupDraft Json?
 
   // Relaciones
   inventory      Inventory[]
   saleItems      SaleItem[]
   branchProducts BranchProduct[]
-  
+
   // NUEVAS RELACIONES - Módulo Fábrica
-  recipes           Recipe[]
+  recipes           Recipe[] @relation("ProductRecipes")
+  saleRecipe        Recipe? @relation("SaleRecipe", fields: [saleRecipeId], references: [id], onDelete: SetNull)
   recipeIngredients RecipeIngredient[] @relation("RecipeIngredients")
   transferItems     StockTransferItem[]
   stockMovements    StockMovement[]
@@ -235,14 +244,14 @@ model Inventory {
   currentStock Float           @default(0)
   minStock     Float           @default(0)
   maxStock     Float?
-  
+
   // NUEVOS CAMPOS - Módulo Fábrica
   status         InventoryStatus @default(AVAILABLE)
   batchNumber    String?         // Número de lote de producción
   productionDate DateTime?       // Fecha de producción
   expirationDate DateTime?       // Fecha de vencimiento
   cost           Float?          // Costo unitario (para valoración FIFO)
-  
+
   lastUpdated  DateTime        @default(now())
   updatedAt    DateTime        @updatedAt
 
@@ -274,12 +283,12 @@ model Sale {
   paymentMethod PaymentMethod
   salesChannel  SalesChannel  @default(DIRECT) // Canal de venta
   externalOrderId String?     // ID del pedido en PedidosYa/UberEats
-  
+
   // Split payment (cuando paymentMethod = MIXED)
   cashAmount     Float?
   cardAmount     Float?
   transferAmount Float?
-  
+
   notes     String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -308,6 +317,7 @@ model SaleItem {
   unitPrice Float
   subtotal  Float
   discount  Float    @default(0)
+  offlineSnapshot Json?
   createdAt DateTime @default(now())
 
   // Relaciones
@@ -505,12 +515,13 @@ model Recipe {
   active      Boolean  @default(true)
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt
-  
+
   // Relaciones
-  product           Product             @relation(fields: [productId], references: [id])
+  product           Product             @relation("ProductRecipes", fields: [productId], references: [id])
+  saleProducts      Product[]          @relation("SaleRecipe")
   ingredients       RecipeIngredient[]
   productionOrders  ProductionOrder[]
-  
+
   @@index([productId])
   @@index([active])
   @@map("recipes")
@@ -522,11 +533,11 @@ model RecipeIngredient {
   ingredientId String   // Producto de materia prima
   quantity     Float    // Cantidad necesaria
   unit         String   // Unidad de medida
-  
+
   // Relaciones
   recipe     Recipe  @relation(fields: [recipeId], references: [id], onDelete: Cascade)
   ingredient Product @relation("RecipeIngredients", fields: [ingredientId], references: [id])
-  
+
   @@index([recipeId])
   @@index([ingredientId])
   @@map("recipe_ingredients")
@@ -549,12 +560,12 @@ model ProductionOrder {
   completedBy    String?
   createdAt      DateTime              @default(now())
   completedAt    DateTime?
-  
+
   // Relaciones
   branch       Branch                  @relation(fields: [branchId], references: [id])
   recipe       Recipe                  @relation(fields: [recipeId], references: [id])
   movements    StockMovement[]
-  
+
   @@index([branchId])
   @@index([recipeId])
   @@index([status])
@@ -579,13 +590,13 @@ model StockTransfer {
   approvedDate     DateTime?
   receivedDate     DateTime?
   notes            String?
-  
+
   // Relaciones
   fromBranch Branch               @relation("TransfersFrom", fields: [fromBranchId], references: [id])
   toBranch   Branch               @relation("TransfersTo", fields: [toBranchId], references: [id])
   items      StockTransferItem[]
   movements  StockMovement[]
-  
+
   @@index([fromBranchId])
   @@index([toBranchId])
   @@index([status])
@@ -601,11 +612,11 @@ model StockTransferItem {
   receivedQty     Float?
   batchNumber     String?
   expirationDate  DateTime?
-  
+
   // Relaciones
   transfer StockTransfer @relation(fields: [transferId], references: [id], onDelete: Cascade)
   product  Product       @relation(fields: [productId], references: [id])
-  
+
   @@index([transferId])
   @@index([productId])
   @@map("stock_transfer_items")
@@ -626,20 +637,20 @@ model StockMovement {
   notes             String?
   createdBy         String
   createdAt         DateTime  @default(now())
-  
+
   // Referencias opcionales
   productionOrderId String?
   transferId        String?
   saleId            String?
   inventoryId       String?
-  
+
   // Relaciones
   branch          Branch           @relation(fields: [branchId], references: [id])
   product         Product          @relation(fields: [productId], references: [id])
   inventory       Inventory?       @relation(fields: [inventoryId], references: [id])
   productionOrder ProductionOrder? @relation(fields: [productionOrderId], references: [id])
   transfer        StockTransfer?   @relation(fields: [transferId], references: [id])
-  
+
   @@index([branchId])
   @@index([productId])
   @@index([type])
@@ -658,11 +669,11 @@ model StockAlert {
   emailEnabled  Boolean  @default(true)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
-  
+
   // Relaciones
   branch  Branch  @relation(fields: [branchId], references: [id])
   product Product @relation(fields: [productId], references: [id])
-  
+
   @@unique([branchId, productId, alertType])
   @@index([branchId])
   @@index([productId])

@@ -11,8 +11,8 @@ import { useSession } from '@/lib/session-context';
 type Transfer = {
     id: string;
     transferNumber: string;
-    fromBranch: { name: string; type: string };
-    toBranch: { name: string; type: string };
+    fromBranch: { id: string; name: string; type: string };
+    toBranch: { id: string; name: string; type: string };
     items: { product: { name: string }; requestedQty: number }[];
     status: string;
     requestedDate: string;
@@ -36,9 +36,9 @@ export default function TransfersPage() {
 
     const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
 
-    useEffect(() => { 
+    useEffect(() => {
         if (!sessionLoading) {
-            fetchTransfers(); 
+            fetchTransfers();
         }
     }, [statusFilter, sessionLoading]);
 
@@ -165,6 +165,9 @@ export default function TransfersPage() {
                             const cfg = STATUS_CFG[t.status] || STATUS_CFG['PENDING'];
                             const Icon = cfg.Icon;
                             const isPending = t.status === 'PENDING';
+                            const canDispatch = (user?.role === 'ADMIN' || user?.branchIds?.includes(t.fromBranch.id)) &&
+                                ['ADMIN', 'MANAGER', 'WAREHOUSE'].includes(user?.role || '');
+                            const canReceive = user?.role === 'ADMIN' || user?.branchIds?.includes(t.toBranch.id);
                             return (
                                 <div key={t.id} className={`bg-surface rounded-2xl shadow p-5 border-l-4 ${isPending ? 'border-yellow-400' : t.status === 'RECEIVED' ? 'border-green-400' : 'border-line'}`}>
                                     <div className="flex flex-wrap items-center justify-between gap-4">
@@ -189,7 +192,7 @@ export default function TransfersPage() {
                                         </div>
 
                                         {/* Botones de acción según el estado */}
-                                        {isAdmin && isPending && (
+                                        {canDispatch && isPending && (
                                             <div className="flex gap-2 flex-shrink-0">
                                                 <button
                                                     onClick={() => handleAction(t.id, 'approve')}
@@ -197,7 +200,7 @@ export default function TransfersPage() {
                                                     className="flex items-center gap-1.5 px-3 py-2 bg-brand hover:brightness-90 text-white rounded-xl text-xs font-semibold disabled:opacity-50 transition"
                                                 >
                                                     <ThumbsUp className="h-3.5 w-3.5" />
-                                                    {actionLoading === t.id + 'approve' ? 'Aprobando…' : 'Aprobar'}
+                                                    {actionLoading === t.id + 'approve' ? 'Despachando…' : 'Despachar'}
                                                 </button>
                                                 <button
                                                     onClick={() => handleAction(t.id, 'cancel')}
@@ -210,7 +213,7 @@ export default function TransfersPage() {
                                             </div>
                                         )}
                                         {/* Botón confirmar recepción — para cualquier usuario con la transferencia en tránsito */}
-                                        {t.status === 'IN_TRANSIT' && (
+                                        {canReceive && t.status === 'IN_TRANSIT' && (
                                             <button
                                                 onClick={() => handleAction(t.id, 'receive')}
                                                 disabled={!!actionLoading}

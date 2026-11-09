@@ -38,6 +38,7 @@ export async function POST(request: NextRequest) {
             ACAI_BASE: 'ACAI_BASE',
             ACAI_TOPPING: 'ACAI_TOPPING',
             BURGER: 'BURGER',
+            BURGER_EXTRA: 'BURGER_EXTRA',
             BEVERAGE: 'BEVERAGE',
             RAW_MATERIAL: 'RAW_MATERIAL',
             PACKAGING: 'RAW_MATERIAL', // fallback

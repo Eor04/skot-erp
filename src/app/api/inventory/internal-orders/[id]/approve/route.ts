@@ -1,53 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
+import { OperationError, serializableTransaction } from '@/lib/transaction';
+import { validateOrderQuantities } from '@/lib/internal-order-quantities';
 
-// POST: Aprobar o cancelar un pedido interno
-export async function POST(
-    request: NextRequest,
-    { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
     try {
-        const body = await request.json();
-        const { approvedBy, items, status } = body;
-        // status puede ser 'APPROVED' (default) o 'CANCELLED'
-        const newStatus = status === 'CANCELLED' ? 'CANCELLED' : 'APPROVED';
-
-        if (!approvedBy) {
-            return NextResponse.json({ success: false, error: 'approvedBy requerido' }, { status: 400 });
-        }
-
-        const result = await prisma.$transaction(async (tx) => {
-            // Actualizar cantidades aprobadas en cada ítem si se proveen
-            if (items?.length && newStatus === 'APPROVED') {
-                await Promise.all(
-                    items.map((item: { itemId: string; approvedQty: number }) =>
-                        tx.internalOrderItem.update({
-                            where: { id: item.itemId },
-                            data: { approvedQty: item.approvedQty },
-                        })
-                    )
-                );
+        const access = await requireBranchAccess(request, null, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
+        if (access instanceof NextResponse) return access;
+        const { status = 'APPROVED', items } = await request.json();
+        if (!['APPROVED', 'CANCELLED'].includes(status)) throw new OperationError('Acción inválida');
+        const result = await serializableTransaction(async tx => {
+            const order = await tx.internalOrder.findUnique({ where: { id: params.id }, include: { items: true } });
+            if (!order) throw new OperationError('Pedido no encontrado', 404);
+            if (!access.allowedBranchIds.includes(order.toBranchId)) throw new OperationError('Fábrica no permitida', 403);
+            if (order.status !== 'PENDING') throw new OperationError(`No se puede procesar un pedido en estado ${order.status}`, 409);
+            if (status === 'APPROVED') {
+                const values = validateOrderQuantities(order.items,
+                    items ?? order.items.map(i => ({ itemId: i.id, approvedQty: i.requestedQty })),
+                    'approvedQty', line => line.requestedQty, true);
+                for (const item of order.items) await tx.internalOrderItem.update({ where: { id: item.id }, data: { approvedQty: values.get(item.id)! } });
             }
-
-            return tx.internalOrder.update({
-                where: { id: params.id },
-                data: {
-                    status: newStatus as any,
-                    approvedBy,
-                    approvedAt: new Date(),
-                },
-                include: {
-                    items: { include: { product: { select: { name: true, unit: true } } } },
-                    fromBranch: { select: { name: true } },
-                    toBranch: { select: { name: true } },
-                },
-            });
+            return tx.internalOrder.update({ where: { id: order.id }, data: { status, approvedBy: access.userId, approvedAt: new Date() },
+                include: { items: { include: { product: { select: { name: true, unit: true } } } },
+                    fromBranch: { select: { name: true } }, toBranch: { select: { name: true } } } });
         });
-
         return NextResponse.json({ success: true, data: result });
     } catch (error) {
-        console.error('Error en /approve:', error);
-        return NextResponse.json({ success: false, error: 'Error interno' }, { status: 500 });
+        if (error instanceof OperationError) return NextResponse.json({ success: false, error: error.message }, { status: error.status });
+        console.error('Error al aprobar pedido interno:', error);
+        return NextResponse.json({ success: false, error: 'No se pudo procesar el pedido' }, { status: 500 });
     }
 }
-

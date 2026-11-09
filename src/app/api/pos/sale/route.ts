@@ -2,15 +2,20 @@
 export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
+import { Prisma } from '@prisma/client';
 import { prisma } from '@/lib/prisma';
 import { requireBranchAccess } from '@/lib/branch-access';
 import { OperationError } from '@/lib/transaction';
 import { createHash } from 'node:crypto';
+import { consumptionConfig, consumptionInclude, consumptionVersion } from '@/lib/consumption-config';
+import { calculateConsumption } from '@/lib/inventory-consumption';
+import { validateSalePrices } from '@/lib/validate-sale-prices';
+import { verifyOfflineAuthorization } from '@/lib/offline-sale-authorization';
 
 /**
  * POST /api/pos/sale
  * Crear una venta real (Burgers o Açaí)
- * 
+ *
  * Body: {
  *   branchId, userId, paymentMethod, salesChannel?,
  *   cashAmount?, cardAmount?, transferAmount?,
@@ -34,6 +39,7 @@ export async function POST(request: NextRequest) {
             items,
             discount,
             extrasTotal = 0,   // monto de extras (modificadores sueltos sin productId real)
+            extraModifiers,
             createdAt,         // fecha original si viene de cola offline
             offlineId: rawOfflineId,
         } = body;
@@ -59,7 +65,8 @@ export async function POST(request: NextRequest) {
         if (items.some((item: any) => !item || typeof item.productId !== 'string' ||
             !Number.isFinite(item.quantity) || item.quantity <= 0 ||
             !Number.isFinite(item.unitPrice) || item.unitPrice < 0 ||
-            !Number.isFinite(item.subtotal) || item.subtotal < 0)) {
+            !Number.isFinite(item.subtotal) || item.subtotal < 0 ||
+            (item.modifiers !== undefined && !Array.isArray(item.modifiers)))) {
             throw new OperationError('Ítems o cantidades inválidos');
         }
         if (createdAt && !Number.isFinite(Date.parse(createdAt))) throw new OperationError('Fecha de venta inválida');
@@ -67,13 +74,19 @@ export async function POST(request: NextRequest) {
             throw new OperationError('Identificador offline inválido');
         }
         const offlineId = rawOfflineId?.trim() || null;
+        if (offlineId && !createdAt) throw new OperationError('Falta la fecha de la venta offline');
+        if (createdAt && !offlineId) throw new OperationError('Falta el identificador de la venta offline');
         const offlinePayloadHash = offlineId ? createHash('sha256').update(JSON.stringify({
             branchId, userId, paymentMethod, salesChannel,
             cashAmount: cashAmount ?? null, cardAmount: cardAmount ?? null, transferAmount: transferAmount ?? null,
-            extrasTotal: Number(extrasTotal), createdAt: createdAt ? new Date(createdAt).toISOString() : null,
+            extrasTotal: Number(extrasTotal), ...(extraModifiers !== undefined && { extraModifiers }), createdAt: createdAt ? new Date(createdAt).toISOString() : null,
             items: items.map((item: any) => ({ productId: item.productId, quantity: item.quantity,
-                unitPrice: item.unitPrice, subtotal: item.subtotal, modifiers: (item.modifiers ?? []).map((m: any) => ({
-                    modifierId: m.modifierId, quantity: m.quantity || 1, price: m.price,
+                unitPrice: item.unitPrice, subtotal: item.subtotal, ...(item.configVersion !== undefined && { configVersion: item.configVersion }),
+                ...(item.consumptionSnapshot !== undefined && { consumptionSnapshot: item.consumptionSnapshot }),
+                ...(item.offlineAuthorization !== undefined && { offlineAuthorization: item.offlineAuthorization }),
+                ...(item.comboAuthorization !== undefined && { comboAuthorization: item.comboAuthorization }),
+                ...(item.comboId !== undefined && { comboId: item.comboId, comboGroup: item.comboGroup }), modifiers: (item.modifiers ?? []).map((m: any) => ({
+                    modifierId: m.modifierId, quantity: m.quantity || 1, price: m.price, offlineAuthorization: m.offlineAuthorization,
                 })) })),
             discount: discount ? { type: discount.type, value: discount.value, authorizedBy: discount.authorizedBy ?? null } : null,
         })).digest('hex') : null;
@@ -94,43 +107,25 @@ export async function POST(request: NextRequest) {
         // Calcular total (incluye extras sueltos)
         let totalAmount = items.reduce((sum: number, item: any) => sum + (item.subtotal || 0), 0)
                         + (parseFloat(extrasTotal) || 0);
+        const preDiscountTotal = totalAmount;
         let discountAmount = 0;
         if (discount) {
+            if (!['PERCENTAGE', 'FIXED'].includes(discount.type) || !Number.isFinite(discount.value) || discount.value < 0 ||
+                (discount.type === 'PERCENTAGE' && discount.value > 100) || (discount.type === 'FIXED' && discount.value > totalAmount)) {
+                throw new OperationError('Descuento inválido');
+            }
             discountAmount = discount.type === 'PERCENTAGE'
                 ? totalAmount * (discount.value / 100)
                 : discount.value;
+            if (discountAmount > preDiscountTotal * 0.15 && !['ADMIN', 'MANAGER'].includes(access.role)) {
+                throw new OperationError('Un administrador o encargado debe realizar descuentos mayores al 15%', 403);
+            }
             totalAmount -= discountAmount;
         }
 
         // Ítems que descuentan stock — pre-calculados una sola vez
-        const stockItems = items.filter((item: any) => item.unitPrice > 0 || item.subtotal > 0);
-        const uniqueProductIds = [...new Set(stockItems.map((item: any) => item.productId as string))];
-
-        // ── RECETAS DINÁMICAS (Cocina en Vivo) ──
-        const recipes = await prisma.recipe.findMany({
-            where: { productId: { in: uniqueProductIds } },
-            include: { ingredients: { include: { ingredient: true } } }
-        });
-        const recipeMap = new Map(recipes.map(r => [r.productId, r]));
-
-        const inventoryDeductions: Record<string, { qty: number, name: string }> = {};
-
-        for (const item of stockItems) {
-            const recipe = recipeMap.get(item.productId);
-            if (recipe) {
-                // Producto ensamblado: Descontar insumos
-                for (const ing of recipe.ingredients) {
-                    const ingQty = ing.quantity * item.quantity;
-                    if (!inventoryDeductions[ing.ingredientId]) inventoryDeductions[ing.ingredientId] = { qty: 0, name: ing.ingredient.name };
-                    inventoryDeductions[ing.ingredientId].qty += ingQty;
-                }
-            } else {
-                // Producto directo sin receta
-                if (!inventoryDeductions[item.productId]) inventoryDeductions[item.productId] = { qty: 0, name: 'Producto' };
-                inventoryDeductions[item.productId].qty += item.quantity;
-            }
-        }
-        const idsToDeduct = Object.keys(inventoryDeductions);
+        const stockItems = items.filter((item: any) => item.unitPrice > 0 || item.subtotal > 0 || item.comboId);
+        const uniqueProductIds = [...new Set(items.map((item: any) => item.productId as string))];
 
         // Validación para MIXED
         if (paymentMethod === 'MIXED') {
@@ -169,11 +164,62 @@ export async function POST(request: NextRequest) {
 
                 // Iniciar la transacción
                 sale = await prisma.$transaction(async (tx) => {
+                    await validateSalePrices(tx, branchId, userId, items, extrasTotal, extraModifiers, Boolean(offlineId), createdAt ? new Date(createdAt) : undefined);
+                    const products = await tx.product.findMany({ where: { id: { in: uniqueProductIds } }, include: consumptionInclude });
+                    const productMap = new Map(products.map(p => [p.id, p]));
+                    const legacyRecipes = await tx.recipe.findMany({
+                        where: { productId: { in: products.filter(p => !p.consumptionMode).map(p => p.id) } },
+                        include: { ingredients: { include: { ingredient: true } } },
+                    });
+                    const legacyMap = new Map(legacyRecipes.map(r => [r.productId, r]));
+                    const inventoryDeductions: Record<string, { qty: number, name: string }> = {};
+                    const add = (id: string, name: string, qty: number) => {
+                        if (!inventoryDeductions[id]) inventoryDeductions[id] = { qty: 0, name };
+                        inventoryDeductions[id].qty += qty;
+                    };
+                    for (const item of stockItems) {
+                        const product = productMap.get(item.productId);
+                        if (!product) throw new OperationError('Producto no encontrado');
+                        if (!product.consumptionMode && process.env.REQUIRE_CLASSIFIED_CONSUMPTION === 'true') {
+                            throw new OperationError(`Falta configurar la preparación de ${product.name}`, 409);
+                        }
+                        if (offlineId) {
+                            try {
+                                const authorization = verifyOfflineAuthorization(item.offlineAuthorization, { kind: 'product', branchId, userId });
+                                const config = authorization?.consumptionSnapshot as ReturnType<typeof consumptionConfig>;
+                                if (!authorization || authorization.productId !== product.id || !config || item.configVersion !== authorization.configVersion ||
+                                    consumptionVersion(config!) !== authorization.configVersion) throw new OperationError(`La autorización offline de ${product.name} no es válida o venció. Requiere conciliación.`, 409);
+                                for (const deduction of calculateConsumption([{ product: config, quantity: item.quantity }])) {
+                                    add(deduction.productId, deduction.name, deduction.quantity);
+                                }
+                            } catch (error) {
+                                if (error instanceof OperationError) throw error;
+                                throw new OperationError(error instanceof Error ? error.message : 'Configuración de consumo inválida');
+                            }
+                        } else if (product.consumptionMode) {
+                            try {
+                                const config = consumptionConfig(product)!;
+                                for (const deduction of calculateConsumption([{ product: config, quantity: item.quantity }])) {
+                                    add(deduction.productId, deduction.name, deduction.quantity);
+                                }
+                            } catch (error) {
+                                if (error instanceof OperationError) throw error;
+                                throw new OperationError(error instanceof Error ? error.message : 'Configuración de consumo inválida');
+                            }
+                        } else {
+                            // Compatibilidad transitoria: los productos pendientes de clasificación conservan su comportamiento.
+                            const recipe = legacyMap.get(product.id);
+                            if (recipe) for (const ingredient of recipe.ingredients) {
+                                add(ingredient.ingredientId, ingredient.ingredient.name, ingredient.quantity * item.quantity);
+                            } else add(product.id, product.name, item.quantity);
+                        }
+                    }
+                    const idsToDeduct = Object.keys(inventoryDeductions);
                     // Validar stock en la misma transacción que lo descuenta.
                     for (const [id, data] of Object.entries(inventoryDeductions)) {
                         const inv = await tx.inventory.findUnique({ where: { branchId_productId: { branchId, productId: id } } });
-                        if ((!inv || inv.currentStock < data.qty) && !createdAt) {
-                            throw new OperationError(`Stock insuficiente para ${data.name}. Solicitado: ${data.qty.toFixed(2)}, Disponible: ${inv?.currentStock ?? 0}`);
+                        if (!inv || inv.currentStock < data.qty) {
+                            throw new OperationError(`Stock insuficiente para ${data.name}. Solicitado: ${data.qty.toFixed(2)}, Disponible: ${inv?.currentStock ?? 0}${offlineId ? '. La venta offline requiere conciliación' : ''}`, offlineId ? 409 : 400);
                         }
                     }
                     // 1. Crear la Venta (Sale)
@@ -193,6 +239,12 @@ export async function POST(request: NextRequest) {
                                     unitPrice: item.unitPrice,
                                     subtotal:  item.subtotal,
                                     discount:  0,
+                                    offlineSnapshot: offlineId ? {
+                                        product: verifyOfflineAuthorization(item.offlineAuthorization, { kind: 'product', branchId, userId }),
+                                        combo: item.comboAuthorization ? verifyOfflineAuthorization(item.comboAuthorization, { kind: 'combo', branchId, userId }) : null,
+                                        modifiers: (item.modifiers || []).map((mod: any) => verifyOfflineAuthorization(mod.offlineAuthorization,
+                                            { kind: 'modifier', branchId, userId })),
+                                    } as Prisma.InputJsonValue : undefined,
                                     modifiers: item.modifiers?.length
                                         ? { create: item.modifiers.map((mod: any) => ({
                                             modifierId: mod.modifierId,
@@ -213,7 +265,7 @@ export async function POST(request: NextRequest) {
                                 saleId: newSale.id,
                                 type:   discount.type,
                                 value:  discount.value,
-                                authorizedBy: discount.authorizedBy ?? null,
+                                authorizedBy: ['ADMIN', 'MANAGER'].includes(access.role) ? access.userId : null,
                             },
                         });
                     }

@@ -33,6 +33,18 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
+        const access = await requireBranchAccess(request, branchId, ['ADMIN', 'MANAGER', 'CASHIER']);
+        if (access instanceof NextResponse) return access;
+        if (userId !== access.userId) {
+            return NextResponse.json({ success: false, error: 'Usuario no permitido' }, { status: 403 });
+        }
+        if (sessionId && (!activeSession || activeSession.sessionStatus !== 'OPEN')) {
+            return NextResponse.json({ success: false, error: 'La sesión de caja no está abierta' }, { status: 409 });
+        }
+        const submittedActualCash = Number(actualCash ?? 0);
+        if (!Number.isFinite(submittedActualCash) || submittedActualCash < 0) {
+            return NextResponse.json({ success: false, error: 'El efectivo contado debe ser un monto válido' }, { status: 400 });
+        }
 
         // Rango del turno: desde apertura de sesión (o inicio del día si no hay sesión)
         const today = new Date();
@@ -78,8 +90,8 @@ export async function POST(request: NextRequest) {
         const cashExpenses  = cashExpAgg._sum.amount ?? 0;
 
         // ── 3. Cálculos del cierre ───────────────────────────────────────────────
-        const opening = parseFloat(openingAmount) || activeSession?.openingAmount || 0;
-        const actual  = parseFloat(actualCash) || 0;
+        const opening = activeSession ? activeSession.openingAmount : (Number(openingAmount) || 0);
+        const actual  = submittedActualCash;
 
         // Efectivo esperado = fondo apertura + ventas cobradas en efectivo - gastos pagados en efectivo
         const expectedCash = opening + cashSales - cashExpenses;

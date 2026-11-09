@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
         const body = await request.json();
         const { fromBranchId, toBranchId, requestedBy, items, notes } = body;
 
-        if (!fromBranchId || !toBranchId || !requestedBy || !items?.length) {
+        if (!fromBranchId || !toBranchId || typeof requestedBy !== 'string' || !requestedBy.trim() || !Array.isArray(items) || !items.length) {
             return NextResponse.json(
                 { success: false, error: 'Faltan campos: fromBranchId, toBranchId, requestedBy, items' },
                 { status: 400 }
@@ -73,6 +73,14 @@ export async function POST(request: NextRequest) {
 
         const access = await requireBranchAccess(request, fromBranchId);
         if (access instanceof NextResponse) return access;
+        if (items.some((item: any) => !item || typeof item.productId !== 'string' || !item.productId ||
+            !Number.isFinite(item.requestedQty) || item.requestedQty <= 0) ||
+            new Set(items.map((item: any) => item.productId)).size !== items.length) {
+            return NextResponse.json({ success: false, error: 'Revisa los productos y cantidades del pedido' }, { status: 400 });
+        }
+        const products = await prisma.product.findMany({ where: { id: { in: items.map((item: any) => item.productId) }, active: true, deletedAt: null }, select: { id: true, unit: true } });
+        if (products.length !== items.length) return NextResponse.json({ success: false, error: 'Hay productos no disponibles' }, { status: 400 });
+        const units = new Map(products.map(product => [product.id, product.unit]));
         const source = await prisma.branch.findFirst({
             where: { id: fromBranchId, type: { not: 'FABRICA' }, active: true, deletedAt: null },
             select: { id: true },
@@ -93,12 +101,15 @@ export async function POST(request: NextRequest) {
 
         // Generar número de pedido secuencial
         const year = new Date().getFullYear();
-        const count = await prisma.internalOrder.count({
-            where: { orderNumber: { startsWith: `PI-${year}-` } },
-        });
-        const orderNumber = `PI-${year}-${String(count + 1).padStart(4, '0')}`;
-
-        const order = await prisma.internalOrder.create({
+        let order: any = null;
+        for (let attempt = 0; attempt < 5; attempt++) {
+            const last = await prisma.internalOrder.findFirst({ where: { orderNumber: { startsWith: `PI-${year}-` } },
+                orderBy: { orderNumber: 'desc' }, select: { orderNumber: true } });
+            const next = last ? Number(last.orderNumber.split('-').pop()) + 1 : 1;
+            if (!Number.isSafeInteger(next) || next <= 0) throw new Error('Numeración de pedidos inválida');
+            const orderNumber = `PI-${year}-${String(next).padStart(4, '0')}`;
+            try {
+                order = await prisma.internalOrder.create({
             data: {
                 orderNumber,
                 fromBranchId,
@@ -109,7 +120,7 @@ export async function POST(request: NextRequest) {
                     create: items.map((item: any) => ({
                         productId: item.productId,
                         requestedQty: item.requestedQty,
-                        unit: item.unit || 'unit',
+                        unit: units.get(item.productId)!,
                         notes: item.notes,
                     })),
                 },
@@ -119,7 +130,13 @@ export async function POST(request: NextRequest) {
                 toBranch: { select: { id: true, name: true } },
                 items: { include: { product: { select: { name: true, sku: true } } } },
             },
-        });
+                });
+                break;
+            } catch (error: any) {
+                if (error?.code === 'P2002' && attempt < 4) continue;
+                throw error;
+            }
+        }
 
         return NextResponse.json({ success: true, data: order }, { status: 201 });
     } catch (error) {

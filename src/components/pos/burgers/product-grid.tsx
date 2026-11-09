@@ -6,7 +6,7 @@ import type { Product } from '@prisma/client';
 import { Plus, SlidersHorizontal } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
-type ProductWithPrice = Product & { customPrice?: number; currentStock?: number };
+type ProductWithPrice = Product & { customPrice?: number; currentStock?: number; consumptionError?: string | null };
 
 interface ProductGridProps {
     products: ProductWithPrice[];
@@ -29,14 +29,14 @@ export default function ProductGrid({ products, onProductAdd, onOpenModifiers }:
         {filtered.length === 0 ? <p className="rounded-xl border border-line-subtle bg-surface p-6 text-muted">No hay productos en esta categoría.</p> :
         <div className="skot-catalog-grid min-h-0 overflow-y-auto pb-2">
             {filtered.map(product => {
-                const unavailable = product.currentStock === 0;
+                const unavailable = (product.currentStock ?? 0) < 1;
                 return <article key={product.id} className={`flex min-h-[206px] min-w-0 flex-col overflow-hidden rounded-xl border border-line-subtle bg-surface ${unavailable ? 'opacity-60' : 'hover:border-brand'}`}>
                     {product.imageUrl && <div className="relative h-28 w-full bg-canvas"><Image src={product.imageUrl} alt="" fill sizes="(max-width: 768px) 100vw, 290px" className="object-cover" /></div>}
                     <div className="flex flex-1 flex-col p-4">
                         <span className="text-xs font-semibold text-muted">{product.category || 'Producto'}</span>
                         <h3 className="mt-1 break-words text-lg font-semibold leading-snug text-ink">{product.name}</h3>
                         {product.description && <p className="mt-1 line-clamp-2 text-sm text-muted">{product.description}</p>}
-                        {unavailable && <p className="mt-1 text-sm font-semibold text-danger">Sin stock</p>}
+                        {unavailable && <p className="mt-1 text-sm font-semibold text-danger">{product.consumptionError || 'Sin stock'}</p>}
                         <div className="mt-auto flex flex-wrap items-end justify-between gap-2 border-t border-line-subtle pt-4">
                             <span className="skot-display text-xl font-semibold tabular-nums">Bs. {(product.customPrice || 0).toFixed(2)}</span>
                             <div className="flex flex-wrap gap-2">

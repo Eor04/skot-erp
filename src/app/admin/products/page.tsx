@@ -2,7 +2,7 @@
 
 import { useEffect, useState, type FormEvent } from 'react';
 import Link from 'next/link';
-import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Package, Pencil, Plus, Trash2, X } from 'lucide-react';
+import { AlertCircle, ArrowLeft, CheckCircle2, Loader2, Package, PackagePlus, Pencil, Plus, Settings2, Trash2, X } from 'lucide-react';
 import { ImageUpload } from '@/components/ui/image-upload';
 import { Button } from '@/components/ui/button';
 import { Card } from '@/components/ui/card';
@@ -13,6 +13,7 @@ type Product = {
     id: string; name: string; sku: string; unit: string;
     category: string; type: string; description: string | null;
     price: number; costPrice: number; isActive: boolean; imageUrl: string | null;
+    consumptionMode: 'STOCK' | 'RECIPE' | null; saleRecipeId: string | null;
 };
 
 const CATEGORIES = ['ACAI_BASE', 'ACAI_TOPPING', 'BURGER', 'BURGER_EXTRA', 'BEVERAGE', 'RAW_MATERIAL', 'PACKAGING'];
@@ -37,6 +38,12 @@ export default function ProductsPage() {
     const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [formError, setFormError] = useState('');
     const [deleteError, setDeleteError] = useState('');
+    const [configTarget, setConfigTarget] = useState<Product | null>(null);
+    const [configMode, setConfigMode] = useState<'' | 'STOCK' | 'RECIPE'>('');
+    const [configRecipe, setConfigRecipe] = useState('');
+    const [configRecipes, setConfigRecipes] = useState<{ id: string; name: string; yield: number; yieldUnit: string }[]>([]);
+    const [configError, setConfigError] = useState('');
+    const [configLoading, setConfigLoading] = useState(false);
 
     function loadProducts() {
         setLoading(true);
@@ -56,6 +63,37 @@ export default function ProductsPage() {
         setEditingId(null);
         setForm(EMPTY_FORM);
         setShowModal(true);
+    }
+    async function openConfig(product: Product) {
+        setConfigTarget(product);
+        setConfigMode(product.consumptionMode || '');
+        setConfigRecipe(product.saleRecipeId || '');
+        setConfigError('');
+        setConfigLoading(true);
+        try {
+            const result = await fetch(`/api/factory/recipes?active=true&productId=${encodeURIComponent(product.id)}`).then(r => r.json());
+            if (!result.success) throw new Error(result.error || 'No se pudieron cargar las recetas');
+            setConfigRecipes(result.data);
+        } catch (error) { setConfigRecipes([]); setConfigError(error instanceof Error ? error.message : 'Error de conexión'); }
+        finally { setConfigLoading(false); }
+    }
+    async function saveConfig(event: FormEvent<HTMLFormElement>) {
+        event.preventDefault();
+        if (!configTarget) return;
+        setSubmitting(true);
+        setConfigError('');
+        try {
+            const response = await fetch(`/api/admin/products/${configTarget.id}/consumption`, {
+                method: 'PUT', headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ mode: configMode, recipeId: configMode === 'RECIPE' ? configRecipe : null }),
+            });
+            const result = await response.json();
+            if (!result.success) throw new Error(result.error || 'No se pudo guardar');
+            setConfigTarget(null);
+            showToast('success', `Preparación de ${configTarget.name} guardada`);
+            loadProducts();
+        } catch (error) { setConfigError(error instanceof Error ? error.message : 'Error de conexión'); }
+        finally { setSubmitting(false); }
     }
     function openEdit(product: Product) {
         setFormError('');
@@ -112,6 +150,9 @@ export default function ProductsPage() {
     });
     const uniqueCategories = [...new Set(products.map(product => product.category || product.type).filter(Boolean))];
     const productActions = (product: Product) => <div className="flex justify-end gap-1">
+        <Link href={`/inventory/internal-orders?product=${encodeURIComponent(product.id)}`} aria-label={`Abastecer ${product.name}`} title="Pedir a fábrica" className="grid h-11 w-11 place-items-center rounded-lg text-brand hover:bg-canvas"><PackagePlus size={18} aria-hidden="true" /></Link>
+        <Link href={`/admin/products/setup?product=${encodeURIComponent(product.id)}`} aria-label={`Preparar ${product.name} para venta`} title="Preparar para venta" className="grid h-11 w-11 place-items-center rounded-lg text-brand hover:bg-canvas"><Plus size={18} aria-hidden="true" /></Link>
+        <button type="button" onClick={() => openConfig(product)} aria-label={`Configurar preparación de ${product.name}`} title="Configurar preparación" className="grid h-11 w-11 place-items-center rounded-lg text-brand hover:bg-canvas"><Settings2 size={18} aria-hidden="true" /></button>
         <button type="button" onClick={() => openEdit(product)} aria-label={`Editar ${product.name}`} className="grid h-11 w-11 place-items-center rounded-lg text-brand hover:bg-canvas"><Pencil size={18} aria-hidden="true" /></button>
         <button type="button" onClick={() => { setDeleteError(''); setDeleteTarget(product); }} aria-label={`Eliminar ${product.name}`} className="grid h-11 w-11 place-items-center rounded-lg text-danger hover:bg-[var(--status-error-bg)]"><Trash2 size={18} aria-hidden="true" /></button>
     </div>;
@@ -127,7 +168,7 @@ export default function ProductsPage() {
                     <h1 className="font-display text-2xl font-semibold sm:text-3xl">Catálogo de productos</h1>
                     <p className="mt-2 text-muted">{products.length} producto{products.length === 1 ? '' : 's'} en el catálogo global</p>
                 </div>
-                <Button size="touch" onClick={openCreate}><Plus size={18} aria-hidden="true" /> Nuevo producto</Button>
+                <div className="flex flex-wrap gap-2"><Link href="/admin/products/setup" className="inline-flex min-h-12 items-center rounded-lg bg-brand px-4 font-semibold text-white">Preparar para venta</Link><Button size="touch" onClick={openCreate}><Plus size={18} aria-hidden="true" /> Nuevo producto</Button></div>
             </header>
 
             <Card className="mb-4 flex flex-wrap items-end gap-3 p-4">
@@ -145,7 +186,7 @@ export default function ProductsPage() {
                         <div className="flex items-start gap-3">
                             {product.imageUrl ? <img src={product.imageUrl} alt="" className="h-12 w-12 shrink-0 rounded-lg border border-line-subtle object-cover" />
                                 : <span className="grid h-12 w-12 shrink-0 place-items-center rounded-lg bg-[var(--status-neutral-bg)] text-brand"><Package size={20} aria-hidden="true" /></span>}
-                            <div className="min-w-0 flex-1"><h2 className="break-words font-display font-semibold">{product.name}</h2><p className="mt-1 font-mono text-xs text-muted">{product.sku}</p></div>
+                            <div className="min-w-0 flex-1"><h2 className="break-words font-display font-semibold">{product.name}</h2><p className="mt-1 font-mono text-xs text-muted">{product.sku}</p>{!product.consumptionMode && ['BURGER', 'BURGER_EXTRA', 'BEVERAGE', 'ACAI_BASE'].includes(product.type) && <p className="text-xs text-warning">Preparación pendiente</p>}</div>
                             <StatusBadge tone={product.isActive ? 'success' : 'error'}>{product.isActive ? 'Activo' : 'Inactivo'}</StatusBadge>
                         </div>
                         <div className="flex items-center justify-between gap-3"><p className="text-sm text-muted">{CAT_LABELS[product.category || product.type] || product.category || product.type} · {product.unit}</p>{productActions(product)}</div>
@@ -162,7 +203,7 @@ export default function ProductsPage() {
                             <th scope="row" className="px-4 py-3 text-left font-semibold"><span className="flex min-w-[180px] items-center gap-3">
                                 {product.imageUrl ? <img src={product.imageUrl} alt="" className="h-10 w-10 shrink-0 rounded-lg border border-line-subtle object-cover" />
                                     : <span className="grid h-10 w-10 shrink-0 place-items-center rounded-lg bg-[var(--status-neutral-bg)] text-brand"><Package size={18} aria-hidden="true" /></span>}
-                                <span className="break-words">{product.name}</span></span></th>
+                                <span className="break-words">{product.name}{!product.consumptionMode && ['BURGER', 'BURGER_EXTRA', 'BEVERAGE', 'ACAI_BASE'].includes(product.type) && <span className="block text-xs text-warning">Preparación pendiente</span>}</span></span></th>
                             <td className="px-4 py-3 font-mono text-xs text-muted">{product.sku}</td>
                             <td className="px-4 py-3"><StatusBadge>{CAT_LABELS[product.category || product.type] || product.category || product.type}</StatusBadge></td>
                             <td className="px-4 py-3">{product.unit}</td>
@@ -195,15 +236,35 @@ export default function ProductsPage() {
                         <select id="product-form-category" required value={form.category} onChange={event => setForm(previous => ({ ...previous, category: event.target.value }))} className={fieldClass}>
                             {CATEGORIES.map(category => <option key={category} value={category}>{CAT_LABELS[category] || category}</option>)}
                         </select></div>
-                    <div><label htmlFor="product-price" className="mb-1 block text-sm font-semibold">Precio venta (Bs.)</label>
-                        <input id="product-price" type="number" min="0" step="0.01" value={form.price === 0 ? '' : form.price} onChange={event => setForm(previous => ({ ...previous, price: parseFloat(event.target.value) || 0 }))} className={`${fieldClass} tabular-nums`} /></div>
-                    <div><label htmlFor="product-cost" className="mb-1 block text-sm font-semibold">Costo (Bs.)</label>
-                        <input id="product-cost" type="number" min="0" step="0.01" value={form.costPrice === 0 ? '' : form.costPrice} onChange={event => setForm(previous => ({ ...previous, costPrice: parseFloat(event.target.value) || 0 }))} className={`${fieldClass} tabular-nums`} /></div>
+                    <p className="sm:col-span-2 text-sm text-muted">Los precios de venta se definen para cada sucursal.</p>
                     <div className="sm:col-span-2"><label htmlFor="product-description" className="mb-1 block text-sm font-semibold">Descripción</label>
                         <textarea id="product-description" rows={2} placeholder="Descripción opcional…" value={form.description} onChange={event => setForm(previous => ({ ...previous, description: event.target.value }))} className={`${fieldClass} resize-y`} /></div>
                 </div>
                 <div className="flex flex-wrap gap-3 border-t border-line-subtle pt-4"><Button variant="secondary" onClick={() => setShowModal(false)} disabled={submitting} className="flex-1">Cancelar</Button>
                     <Button type="submit" disabled={submitting} className="flex-1">{submitting ? 'Guardando…' : editingId ? 'Guardar cambios' : 'Crear producto'}</Button></div>
+            </form>
+        </Dialog>
+
+        <Dialog open={Boolean(configTarget)} onClose={() => { if (!submitting) setConfigTarget(null); }} labelledBy="consumption-title" className="max-w-lg">
+            <form onSubmit={saveConfig} className="space-y-4 p-5">
+                <h2 id="consumption-title" className="font-display text-xl font-semibold">Preparación: {configTarget?.name}</h2>
+                <p className="text-sm text-muted">Elige qué existencias debe descontar cada venta en la sucursal.</p>
+                {configError && <p role="alert" className="text-danger">{configError}</p>}
+                <label className="block"><span className="mb-1 block font-semibold">Forma de venta</span>
+                    <select required value={configMode} onChange={e => setConfigMode(e.target.value as '' | 'STOCK' | 'RECIPE')} className={fieldClass}>
+                        <option value="">Seleccionar</option>
+                        <option value="STOCK">Vendo unidades en stock</option>
+                        <option value="RECIPE">Se prepara al vender con ingredientes</option>
+                    </select>
+                </label>
+                {configMode === 'RECIPE' && <label className="block"><span className="mb-1 block font-semibold">Receta de venta</span>
+                    <select required value={configRecipe} disabled={configLoading} onChange={e => setConfigRecipe(e.target.value)} className={fieldClass}>
+                        <option value="">Seleccionar receta</option>
+                        {configRecipes.map(r => <option key={r.id} value={r.id}>{r.name} · rinde {r.yield} {r.yieldUnit}</option>)}
+                    </select><Link href="/factory/recipes/new" className="mt-2 inline-block text-brand underline">Crear receta</Link>
+                </label>}
+                <p className="text-sm text-muted">Sincroniza las ventas pendientes en las cajas antes de cambiar esta configuración.</p>
+                <div className="flex flex-wrap justify-end gap-2"><Button type="button" variant="secondary" onClick={() => setConfigTarget(null)} disabled={submitting}>Cancelar</Button><Button type="submit" disabled={submitting || configLoading}>Guardar preparación</Button></div>
             </form>
         </Dialog>
 

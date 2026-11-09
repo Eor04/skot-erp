@@ -32,7 +32,7 @@ export function useBurgerSale(branchId: string) {
     const addToCart = useCallback((product: Product, modifiers: ProductModifier[] = []) => {
         setCart((prev) => {
             const currentTotalQty = prev.filter(i => i.product.id === product.id).reduce((s, i) => s + i.quantity, 0);
-            const maxStock = (product as any).currentStock ?? Infinity;
+            const maxStock = Math.floor((product as any).currentStock ?? Infinity);
 
             if (currentTotalQty >= maxStock) {
                 return prev; // Stop adding
@@ -85,7 +85,7 @@ export function useBurgerSale(branchId: string) {
         setCart((prev) => {
             const item = prev[index];
             const otherItemsQty = prev.filter((i, idx) => idx !== index && i.product.id === item.product.id).reduce((s, i) => s + i.quantity, 0);
-            const maxStock = (item.product as any).currentStock ?? Infinity;
+            const maxStock = Math.floor((item.product as any).currentStock ?? Infinity);
 
             let finalQty = quantity;
             if (otherItemsQty + quantity > maxStock) {

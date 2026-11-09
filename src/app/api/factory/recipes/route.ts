@@ -3,6 +3,8 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
+import { calculateConsumption } from '@/lib/inventory-consumption';
 
 // GET: Listar todas las recetas
 export async function GET(request: NextRequest) {
@@ -62,6 +64,8 @@ export async function GET(request: NextRequest) {
 // POST: Crear nueva receta
 export async function POST(request: NextRequest) {
     try {
+        const access = await requireBranchAccess(request, null, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
+        if (access instanceof NextResponse) return access;
         const body = await request.json();
         const {
             name,
@@ -75,7 +79,7 @@ export async function POST(request: NextRequest) {
         } = body;
 
         // Validaciones
-        if (!name || !productId || !recipeYield || !yieldUnit || !ingredients || ingredients.length === 0) {
+        if (!name || !productId || !Number.isFinite(recipeYield) || recipeYield <= 0 || !yieldUnit || !Array.isArray(ingredients) || ingredients.length === 0) {
             return NextResponse.json(
                 {
                     success: false,
@@ -83,6 +87,23 @@ export async function POST(request: NextRequest) {
                 },
                 { status: 400 }
             );
+        }
+
+        const product = await prisma.product.findUnique({ where: { id: productId } });
+        const ingredientIds: string[] = ingredients.map((i: any) => i.ingredientId);
+        if (ingredientIds.some(id => typeof id !== 'string' || !id)) return NextResponse.json({ success: false, error: 'Ingredientes inválidos' }, { status: 400 });
+        const available = await prisma.product.findMany({ where: { id: { in: ingredientIds }, active: true, deletedAt: null } });
+        if (!product || !product.active || product.deletedAt || available.length !== new Set(ingredientIds).size || new Set(ingredientIds).size !== ingredientIds.length) {
+            return NextResponse.json({ success: false, error: 'Producto o ingredientes inválidos' }, { status: 400 });
+        }
+        const ingredientMap = new Map(available.map(i => [i.id, i]));
+        try {
+            calculateConsumption([{ quantity: 1, product: { id: product.id, name: product.name, unit: product.unit,
+                mode: 'RECIPE', recipe: { productId, yield: recipeYield, yieldUnit,
+                    ingredients: ingredients.map((i: any) => ({ id: i.ingredientId, name: ingredientMap.get(i.ingredientId)!.name,
+                        quantity: i.quantity, unit: i.unit, inventoryUnit: ingredientMap.get(i.ingredientId)!.unit })) } } }]);
+        } catch (error) {
+            return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Receta inválida' }, { status: 400 });
         }
 
         // Crear receta con ingredientes

@@ -28,6 +28,9 @@ interface ApiProduct {
     customPrice: number;
     pricePerKg: number;
     currentStock: number;
+    configVersion?: string | null;
+    consumptionSnapshot?: unknown;
+    offlineAuthorization?: string | null;
 }
 
 const STEPS: { key: Step; label: string }[] = [
@@ -90,6 +93,7 @@ export default function AcaiPOSPage() {
 
     const loadProducts = useCallback(async (silent = false) => {
         if (!branchId) return;
+        const cacheScope = `${branchId}-${userId || 'guest'}`;
         if (!silent) setIsLoading(true);
         try {
             const r = await fetch(`/api/pos/products?branchId=${branchId}&type=ACAI`);
@@ -99,19 +103,19 @@ export default function AcaiPOSPage() {
                 const b = d.data.filter((p: ApiProduct) => p.type === 'BEVERAGE');
                 setFlavors(f);
                 setBeverages(b);
-                localStorage.setItem('pos-acai-flavors', JSON.stringify(f));
-                localStorage.setItem('pos-acai-beverages', JSON.stringify(b));
+                localStorage.setItem(`pos-acai-flavors-${cacheScope}`, JSON.stringify(f));
+                localStorage.setItem(`pos-acai-beverages-${cacheScope}`, JSON.stringify(b));
             }
         } catch (e) {
             console.error('Error cargando Açaí, usando caché:', e);
-            const cachedF = localStorage.getItem('pos-acai-flavors');
-            const cachedB = localStorage.getItem('pos-acai-beverages');
+            const cachedF = localStorage.getItem(`pos-acai-flavors-${cacheScope}`);
+            const cachedB = localStorage.getItem(`pos-acai-beverages-${cacheScope}`);
             if (cachedF) setFlavors(JSON.parse(cachedF));
             if (cachedB) setBeverages(JSON.parse(cachedB));
         } finally {
             if (!silent) setIsLoading(false);
         }
-    }, [branchId]);
+    }, [branchId, userId]);
 
     // Cargar productos
     useEffect(() => {
@@ -146,10 +150,11 @@ export default function AcaiPOSPage() {
         setIsSyncing(true);
         const res = await syncOfflineQueue();
         setIsSyncing(false);
-        if (res.synced > 0) {
+        if (res.errors > 0) {
+            const details = [...new Set(getOfflineQueue().filter(s => s.status === 'failed').map(s => s.errorMessage).filter(Boolean))].join(' | ');
+            notify('error', `No se pudieron sincronizar ${res.errors} ventas. ${details}`);
+        } else if (res.synced > 0) {
             notify('success', `¡Se sincronizaron ${res.synced} ventas offline exitosamente!`);
-        } else if (res.errors > 0) {
-            notify('error', `Hubo ${res.errors} errores al sincronizar ventas offline.`);
         }
     };
 
@@ -180,22 +185,14 @@ export default function AcaiPOSPage() {
                 : cart.flavors[0]?.product.name ?? '';
 
             const items = [
-                // Bowl (sabor(es) × peso) — solo si hay bowl
-                ...(hasBowl && cart.weightConfirmed ? [{
-                    productId: cart.flavors[0].product.id,   // primer sabor como referencia
-                    quantity:  cart.totalWeight,              // kg
-                    unitPrice: cart.effectivePricePerKg,
-                    subtotal:  cart.bowlSubtotal,
-                }] : []),
-                // Sabores adicionales (mixto, precio 0, solo ticket)
-                ...(cart.isMixto && cart.flavors.length > 1
-                    ? cart.flavors.slice(1).map(f => ({
-                        productId: f.product.id,
-                        quantity:  1,
-                        unitPrice: 0,
-                        subtotal:  0,
-                    }))
-                    : []),
+                // Un bowl mixto distribuye peso y precio en partes iguales.
+                ...(hasBowl && cart.weightConfirmed ? cart.flavors.map((f, index) => {
+                    const share = Math.floor(Math.round(cart.bowlSubtotal * 100) / cart.flavors.length) / 100;
+                    return { productId: f.product.id, quantity: cart.totalWeight / cart.flavors.length,
+                        unitPrice: cart.effectivePricePerKg,
+                        subtotal: index === cart.flavors.length - 1
+                            ? Math.round((cart.bowlSubtotal - share * index) * 100) / 100 : share };
+                }) : []),
 
                 // Extras a precio fijo
                 ...cart.extras.map(e => ({
@@ -213,13 +210,17 @@ export default function AcaiPOSPage() {
             const changeVal = Math.max(0, cashVal + cardVal + transferVal - cart.total);
             const actualCash = Math.max(0, cashVal - changeVal);
 
+            const versionedItems = items.map(item => ({ ...item,
+                configVersion: [...flavors, ...beverages].find(p => p.id === item.productId)?.configVersion,
+                consumptionSnapshot: [...flavors, ...beverages].find(p => p.id === item.productId)?.consumptionSnapshot,
+                offlineAuthorization: [...flavors, ...beverages].find(p => p.id === item.productId)?.offlineAuthorization }));
             const payload = {
                 branchId, userId,
                 paymentMethod: selectedPayment,
                 cashAmount: selectedPayment === 'CASH' || selectedPayment === 'MIXED' ? actualCash || (selectedPayment === 'CASH' ? cart.total : 0) : undefined,
                 cardAmount: selectedPayment === 'CARD' || selectedPayment === 'MIXED' ? cardVal || (selectedPayment === 'CARD' ? cart.total : 0) : undefined,
                 transferAmount: selectedPayment === 'TRANSFER' || selectedPayment === 'MIXED' ? transferVal || (selectedPayment === 'TRANSFER' ? cart.total : 0) : undefined,
-                items,
+                items: versionedItems,
             };
 
             let isOffline = false;
@@ -233,6 +234,10 @@ export default function AcaiPOSPage() {
                 });
                 data = await res.json();
             } catch (err) {
+                if (versionedItems.some(item => !item.offlineAuthorization)) {
+                    notify('error', 'No se puede guardar esta venta sin conexión. Actualiza el catálogo con internet y verifica la clave de autorización offline.');
+                    return;
+                }
                 isOffline = true;
                 const offlineSale = saveToOfflineQueue({
                     createdAt: new Date().toISOString(),
@@ -489,7 +494,7 @@ export default function AcaiPOSPage() {
                                         ? 'border-brand bg-brand text-white'
                                         : 'border-line bg-surface text-ink hover:bg-canvas'}`}
                                 >
-                                    Mixto (varios sabores)
+                                    Mixto (partes iguales)
                                 </button>
                             </div>
 
@@ -694,7 +699,8 @@ export default function AcaiPOSPage() {
                                                 key={p.id}
                                                 disabled={isDisabled}
                                                 aria-pressed={Boolean(inCart)}
-                                                onClick={() => addExtra({ id: p.id, name: p.name, type: p.type, price: p.customPrice, currentStock: p.currentStock })}
+                                                onClick={() => addExtra({ id: p.id, name: p.name, type: p.type, price: p.customPrice, currentStock: p.currentStock,
+                                                    configVersion: p.configVersion, consumptionSnapshot: p.consumptionSnapshot, offlineAuthorization: p.offlineAuthorization })}
                                                 className={`relative min-h-32 min-w-0 overflow-hidden rounded-xl border p-4 text-left disabled:cursor-not-allowed disabled:opacity-60 ${inCart
                                                     ? 'border-brand bg-[var(--status-neutral-bg)] text-ink'
                                                     : 'border-line-subtle bg-surface text-ink hover:border-brand'}`}

@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Package, Clock, CheckCircle2, Truck, XCircle, AlertCircle, ChevronDown, ChevronUp, X, ThumbsUp, ThumbsDown, PackageCheck } from 'lucide-react';
 import { useSession } from '@/lib/session-context';
@@ -58,7 +58,10 @@ export default function InternalOrdersPage() {
     const [submitting, setSubmitting] = useState(false);
     const [actionLoading, setActionLoading] = useState<string | null>(null);
     const [editedQuantities, setEditedQuantities] = useState<Record<string, number>>({});
+    const [receivedQuantities, setReceivedQuantities] = useState<Record<string, number>>({});
     const [productSearch, setProductSearch] = useState('');
+    const [prefillNote, setPrefillNote] = useState('');
+    const prefilledProduct = useRef(false);
 
     const [form, setForm] = useState({
         fromBranchId: '',
@@ -88,7 +91,22 @@ export default function InternalOrdersPage() {
             } else {
                 setFactoriesError(factoriesData.error || 'No se pudieron cargar las fábricas');
             }
-            if (productsData.success) setProducts(productsData.data);
+            if (productsData.success) {
+                setProducts(productsData.data);
+                const productId = new URLSearchParams(window.location.search).get('product');
+                if (productId && !prefilledProduct.current) {
+                    prefilledProduct.current = true;
+                    fetch(`/api/inventory/internal-orders/prefill?productId=${encodeURIComponent(productId)}`).then(r => r.json()).then(prefill => {
+                        if (!prefill.success) throw new Error(prefill.error || 'No se pudo preparar el pedido');
+                        setForm(f => ({ ...f, items: prefill.data.items }));
+                        setPrefillNote(prefill.data.mode === 'RECIPE'
+                            ? `Se cargaron los ingredientes para 1 unidad de ${prefill.data.productName}. Ajusta las cantidades al abastecimiento que necesitas.`
+                            : prefill.data.mode === 'UNCLASSIFIED'
+                                ? 'Este producto aún no tiene preparación clasificada; el pedido se cargó como stock del producto. Revisa su configuración antes de abastecer.' : '');
+                        setShowModal(true);
+                    }).catch(error => showToast('error', error instanceof Error ? error.message : 'No se pudo preparar el pedido'));
+                }
+            }
             // Pre-rellenar formulario para cajeros
             if (!isAdmin && branchId) {
                 setForm(f => ({
@@ -119,7 +137,7 @@ export default function InternalOrdersPage() {
                         receivedBy: user?.userId ?? 'admin',
                         items: order.items.map(i => ({
                             itemId: i.id,
-                            receivedQty: i.dispatchedQty ?? i.requestedQty,
+                            receivedQty: receivedQuantities[`${orderId}_${i.id}`] ?? i.dispatchedQty ?? 0,
                         })),
                     }),
                 });
@@ -203,7 +221,8 @@ export default function InternalOrdersPage() {
     function updateItem(idx: number, field: string, value: any) {
         setForm(f => ({
             ...f,
-            items: f.items.map((item, i) => i === idx ? { ...item, [field]: value } : item),
+            items: f.items.map((item, i) => i === idx ? { ...item, [field]: value,
+                ...(field === 'productId' ? { unit: products.find(p => p.id === value)?.unit || 'unit' } : {}) } : item),
         }));
     }
 
@@ -226,6 +245,7 @@ export default function InternalOrdersPage() {
                 showToast('success', `Pedido ${data.data.orderNumber} creado`);
                 setShowModal(false);
                 setForm({ fromBranchId: !isAdmin ? user?.branchIds?.[0] || '' : '', toBranchId: '', requestedBy: !isAdmin ? user?.name || '' : '', notes: '', items: [{ productId: '', requestedQty: 1, unit: 'unit' }] });
+                setPrefillNote('');
             } else {
                 showToast('error', data.error || 'Error al crear pedido');
             }
@@ -276,22 +296,22 @@ export default function InternalOrdersPage() {
                             return (
                                 <div key={order.id} className="bg-surface rounded-2xl shadow-sm border border-line-subtle">
                                     <div
-                                        className="flex items-center justify-between p-5 cursor-pointer"
+                                        className="flex min-w-0 flex-wrap items-center justify-between gap-3 p-5 cursor-pointer"
                                         onClick={() => setExpanded(isExpanded ? null : order.id)}
                                     >
-                                        <div className="flex items-center gap-4">
-                                            <div className="text-center">
-                                                <p className="font-mono font-bold text-ink text-sm">{order.orderNumber}</p>
+                                        <div className="flex min-w-0 flex-wrap items-center gap-4">
+                                            <div className="min-w-0 text-center">
+                                                <p className="break-all font-mono font-bold text-ink text-sm">{order.orderNumber}</p>
                                                 <p className="text-xs text-muted">{new Date(order.requestedAt).toLocaleDateString('es')}</p>
                                             </div>
-                                            <div>
-                                                <p className="font-medium text-ink text-sm">
+                                            <div className="min-w-0">
+                                                <p className="break-words font-medium text-ink text-sm">
                                                     {order.fromBranch.name} → {order.toBranch.name}
                                                 </p>
                                                 <p className="text-xs text-muted">Solicitado por: {order.requestedBy}</p>
                                             </div>
                                         </div>
-                                        <div className="flex items-center gap-3">
+                                        <div className="flex flex-wrap items-center gap-3">
                                             <span className={`flex items-center gap-1 text-xs font-semibold px-2.5 py-1 rounded-full ${config.color}`}>
                                                 {config.icon} {config.label}
                                             </span>
@@ -346,7 +366,7 @@ export default function InternalOrdersPage() {
                                                             </select>
                                                         </div>
                                                     )}
-                                                    <table className="w-full text-sm">
+                                                    <div className="overflow-x-auto"><table className="w-full min-w-[720px] text-sm">
                                                         <thead>
                                                             <tr className="text-left text-xs text-muted font-semibold">
                                                                 <th className="pb-2">Producto</th>
@@ -394,7 +414,14 @@ export default function InternalOrdersPage() {
                                                                         item.dispatchedQty ?? '—'
                                                                     )}
                                                                 </td>
-                                                                <td className="py-2 text-ink">{item.receivedQty ?? '—'}</td>
+                                                                <td className="py-2 text-ink">{canReceive && order.status === 'DISPATCHED' ? (
+                                                                    <input type="number" min="0" max={item.dispatchedQty ?? 0} step="0.01"
+                                                                        aria-label={`Cantidad recibida de ${item.product.name}`}
+                                                                        className="w-20 rounded-lg border border-line bg-surface px-2 py-1 text-xs text-ink"
+                                                                        value={receivedQuantities[`${order.id}_${item.id}`] ?? item.dispatchedQty ?? 0}
+                                                                        onChange={e => setReceivedQuantities(prev => ({ ...prev, [`${order.id}_${item.id}`]: e.target.value === '' ? 0 : Number(e.target.value) }))}
+                                                                        onClick={e => e.stopPropagation()} />
+                                                                ) : item.receivedQty ?? '—'}</td>
                                                                 <td className="py-2 text-right">
                                                                     <span className={`text-xs font-semibold px-2 py-1 rounded-md ${item.currentFactoryStock < (item.approvedQty ?? item.requestedQty) ? 'bg-[var(--status-error-bg)] text-danger border border-red-200' : 'bg-emerald-50 text-emerald-600 border border-emerald-200'}`}>
                                                                         {item.currentFactoryStock} {item.unit}
@@ -403,7 +430,7 @@ export default function InternalOrdersPage() {
                                                             </tr>
                                                     ))}
                                                 </tbody>
-                                            </table>
+                                            </table></div>
                                             {order.notes && (
                                                 <p className="text-xs text-muted mt-3 bg-surface rounded-lg px-3 py-2"> {order.notes}</p>
                                             )}
@@ -427,6 +454,7 @@ export default function InternalOrdersPage() {
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            {prefillNote && <p role="note" className="rounded-lg border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">{prefillNote}</p>}
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                                 <div>
                                     <label className="block text-sm font-semibold text-ink mb-1.5">Sucursal solicitante *</label>
@@ -478,10 +506,7 @@ export default function InternalOrdersPage() {
                                         <input type="number" min="0.01" step="0.01" value={item.requestedQty === 0 ? '' : item.requestedQty}
                                             onChange={e => updateItem(idx, 'requestedQty', parseFloat(e.target.value))}
                                             className="w-20 bg-surface text-ink border border-line rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300" />
-                                        <select value={item.unit} onChange={e => updateItem(idx, 'unit', e.target.value)}
-                                            className="w-20 bg-surface text-ink border border-line rounded-lg px-2 py-2 text-xs focus:outline-none focus:ring-1 focus:ring-blue-300">
-                                            {['unit', 'kg', 'gr', 'litro', 'ml', 'bolsa'].map(u => <option key={u} className="bg-surface text-ink">{u}</option>)}
-                                        </select>
+                                        <span className="w-20 text-xs text-muted">{item.unit}</span>
                                         {form.items.length > 1 && (
                                             <button type="button" onClick={() => removeItem(idx)} className="text-danger hover:text-danger">
                                                 <X className="h-4 w-4" />

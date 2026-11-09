@@ -4,6 +4,8 @@ export const dynamic = 'force-dynamic';
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { requireBranchAccess } from '@/lib/branch-access';
+import { serializableTransaction } from '@/lib/transaction';
+import { randomUUID } from 'node:crypto';
 
 /**
  * POST /api/inventory/receiving
@@ -30,13 +32,19 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
+        const access = await requireBranchAccess(request, branchId, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
+        if (access instanceof NextResponse) return access;
+        if (receivedBy !== access.userId) return NextResponse.json({ success: false, error: 'Usuario no permitido' }, { status: 403 });
+        if (items.some((item: any) => !item?.productId || !Number.isFinite(Number(item.quantity)) || Number(item.quantity) <= 0)) {
+            return NextResponse.json({ success: false, error: 'Todos los productos deben tener una cantidad válida' }, { status: 400 });
+        }
 
         const ref = invoiceRef
             ? `REC-${invoiceRef.toUpperCase().replace(/\s+/g, '-')}`
-            : `REC-${Date.now()}`;
+            : `REC-${Date.now()}-${randomUUID().slice(0, 8)}`;
 
         // Procesar cada ítem en una única transacción
-        const results = await prisma.$transaction(async (tx) => {
+        const results = await serializableTransaction(async (tx) => {
             const movements = [];
 
             for (const item of items) {

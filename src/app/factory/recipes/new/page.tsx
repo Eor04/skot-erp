@@ -5,7 +5,6 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { ArrowLeft, Plus, X, Save, AlertCircle, Trash2 } from 'lucide-react';
 import { SearchableSelect } from '@/components/ui/searchable-select';
-import { isRawMaterial } from '@/lib/recipe-product-options';
 
 type Product = {
     id: string;
@@ -14,6 +13,7 @@ type Product = {
     unit: string;
     type: string;
     category: string | null;
+    isActive: boolean;
 };
 
 export default function NewRecipePage() {
@@ -39,7 +39,7 @@ export default function NewRecipePage() {
             .then(res => res.json())
             .then(data => {
                 if (data.success) {
-                    setProducts(data.data);
+                    setProducts(data.data.filter((p: Product) => p.isActive));
                 }
             })
             .catch(() => setError('Error al cargar productos'))
@@ -152,9 +152,9 @@ export default function NewRecipePage() {
                             <div>
                                 <label htmlFor="recipe-product" className="block text-sm font-semibold text-ink mb-2">Producto resultante *</label>
                                 <SearchableSelect id="recipe-product"
-                                    options={products.filter(p => !isRawMaterial(p)).map(p => ({ value: p.id, label: `${p.name} (${p.unit})` }))}
+                                    options={products.map(p => ({ value: p.id, label: `${p.name} (${p.unit})` }))}
                                     value={form.productId}
-                                    onChange={val => setForm(f => ({ ...f, productId: val }))}
+                                    onChange={val => setForm(f => ({ ...f, productId: val, yieldUnit: products.find(p => p.id === val)?.unit || f.yieldUnit }))}
                                     placeholder="Seleccionar producto..."
                                     required
                                 />
@@ -210,7 +210,7 @@ export default function NewRecipePage() {
                                         <div className="col-span-2 min-w-0 sm:col-span-1">
                                             <label htmlFor={`ingredient-product-${i}`} className="block text-xs font-semibold text-muted mb-1">Insumo / Materia prima</label>
                                             <SearchableSelect id={`ingredient-product-${i}`}
-                                                options={products.filter(isRawMaterial).map(p => ({ value: p.id, label: `${p.name} (${p.unit})` }))}
+                                                options={products.filter(p => p.id !== form.productId).map(p => ({ value: p.id, label: `${p.name} (${p.unit})` }))}
                                                 value={ing.ingredientId}
                                                 onChange={val => handleIngredientChange(i, 'ingredientId', val)}
                                                 placeholder="Buscar ingrediente..."

@@ -8,9 +8,10 @@ import { PlayCircle, Plus, ArrowLeft, Clock, CheckCircle, Loader, X, AlertCircle
 type Order = {
     id: string;
     orderNumber: string;
-    recipe: { name?: string; product?: { name: string; type: string } };
+    recipe: { name?: string; product?: { id: string; name: string; type: string } };
     plannedYield: number;
-    branch: { name: string };
+    branch: { id: string; name: string };
+    actualYield?: number | null;
     status: string;
     createdAt: string;
 };
@@ -103,7 +104,7 @@ export default function ProductionPage() {
         if (!completingOrder) return;
         setSubmitting(true);
         try {
-            const res = await fetch(`/api/factory/production/${completingOrder.id}/complete`, { 
+            const res = await fetch(`/api/factory/production/${completingOrder.id}/complete`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify(completeForm)
@@ -199,6 +200,9 @@ export default function ProductionPage() {
                                                      Completar
                                                 </button>
                                             )}
+                                            {order.status === 'COMPLETED' && order.recipe?.product?.id && <Link
+                                                href={`/inventory/transfers/request?from=${encodeURIComponent(order.branch.id)}&product=${encodeURIComponent(order.recipe.product.id)}&qty=${encodeURIComponent(String(order.actualYield || 0))}`}
+                                                className="rounded-lg border border-brand px-3 py-1.5 text-xs font-semibold text-brand">Preparar envío</Link>}
                                         </div>
                                     </div>
                                 </div>

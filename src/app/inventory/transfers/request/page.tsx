@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Trash2, Send, Loader2, CheckCircle, AlertCircle } from 'lucide-react';
 import { useSession } from '@/lib/session-context';
@@ -10,12 +10,15 @@ interface Product { id: string; name: string; sku: string; unit: string; current
 interface TransferItem { productId: string; productName: string; requestedQty: number; unit: string; }
 
 export default function TransferRequestPage() {
-    const { user } = useSession();
+    const { user, loading: sessionLoading } = useSession();
     const [branches, setBranches] = useState<Branch[]>([]);
     const [products, setProducts] = useState<Product[]>([]);
     const [items, setItems] = useState<TransferItem[]>([]);
     const [notification, setNotification] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [submitting, setSubmitting] = useState(false);
+    const [outgoing, setOutgoing] = useState(false);
+    const [readiness, setReadiness] = useState<Record<string, string>>({});
+    const loadedForUser = useRef<string | null>(null);
 
     const [form, setForm] = useState({
         myBranchId: '',      // sucursal que RECIBE (la del usuario)
@@ -29,33 +32,69 @@ export default function TransferRequestPage() {
     const [productSearch, setProductSearch] = useState('');
 
     useEffect(() => {
-        loadBranches();
-    }, [user]);
+        if (!sessionLoading && user && loadedForUser.current !== user.userId) {
+            loadedForUser.current = user.userId;
+            loadBranches();
+        }
+    }, [sessionLoading, user?.userId]);
+
+    useEffect(() => {
+        if (!form.fromBranchId || !form.myBranchId || !items.length || form.fromBranchId === form.myBranchId) {
+            setReadiness({});
+            return;
+        }
+        const controller = new AbortController();
+        const params = new URLSearchParams({ fromBranchId: form.fromBranchId, toBranchId: form.myBranchId });
+        for (const item of items) params.append('productId', item.productId);
+        fetch(`/api/inventory/transfer-readiness?${params}`, { signal: controller.signal })
+            .then(response => response.json())
+            .then(result => {
+                if (result.success) setReadiness(Object.fromEntries(result.data.map((row: { productId: string; reason: string }) => [row.productId, row.reason])));
+                else setReadiness({});
+            }).catch(error => { if (error.name !== 'AbortError') setReadiness({}); });
+        return () => controller.abort();
+    }, [form.fromBranchId, form.myBranchId, items]);
 
     const loadBranches = async () => {
-        const res = await fetch('/api/branches');
+        const params = new URLSearchParams(window.location.search);
+        const source = params.get('from');
+        const outgoingRequest = Boolean(source);
+        setOutgoing(outgoingRequest);
+        const res = await fetch(source ? `/api/inventory/transfer-destinations?fromBranchId=${encodeURIComponent(source)}` : '/api/branches');
         const d = await res.json();
         if (d.success) {
             setBranches(d.data);
             // Pre-seleccionar la primera sucursal del usuario como destino
-            if (user?.branchIds?.[0]) {
+            if (source) {
+                setForm(f => ({ ...f, myBranchId: '', fromBranchId: source }));
+                await loadProducts(source, params.get('product'), Number(params.get('qty')));
+            } else if (user?.branchIds?.[0]) {
                 setForm(f => ({ ...f, myBranchId: user.branchIds[0] }));
             }
+        } else {
+            showNotification('error', d.error || 'No se pudieron cargar las sucursales');
         }
     };
 
-    const loadProducts = async (branchId: string) => {
+    const loadProducts = async (branchId: string, initialProduct?: string | null, initialQty?: number) => {
         if (!branchId) return;
-        const res = await fetch(`/api/inventory/stock?branchId=${branchId}`);
+        const res = await fetch(`/api/inventory/stock?branchId=${encodeURIComponent(branchId)}&limit=10000`);
         const d = await res.json();
         if (d.success) {
-            setProducts(d.data.map((s: any) => ({
+            const loaded: Product[] = d.data.map((s: any) => ({
                 id: s.productId,
                 name: s.product.name,
                 sku: s.product.sku,
                 unit: s.product.unit,
                 currentStock: s.currentStock,
-            })));
+            }));
+            setProducts(loaded);
+            const product = loaded.find(p => p.id === initialProduct);
+            if (product && initialQty && initialQty > 0 && product.currentStock > 0) setItems([{
+                productId: product.id, productName: product.name, unit: product.unit,
+                requestedQty: Math.min(initialQty, product.currentStock),
+            }]);
+            if (product && initialQty && product.currentStock < initialQty) showNotification('error', 'La cantidad precargada se ajustó al stock disponible en origen.');
         }
     };
 
@@ -121,10 +160,11 @@ export default function TransferRequestPage() {
             const data = await res.json();
 
             if (data.success) {
-                showNotification('success', `Solicitud ${data.data.transferNumber} enviada al administrador`);
+                showNotification('success', `Transferencia ${data.data.transferNumber} creada y pendiente de despacho`);
                 setItems([]);
-                setForm(f => ({ ...f, fromBranchId: '', notes: '' }));
-                setProducts([]);
+                setForm(f => ({ ...f, fromBranchId: outgoing ? f.fromBranchId : '', notes: '' }));
+                if (outgoing) loadProducts(form.fromBranchId);
+                else setProducts([]);
             } else {
                 showNotification('error', data.error || 'Error al enviar la solicitud');
             }
@@ -154,8 +194,9 @@ export default function TransferRequestPage() {
                     <Link href="/inventory/transfers" className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-2">
                         <ArrowLeft className="h-4 w-4" /> Transferencias
                     </Link>
-                    <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink">Solicitar transferencia</h1>
-                    <p className="text-muted mt-1">Solicitá productos de otra sucursal o de la fábrica</p>
+                    <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink">{outgoing ? 'Preparar envío' : 'Solicitar transferencia'}</h1>
+                    <p className="text-muted mt-1">{outgoing ? 'Elige la sucursal que recibirá el envío' : 'Solicitá productos de otra sucursal o de la fábrica'}</p>
+                    {!outgoing && <p className="mt-2 text-sm text-muted">Para pedir insumos a fábrica también puedes usar <Link className="text-brand underline" href="/inventory/internal-orders">pedidos internos</Link>.</p>}
                 </div>
 
                 <form onSubmit={handleSubmit} className="space-y-6">
@@ -165,13 +206,13 @@ export default function TransferRequestPage() {
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div>
                                 <label className="block text-sm font-semibold text-ink mb-1.5">
-                                    Mi sucursal (recibe) *
+                                    Sucursal de destino (recibe) *
                                 </label>
                                 <select
                                     aria-label="Mi sucursal que recibe"
                                     value={form.myBranchId}
                                     onChange={e => setForm(f => ({ ...f, myBranchId: e.target.value }))}
-                                    disabled={!!(user?.branchIds?.[0] && user.role !== 'ADMIN')}
+                                    disabled={!outgoing && !!(user?.branchIds?.[0] && user.role !== 'ADMIN')}
                                     className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-surface"
                                 >
                                     <option value="" className="bg-surface text-ink">-- Seleccioná --</option>
@@ -186,6 +227,7 @@ export default function TransferRequestPage() {
                                     aria-label="Sucursal de origen que provee"
                                     value={form.fromBranchId}
                                     onChange={e => handleFromBranchChange(e.target.value)}
+                                    disabled={outgoing}
                                     className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
                                 >
                                     <option value="" className="bg-surface text-ink">-- Seleccioná --</option>
@@ -222,10 +264,10 @@ export default function TransferRequestPage() {
                         ) : (
                             <>
                                 <div className="flex flex-wrap gap-3 mb-4">
-                                    <ProductCombobox 
-                                        products={products} 
-                                        value={selectedProduct} 
-                                        onChange={setSelectedProduct} 
+                                    <ProductCombobox
+                                        products={products}
+                                        value={selectedProduct}
+                                        onChange={setSelectedProduct}
                                     />
                                     <input
                                         aria-label="Cantidad a solicitar"
@@ -252,6 +294,12 @@ export default function TransferRequestPage() {
                                                 <div>
                                                     <p className="font-semibold text-sm text-ink">{item.productName}</p>
                                                     <p className="text-xs text-muted">{item.requestedQty} {item.unit}</p>
+                                                    {readiness[item.productId] && <p className="mt-1 text-xs text-warning">
+                                                        {readiness[item.productId]}.{' '}
+                                                        {(user?.role === 'ADMIN' || (user?.role === 'MANAGER' && user.branchIds?.includes(form.myBranchId)))
+                                                            ? <Link className="underline" href={`/admin/branch-products?branchId=${encodeURIComponent(form.myBranchId)}&product=${encodeURIComponent(item.productId)}`}>Revisar configuración</Link>
+                                                            : 'Avisá a administración para revisarlo.'}
+                                                    </p>}
                                                 </div>
                                                 <button type="button" onClick={() => removeItem(item.productId)} aria-label={`Quitar ${item.productName} de la solicitud`} className="grid h-11 w-11 place-items-center rounded-lg text-danger hover:bg-[var(--status-error-bg)]">
                                                     <Trash2 className="h-4 w-4" />
@@ -274,9 +322,10 @@ export default function TransferRequestPage() {
                     >
                         {submitting
                             ? <><Loader2 className="h-5 w-5 animate-spin" /> Enviando solicitud…</>
-                            : <><Send className="h-5 w-5" /> Enviar solicitud al administrador</>
+                            : <><Send className="h-5 w-5" /> {outgoing ? 'Crear transferencia' : 'Enviar solicitud'}</>
                         }
                     </button>
+                    <p className="text-center text-sm"><Link href="/inventory/transfers" className="text-brand underline">Ver transferencias y despachos</Link></p>
                 </form>
             </div>
         </main>
@@ -286,7 +335,7 @@ export default function TransferRequestPage() {
 function ProductCombobox({ products, value, onChange }: { products: any[], value: string, onChange: (id: string) => void }) {
     const [search, setSearch] = useState('');
     const [show, setShow] = useState(false);
-    
+
     useEffect(() => {
         if (value) {
             const p = products.find(p => p.id === value);
@@ -300,7 +349,7 @@ function ProductCombobox({ products, value, onChange }: { products: any[], value
 
     return (
         <div className="relative min-w-[200px] flex-1">
-            <input 
+            <input
                 aria-label="Buscar y seleccionar producto"
                 type="text"
                 placeholder="Buscar y seleccionar producto..."
@@ -317,7 +366,7 @@ function ProductCombobox({ products, value, onChange }: { products: any[], value
             {show && (
                 <div className="absolute z-50 mt-1 w-full bg-surface border border-line rounded-xl shadow-xl max-h-60 overflow-y-auto">
                     {filtered.length > 0 ? filtered.map(p => (
-                        <div 
+                        <div
                             key={p.id}
                             className="px-3 py-2 hover:bg-canvas cursor-pointer text-sm text-ink border-b border-line-subtle last:border-0"
                             onClick={() => {

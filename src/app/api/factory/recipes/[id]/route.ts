@@ -3,6 +3,9 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
+import { consumptionConfig, consumptionInclude } from '@/lib/consumption-config';
+import { OperationError, serializableTransaction } from '@/lib/transaction';
 
 // GET: Obtener receta por ID
 export async function GET(
@@ -60,6 +63,8 @@ export async function PUT(
     { params }: { params: { id: string } }
 ) {
     try {
+        const access = await requireBranchAccess(request, null, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
+        if (access instanceof NextResponse) return access;
         const body = await request.json();
         const {
             name,
@@ -83,23 +88,21 @@ export async function PUT(
             ...(active !== undefined && { active }),
         };
 
-        // Actualizar receta
-        if (ingredients) {
-            // Eliminar ingredientes existentes y crear nuevos
-            await prisma.recipeIngredient.deleteMany({
-                where: { recipeId: params.id },
-            });
-
-            updateData.ingredients = {
-                create: ingredients.map((ing: any) => ({
-                    ingredientId: ing.ingredientId,
-                    quantity: ing.quantity,
-                    unit: ing.unit,
-                })),
-            };
+        if (ingredients && (!Array.isArray(ingredients) || ingredients.length === 0 || ingredients.some((ing: any) =>
+            !ing.ingredientId || !Number.isFinite(ing.quantity) || ing.quantity <= 0 || !ing.unit))) {
+            return NextResponse.json({ success: false, error: 'Ingredientes inválidos' }, { status: 400 });
         }
-
-        const recipe = await prisma.recipe.update({
+        if (recipeYield !== undefined && (!Number.isFinite(recipeYield) || recipeYield <= 0)) {
+            return NextResponse.json({ success: false, error: 'Rendimiento inválido' }, { status: 400 });
+        }
+        const recipe = await serializableTransaction(async tx => {
+            if (ingredients) {
+                await tx.recipeIngredient.deleteMany({ where: { recipeId: params.id } });
+                updateData.ingredients = { create: ingredients.map((ing: any) => ({
+                    ingredientId: ing.ingredientId, quantity: ing.quantity, unit: ing.unit,
+                })) };
+            }
+            const updated = await tx.recipe.update({
             where: { id: params.id },
             data: updateData,
             include: {
@@ -110,6 +113,13 @@ export async function PUT(
                     },
                 },
             },
+            });
+            const linked = await tx.product.findMany({ where: { saleRecipeId: params.id }, include: consumptionInclude });
+            for (const product of linked) {
+                try { consumptionConfig(product); }
+                catch (error) { throw new OperationError(error instanceof Error ? error.message : 'La receta de venta quedaría inválida'); }
+            }
+            return updated;
         });
 
         return NextResponse.json({
@@ -118,6 +128,7 @@ export async function PUT(
             message: 'Receta actualizada exitosamente',
         });
     } catch (error) {
+        if (error instanceof OperationError) return NextResponse.json({ success: false, error: error.message }, { status: error.status });
         console.error('Error al actualizar receta:', error);
         return NextResponse.json(
             {
@@ -135,9 +146,13 @@ export async function DELETE(
     { params }: { params: { id: string } }
 ) {
     try {
-        const recipe = await prisma.recipe.update({
-            where: { id: params.id },
-            data: { active: false },
+        const access = await requireBranchAccess(request, null, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
+        if (access instanceof NextResponse) return access;
+        const recipe = await serializableTransaction(async tx => {
+            if (await tx.product.count({ where: { saleRecipeId: params.id, consumptionMode: 'RECIPE' } })) {
+                throw new OperationError('La receta está configurada para venta; selecciona otra preparación antes de desactivarla');
+            }
+            return tx.recipe.update({ where: { id: params.id }, data: { active: false } });
         });
 
         return NextResponse.json({
@@ -146,6 +161,7 @@ export async function DELETE(
             message: 'Receta desactivada exitosamente',
         });
     } catch (error) {
+        if (error instanceof OperationError) return NextResponse.json({ success: false, error: error.message }, { status: error.status });
         console.error('Error al desactivar receta:', error);
         return NextResponse.json(
             {

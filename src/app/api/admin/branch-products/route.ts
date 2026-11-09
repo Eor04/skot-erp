@@ -3,11 +3,13 @@ export const dynamic = 'force-dynamic';
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
+import { consumptionConfig, consumptionInclude } from '@/lib/consumption-config';
 
 /**
  * GET /api/admin/branch-products?branchId=xxx
  * Devuelve todos los productos con su precio asociado a esa sucursal (si existe).
- * 
+ *
  * POST /api/admin/branch-products
  * Crear o actualizar el precio de un producto en una sucursal (upsert).
  */
@@ -23,6 +25,8 @@ export async function GET(request: NextRequest) {
                 { status: 400 }
             );
         }
+        const access = await requireBranchAccess(request, branchId, ['ADMIN', 'MANAGER']);
+        if (access instanceof NextResponse) return access;
 
         // Traer TODOS los productos activos con su branchProduct (si existe para esta sucursal)
         const products = await prisma.product.findMany({
@@ -70,6 +74,25 @@ export async function POST(request: NextRequest) {
                 { success: false, error: 'branchId y productId son requeridos' },
                 { status: 400 }
             );
+        }
+
+        const access = await requireBranchAccess(request, branchId, ['ADMIN', 'MANAGER']);
+        if (access instanceof NextResponse) return access;
+        if ([customPrice, pricePerKg].some(value => value !== null && value !== undefined &&
+            (typeof value !== 'number' || !Number.isFinite(value) || value < 0))) {
+            return NextResponse.json({ success: false, error: 'Precio inválido' }, { status: 400 });
+        }
+        const product = await prisma.product.findUnique({ where: { id: productId }, include: consumptionInclude });
+        if (!product || !product.active || product.deletedAt) return NextResponse.json({ success: false, error: 'Producto no disponible' }, { status: 400 });
+        if (active !== false) {
+            const price = product.type === 'ACAI_BASE' ? pricePerKg : customPrice;
+            if (['BURGER', 'BURGER_EXTRA', 'BEVERAGE', 'ACAI_BASE'].includes(product.type) && !(typeof price === 'number' && price > 0)) {
+                return NextResponse.json({ success: false, error: 'Define un precio mayor que cero antes de activar el producto' }, { status: 400 });
+            }
+            if (product.consumptionMode) {
+                try { consumptionConfig(product); }
+                catch (error) { return NextResponse.json({ success: false, error: error instanceof Error ? error.message : 'Preparación inválida' }, { status: 400 }); }
+            }
         }
 
         // Upsert: crear si no existe, actualizar si ya existe

@@ -16,17 +16,17 @@ import CashGate from '@/components/pos/cash-gate';
 import { getOfflineQueue, saveToOfflineQueue, syncOfflineQueue, OfflineSale } from '@/lib/sync-manager';
 import { Comanda, printComanda } from '@/lib/pos/print-comanda';
 
-type ProductWithPrice = Product & { customPrice?: number };
+type ProductWithPrice = Product & { customPrice?: number; configVersion?: string | null; consumptionSnapshot?: unknown; offlineAuthorization?: string | null };
 
 type ComboItem = {
     id: string;
-    product: { id: string; name: string; sku: string; unit: string };
+    product: { id: string; name: string; sku: string; unit: string; configVersion?: string | null; consumptionSnapshot?: unknown; offlineAuthorization?: string | null };
     quantity: number;
 };
 type Combo = {
     id: string; name: string; description: string | null;
     price: number; imageUrl: string | null; active: boolean;
-    items: ComboItem[];
+    items: ComboItem[]; offlineAuthorization?: string;
 };
 
 interface SaleResult {
@@ -64,7 +64,7 @@ export default function BurgersPOSPage() {
     const [saleResult, setSaleResult] = useState<SaleResult | null>(null);
     const [turnHistory, setTurnHistory] = useState<TurnSale[]>([]);
     const [showHistory, setShowHistory] = useState(false);
-    
+
     // Offline State
     const [offlineQueue, setOfflineQueue] = useState<OfflineSale[]>([]);
     const [isSyncing, setIsSyncing] = useState(false);
@@ -77,7 +77,7 @@ export default function BurgersPOSPage() {
         applyDiscount, calculateTotal, calculateSubtotal, calculateDiscountAmount,
     } = useBurgerSale(branchId);
 
-    useEffect(() => { if (branchId) loadInitialData(); }, [branchId]);
+    useEffect(() => { if (branchId) loadInitialData(); }, [branchId, user?.userId]);
 
     // Limpiar notificación
     useEffect(() => {
@@ -115,34 +115,35 @@ export default function BurgersPOSPage() {
     };
 
     const loadInitialData = async (silent = false) => {
+        const cacheScope = `${branchId}-${user?.userId || 'guest'}`;
         try {
             if (!silent) setIsLoading(true);
             const [productsRes, modifiersRes, combosRes] = await Promise.all([
                 fetch(`/api/pos/products?branchId=${branchId}&type=BURGER`),
-                fetch('/api/pos/modifiers?category=BURGER'),
-                fetch('/api/pos/combos'),
+                fetch(`/api/pos/modifiers?category=BURGER&branchId=${encodeURIComponent(branchId)}`),
+                fetch(`/api/pos/combos?branchId=${branchId}`),
             ]);
             const [productsData, modifiersData, combosData] = await Promise.all([
                 productsRes.json(), modifiersRes.json(), combosRes.json(),
             ]);
-            
+
             if (productsData.success) {
                 setProducts(productsData.data);
-                localStorage.setItem('pos-burgers-products', JSON.stringify(productsData.data));
+                localStorage.setItem(`pos-burgers-products-${cacheScope}`, JSON.stringify(productsData.data));
             }
             if (modifiersData.success) {
                 setModifiers(modifiersData.data);
-                localStorage.setItem('pos-burgers-modifiers', JSON.stringify(modifiersData.data));
+                localStorage.setItem(`pos-burgers-modifiers-${cacheScope}`, JSON.stringify(modifiersData.data));
             }
             if (combosData.success) {
                 setCombos(combosData.data);
-                localStorage.setItem('pos-burgers-combos', JSON.stringify(combosData.data));
+                localStorage.setItem(`pos-burgers-combos-${cacheScope}`, JSON.stringify(combosData.data));
             }
         } catch (error) {
             console.error('Error cargando datos, intentando desde caché local:', error);
-            const cachedP = localStorage.getItem('pos-burgers-products');
-            const cachedM = localStorage.getItem('pos-burgers-modifiers');
-            const cachedC = localStorage.getItem('pos-burgers-combos');
+            const cachedP = localStorage.getItem(`pos-burgers-products-${cacheScope}`);
+            const cachedM = localStorage.getItem(`pos-burgers-modifiers-${cacheScope}`);
+            const cachedC = localStorage.getItem(`pos-burgers-combos-${cacheScope}`);
             if (cachedP) setProducts(JSON.parse(cachedP));
             if (cachedM) setModifiers(JSON.parse(cachedM));
             if (cachedC) setCombos(JSON.parse(cachedC));
@@ -199,6 +200,8 @@ export default function BurgersPOSPage() {
             // y su monto se envía por separado como extrasTotal.
             const expandedItems: any[] = [];
             let extrasTotal = 0;
+            const extraModifiers: { modifierId: string; quantity: number; price: number; offlineAuthorization?: string }[] = [];
+            let comboGroup = 0;
 
             for (const item of cart) {
                 const productId: string = (item.product as any).id ?? '';
@@ -206,11 +209,14 @@ export default function BurgersPOSPage() {
                 // ── EXTRA suelto ─────────────────────────────────────────────
                 if (productId.startsWith('EXTRA-')) {
                     extrasTotal += item.subtotal;
+                    extraModifiers.push({ modifierId: productId.slice(6), quantity: item.quantity, price: (item.product as any).customPrice || 0,
+                        offlineAuthorization: (item.product as any).offlineAuthorization });
                     continue;
                 }
 
                 const comboRef = (item.product as any)._comboRef as Combo | undefined;
                 if (comboRef) {
+                    const group = String(comboGroup++);
                     // Es un combo: distribuir el precio entre sus items proporcionalmente ajustando céntimos
                     const totalQtyInCombo = comboRef.items.reduce((s, ci) => s + ci.quantity, 0);
                     const comboExpectedSubtotal = comboRef.price * item.quantity;
@@ -230,6 +236,12 @@ export default function BurgersPOSPage() {
 
                         expandedItems.push({
                             productId: ci.product.id,
+                            comboId: comboRef.id,
+                            comboGroup: group,
+                            configVersion: ci.product.configVersion,
+                            consumptionSnapshot: ci.product.consumptionSnapshot,
+                            offlineAuthorization: ci.product.offlineAuthorization,
+                            comboAuthorization: comboRef.offlineAuthorization,
                             quantity: ci.quantity * item.quantity,
                             unitPrice: itemUnitPrice,
                             subtotal: subtotal,
@@ -240,6 +252,9 @@ export default function BurgersPOSPage() {
                     // Producto normal
                     expandedItems.push({
                         productId: item.product.id,
+                        configVersion: (item.product as ProductWithPrice).configVersion,
+                        consumptionSnapshot: (item.product as ProductWithPrice).consumptionSnapshot,
+                        offlineAuthorization: (item.product as ProductWithPrice).offlineAuthorization,
                         quantity: item.quantity,
                         unitPrice: (item.product as any).customPrice || 0,
                         subtotal: item.subtotal,
@@ -247,6 +262,7 @@ export default function BurgersPOSPage() {
                             modifierId: m.modifier.id,
                             quantity: m.quantity,
                             price: m.modifier.price,
+                            offlineAuthorization: (m.modifier as any).offlineAuthorization,
                         })),
                     });
                 }
@@ -267,6 +283,7 @@ export default function BurgersPOSPage() {
                 transferAmount: paymentData.transferAmount,
                 items: expandedItems,
                 extrasTotal: extrasTotal > 0 ? extrasTotal : undefined,
+                extraModifiers: extraModifiers.length ? extraModifiers : undefined,
                 discount: discount
                     ? { type: discount.type, value: discount.value, authorizedBy: discount.authorizedBy }
                     : undefined,
@@ -283,6 +300,13 @@ export default function BurgersPOSPage() {
                 });
                 data = await response.json();
             } catch (fetchErr) {
+                const authorized = expandedItems.every(item => item.offlineAuthorization &&
+                    (!item.comboId || item.comboAuthorization) && (item.modifiers || []).every((m: any) => m.offlineAuthorization)) &&
+                    extraModifiers.every(item => item.offlineAuthorization);
+                if (!authorized) {
+                    setSaleResult({ type: 'error', message: 'No se puede guardar esta venta sin conexión. Actualiza el catálogo con internet y verifica la clave de autorización offline.' });
+                    return;
+                }
                 isOffline = true;
                 // Guardar en cola offline
                 const offlineSale = saveToOfflineQueue({
@@ -391,7 +415,7 @@ export default function BurgersPOSPage() {
                                 </span>
                             )}
                         </button>
-                        
+
                         {/* Offline Indicator */}
                         {offlineQueue.length > 0 ? (
                             <button onClick={handleSync} disabled={isSyncing} aria-label={`${offlineQueue.length} ventas pendientes. Reintentar sincronización`} className="flex min-h-12 items-center gap-1.5 rounded-lg border border-line px-3 text-sm font-semibold text-warning hover:bg-[var(--status-warning-bg)] disabled:opacity-50">
@@ -404,7 +428,7 @@ export default function BurgersPOSPage() {
                                 <CheckCircle className="h-4 w-4" />
                             </div>
                         )}
-                        
+
                         <Link href="/" className="ml-2 flex min-h-12 items-center gap-1 text-sm font-semibold text-brand hover:underline">
                             <ArrowLeft className="h-4 w-4" /> Dashboard
                         </Link>
@@ -536,7 +560,7 @@ export default function BurgersPOSPage() {
                                                     </span>
                                                 </div>
                                             )}
-                                            
+
                                             {/* Detalles de items */}
                                             {sale.items && sale.items.length > 0 && (
                                                 <div className="mb-3 space-y-1.5 bg-black/20 rounded-lg p-2.5">

@@ -48,6 +48,15 @@ export async function POST(request: NextRequest) {
                 { status: 400 }
             );
         }
+        const access = await requireBranchAccess(request, branchId, ['ADMIN', 'MANAGER', 'CASHIER']);
+        if (access instanceof NextResponse) return access;
+        if (userId !== access.userId) {
+            return NextResponse.json({ success: false, error: 'Usuario no permitido' }, { status: 403 });
+        }
+        const opening = Number(openingAmount ?? 0);
+        if (!Number.isFinite(opening) || opening < 0) {
+            return NextResponse.json({ success: false, error: 'El fondo inicial debe ser un monto válido' }, { status: 400 });
+        }
 
         const session = await prisma.$transaction(async (tx) => {
             // Verificar que no haya ya una caja abierta para esa sucursal (bloqueo transaccional)
@@ -62,9 +71,9 @@ export async function POST(request: NextRequest) {
                 data: {
                     branchId,
                     userId,
-                    openingAmount: parseFloat(openingAmount) || 0,
+                    openingAmount: opening,
                     openedAt: new Date(),
-                    openedBy: openedBy || null,
+                    openedBy: access.name || openedBy || null,
                     sessionStatus: 'OPEN',
                     // Campos requeridos que se completarán al cerrar
                     expectedCash: 0,

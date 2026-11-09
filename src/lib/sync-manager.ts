@@ -12,6 +12,7 @@ export interface OfflineSale {
 }
 
 const STORAGE_KEY = 'skot_offline_sales_queue';
+let activeSync: Promise<{ total: number; synced: number; errors: number }> | null = null;
 
 export function getOfflineQueue(): OfflineSale[] {
     if (typeof window === 'undefined') return [];
@@ -27,22 +28,22 @@ export function saveToOfflineQueue(sale: Omit<OfflineSale, 'status' | 'offlineId
     const queue = getOfflineQueue();
     const newSale: OfflineSale = {
         ...sale,
-        offlineId: `OFF-${Date.now()}-${Math.floor(Math.random() * 1000)}`,
+        offlineId: `OFF-${globalThis.crypto?.randomUUID?.() ?? `${Date.now()}-${Math.random().toString(36).slice(2)}`}`,
         status: 'pending',
     };
-    
+
     // Al payload le inyectamos la fecha original para que el backend la respete
     newSale.payload.createdAt = newSale.createdAt;
     newSale.payload.offlineId = newSale.offlineId;
 
     queue.push(newSale);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(queue));
-    
+
     // Despachamos un evento para que los componentes puedan actualizarse
     if (typeof window !== 'undefined') {
         window.dispatchEvent(new Event('skot-offline-queue-updated'));
     }
-    
+
     return newSale;
 }
 
@@ -56,14 +57,23 @@ export function removeOfflineSale(offlineId: string) {
 }
 
 export async function syncOfflineQueue(): Promise<{ total: number; synced: number; errors: number }> {
+    if (activeSync) return activeSync;
+    activeSync = processOfflineQueue();
+    try { return await activeSync; }
+    finally { activeSync = null; }
+}
+
+async function processOfflineQueue(): Promise<{ total: number; synced: number; errors: number }> {
     const queue = getOfflineQueue();
-    const pending = queue.filter(s => s.status === 'pending' || s.status === 'failed');
-    
+    // Una pestaña cerrada durante el envío puede dejar elementos en «syncing».
+    // El identificador idempotente del servidor permite volver a intentarlos.
+    const pending = queue.filter(s => s.status === 'pending' || s.status === 'failed' || s.status === 'syncing');
+
     if (pending.length === 0) return { total: 0, synced: 0, errors: 0 };
-    
+
     let synced = 0;
     let errors = 0;
-    
+
     // Marcamos todos como syncing visualmente
     const syncingQueue = queue.map(s => pending.find(p => p.offlineId === s.offlineId) ? { ...s, status: 'syncing' as const } : s);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(syncingQueue));
@@ -77,7 +87,7 @@ export async function syncOfflineQueue(): Promise<{ total: number; synced: numbe
                 body: JSON.stringify(sale.payload),
             });
             const data = await res.json();
-            
+
             if (data.success) {
                 // Sincronización exitosa, la removemos de la cola
                 removeOfflineSale(sale.offlineId);
@@ -94,7 +104,7 @@ export async function syncOfflineQueue(): Promise<{ total: number; synced: numbe
             errors++;
         }
     }
-    
+
     return { total: pending.length, synced, errors };
 }
 

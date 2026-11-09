@@ -1,101 +1,33 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { prisma } from '@/lib/prisma';
+import { requireBranchAccess } from '@/lib/branch-access';
+import { OperationError, serializableTransaction } from '@/lib/transaction';
+import { validateOrderQuantities } from '@/lib/internal-order-quantities';
+import { moveTransferStock } from '@/lib/transfer-stock';
 
-// POST: Despachar pedido interno (fábrica envía el stock y descuenta inventario)
-export async function POST(
-    request: NextRequest,
-    { params }: { params: { id: string } }
-) {
+export async function POST(request: NextRequest, { params }: { params: { id: string } }) {
     try {
-        const body = await request.json();
-        const { dispatchedBy, items } = body; // items: [{ itemId, dispatchedQty }]
-
-        if (!dispatchedBy || !items?.length) {
-            return NextResponse.json(
-                { success: false, error: 'dispatchedBy e items requeridos' },
-                { status: 400 }
-            );
-        }
-
-        const order = await prisma.internalOrder.findUnique({
-            where: { id: params.id },
-            include: {
-                items: { include: { product: true } },
-                fromBranch: true,
-                toBranch: true,
-            },
-        });
-
-        if (!order) {
-            return NextResponse.json({ success: false, error: 'Pedido no encontrado' }, { status: 404 });
-        }
-
-        const result = await prisma.$transaction(async (tx) => {
-            for (const dispatchItem of items) {
-                const orderItem = order.items.find(i => i.id === dispatchItem.itemId);
-                if (!orderItem) continue;
-
-                const qty = dispatchItem.dispatchedQty;
-
-                // Descontar stock de la fábrica (toBranch es la fábrica en un pedido desde sucursal)
-                const inventory = await tx.inventory.findUnique({
-                    where: {
-                        branchId_productId: {
-                            branchId: order.toBranchId,
-                            productId: orderItem.productId,
-                        },
-                    },
-                });
-
-                if (inventory && inventory.currentStock >= qty) {
-                    const updated = await tx.inventory.update({
-                        where: {
-                            branchId_productId: {
-                                branchId: order.toBranchId,
-                                productId: orderItem.productId,
-                            },
-                        },
-                        data: { currentStock: { decrement: qty } },
-                    });
-
-                    // Registrar movimiento de kardex (salida de fábrica)
-                    await tx.stockMovement.create({
-                        data: {
-                            branchId: order.toBranchId,
-                            productId: orderItem.productId,
-                            type: 'TRANSFERENCIA',
-                            quantity: -qty,
-                            previousStock: inventory.currentStock,
-                            newStock: updated.currentStock,
-                            reference: order.orderNumber,
-                            notes: `Despacho pedido interno → ${order.fromBranch.name}`,
-                            createdBy: dispatchedBy,
-                        },
-                    });
-                } else {
-                    throw new Error(`Stock insuficiente para el producto: ${orderItem.product.name}. Stock actual: ${inventory?.currentStock || 0}`);
-                }
-
-                // Actualizar ítem con qty despachada
-                await tx.internalOrderItem.update({
-                    where: { id: dispatchItem.itemId },
-                    data: { dispatchedQty: qty },
-                });
+        const access = await requireBranchAccess(request, null, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
+        if (access instanceof NextResponse) return access;
+        const { items } = await request.json();
+        const result = await serializableTransaction(async tx => {
+            const order = await tx.internalOrder.findUnique({ where: { id: params.id }, include: { items: true, fromBranch: true } });
+            if (!order) throw new OperationError('Pedido no encontrado', 404);
+            if (!access.allowedBranchIds.includes(order.toBranchId)) throw new OperationError('Fábrica no permitida', 403);
+            if (order.status !== 'APPROVED') throw new OperationError(`No se puede despachar un pedido en estado ${order.status}`, 409);
+            const values = validateOrderQuantities(order.items, items, 'dispatchedQty', line => line.approvedQty ?? line.requestedQty, true);
+            for (const item of order.items) {
+                const quantity = values.get(item.id)!;
+                if (quantity > 0) await moveTransferStock(tx, { branchId: order.toBranchId, productId: item.productId,
+                    quantity: -quantity, type: 'TRANSFERENCIA', reference: order.orderNumber, createdBy: access.userId,
+                    notes: `Despacho pedido interno → ${order.fromBranch.name}` });
+                await tx.internalOrderItem.update({ where: { id: item.id }, data: { dispatchedQty: quantity } });
             }
-
-            return tx.internalOrder.update({
-                where: { id: params.id },
-                data: {
-                    status: 'DISPATCHED',
-                    dispatchedBy,
-                    dispatchedAt: new Date(),
-                },
-            });
+            return tx.internalOrder.update({ where: { id: order.id }, data: { status: 'DISPATCHED', dispatchedBy: access.userId, dispatchedAt: new Date() } });
         });
-
         return NextResponse.json({ success: true, data: result, message: 'Pedido despachado correctamente' });
-    } catch (error: any) {
+    } catch (error) {
+        if (error instanceof OperationError) return NextResponse.json({ success: false, error: error.message }, { status: error.status });
         console.error('Error despachando pedido:', error);
-        return NextResponse.json({ success: false, error: error.message || 'Error interno' }, { status: 400 });
+        return NextResponse.json({ success: false, error: 'No se pudo despachar el pedido' }, { status: 500 });
     }
 }
