@@ -7,6 +7,9 @@ import {
     CheckCircle, Loader2, RefreshCw, Pencil, Save, X, Plus, Minus
 } from 'lucide-react';
 import { useSession } from '@/lib/session-context';
+import { Button } from '@/components/ui/button';
+import { Card } from '@/components/ui/card';
+import { StatusBadge } from '@/components/ui/status-badge';
 
 interface Branch { id: string; name: string; type: string; }
 interface StockItem {
@@ -32,15 +35,6 @@ const TYPE_LABELS: Record<string, string> = {
     RAW_MATERIAL: 'Materia Prima',
     PACKAGING: 'Empaque',
 };
-const TYPE_COLORS: Record<string, string> = {
-    ACAI_BASE: 'bg-purple-100 text-purple-700',
-    ACAI_TOPPING: 'bg-pink-100 text-pink-700',
-    BURGER: 'bg-orange-100 text-orange-700',
-    BURGER_EXTRA: 'bg-amber-100 text-amber-700',
-    BEVERAGE: 'bg-blue-500/20 text-blue-400',
-    RAW_MATERIAL: 'bg-gray-100 text-white/80',
-};
-
 /* ── Fila editable ── */
 function StockRow({
     item, canEdit, onSaved,
@@ -71,117 +65,50 @@ function StockRow({
             });
             const d = await res.json();
             if (d.success) {
-                setToast('✓ Guardado');
+                setToast('Guardado');
                 setTimeout(() => setToast(''), 2000);
                 setEditing(false);
                 onSaved();
             } else {
-                setToast('❌ ' + (d.error || 'Error'));
+                setToast('Error: ' + (d.error || 'Error'));
                 setTimeout(() => setToast(''), 3000);
             }
         } finally { setSaving(false); }
     }
 
-    const rowBg = item.isCritical ? 'bg-red-500/10/40' : item.isLow ? 'bg-yellow-500/10/40' : '';
+    const status = item.isCritical ? { label: 'Sin stock', tone: 'error' as const, Icon: XCircle }
+        : item.isLow ? { label: 'Bajo', tone: 'warning' as const, Icon: AlertTriangle }
+            : { label: 'OK', tone: 'success' as const, Icon: CheckCircle };
+    const Cell = 'flex min-h-11 items-center justify-between gap-3 border-t border-line-subtle px-4 py-2 text-sm md:table-cell md:border-0 md:px-4 md:py-3';
 
-    return (
-        <tr className={`border-b border-white/10 hover:bg-white/5 ${rowBg}`}>
-            <td className="px-5 py-3 font-medium text-white/90 text-sm">{item.product.name}</td>
-            <td className="px-5 py-3 font-mono text-xs text-white/40">{item.product.sku}</td>
-            <td className="px-5 py-3">
-                <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${TYPE_COLORS[item.product.type] || 'bg-gray-100 text-white/70'}`}>
-                    {TYPE_LABELS[item.product.type] || item.product.type}
-                </span>
-            </td>
-
-            {/* Stock actual */}
-            <td className={`px-5 py-3 text-right font-bold text-base ${item.isCritical ? 'text-red-400' : item.isLow ? 'text-yellow-400' : 'text-green-400'}`}>
-                {editing ? (
-                    <div className="flex items-center justify-end gap-1">
-                        <button onClick={() => setNewStock(s => Math.max(0, s - 1))} className="p-1 rounded bg-gray-100 hover:bg-gray-200">
-                            <Minus className="h-3 w-3" />
-                        </button>
-                        <input type="number" min="0" step="0.01" value={newStock === 0 ? '' : newStock}
-                            onChange={e => setNewStock(parseFloat(e.target.value) || 0)}
-                            className="w-20 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-                        <button onClick={() => setNewStock(s => s + 1)} className="p-1 rounded bg-gray-100 hover:bg-gray-200">
-                            <Plus className="h-3 w-3" />
-                        </button>
-                        <span className="text-xs text-white/40 ml-1">{item.product.unit}</span>
-                    </div>
-                ) : (
-                    <>{item.currentStock} <span className="text-xs font-normal text-white/40">{item.product.unit}</span></>
-                )}
-            </td>
-
-            {/* Mín */}
-            <td className="px-5 py-3 text-right text-sm text-white/60">
-                {editing ? (
-                    <input type="number" min="0" step="0.01" value={newMin === 0 ? '' : newMin}
-                        onChange={e => setNewMin(parseFloat(e.target.value) || 0)}
-                        className="w-16 text-center border border-gray-300 rounded-lg px-2 py-1 text-sm focus:outline-none focus:ring-2 focus:ring-green-400" />
-                ) : item.minStock}
-            </td>
-
-            {/* Estado */}
-            <td className="px-5 py-3 text-center">
-                {item.isCritical ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-red-400 bg-red-500/10 px-2 py-0.5 rounded-full">
-                        <XCircle className="h-3 w-3" /> Sin stock
-                    </span>
-                ) : item.isLow ? (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-yellow-400 bg-yellow-500/10 px-2 py-0.5 rounded-full">
-                        <AlertTriangle className="h-3 w-3" /> Bajo
-                    </span>
-                ) : (
-                    <span className="inline-flex items-center gap-1 text-xs font-semibold text-green-400 bg-green-500/10 px-2 py-0.5 rounded-full">
-                        <CheckCircle className="h-3 w-3" /> OK
-                    </span>
-                )}
-            </td>
-
-            {/* Razón (solo al editar) */}
-            <td className="px-5 py-3 text-xs text-white/40">
-                {editing ? (
-                    <select value={reason} onChange={e => setReason(e.target.value)}
-                        className="border border-white/20 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-green-400">
-                        <option value="AJUSTE" className="bg-gray-900 text-white">Ajuste</option>
-                        <option value="ENTRADA" className="bg-gray-900 text-white">Entrada</option>
-                        <option value="MERMA" className="bg-gray-900 text-white">Merma</option>
-                        <option value="INVENTARIO_FISICO" className="bg-gray-900 text-white">Inv. físico</option>
-                    </select>
-                ) : (
-                    new Date(item.lastUpdated).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })
-                )}
-            </td>
-
-            {/* Acciones */}
-            {canEdit && (
-                <td className="px-5 py-3 text-right">
-                    {toast ? (
-                        <span className="text-xs font-semibold text-green-400">{toast}</span>
-                    ) : editing ? (
-                        <div className="flex items-center gap-1.5 justify-end">
-                            <button onClick={save} disabled={saving}
-                                className="flex items-center gap-1 px-2.5 py-1.5 bg-green-600 text-white rounded-lg text-xs font-semibold hover:bg-green-700 disabled:opacity-50 transition">
-                                {saving ? <Loader2 className="h-3 w-3 animate-spin" /> : <Save className="h-3 w-3" />}
-                                Guardar
-                            </button>
-                            <button onClick={() => { setEditing(false); setNewStock(item.currentStock); setNewMin(item.minStock); }}
-                                className="p-1.5 text-white/40 hover:text-white/70 hover:bg-gray-100 rounded-lg transition">
-                                <X className="h-3.5 w-3.5" />
-                            </button>
-                        </div>
-                    ) : (
-                        <button onClick={() => setEditing(true)}
-                            className="p-1.5 text-white/40 hover:text-blue-400 hover:bg-blue-500/10 rounded-lg transition" title="Ajustar stock">
-                            <Pencil className="h-3.5 w-3.5" />
-                        </button>
-                    )}
-                </td>
-            )}
-        </tr>
-    );
+    return <tr className="block overflow-hidden rounded-xl border border-line-subtle bg-surface md:table-row md:rounded-none md:border-0 md:border-t md:hover:bg-canvas">
+        <th scope="row" className="block break-words px-4 py-3 text-left font-display font-semibold md:table-cell">{item.product.name}</th>
+        <td className={Cell}><span className="text-muted md:hidden">SKU</span><span className="font-mono text-xs text-muted">{item.product.sku}</span></td>
+        <td className={Cell}><span className="text-muted md:hidden">Tipo</span><StatusBadge>{TYPE_LABELS[item.product.type] || item.product.type}</StatusBadge></td>
+        <td className={Cell + ' md:text-right'}><span className="text-muted md:hidden">Stock actual</span>
+            {editing ? <div className="flex flex-wrap items-center justify-end gap-1">
+                <button type="button" aria-label={`Disminuir stock de ${item.product.name}`} onClick={() => setNewStock(value => Math.max(0, value - 1))} className="grid h-11 w-11 place-items-center rounded-lg border border-line bg-surface hover:bg-canvas"><Minus size={16} aria-hidden="true" /></button>
+                <input type="number" min="0" step="0.01" aria-label={`Nuevo stock de ${item.product.name}`} value={newStock === 0 ? '' : newStock} onChange={event => setNewStock(parseFloat(event.target.value) || 0)} className="h-11 w-20 rounded-lg border border-line bg-surface px-2 text-center text-ink tabular-nums" />
+                <button type="button" aria-label={`Aumentar stock de ${item.product.name}`} onClick={() => setNewStock(value => value + 1)} className="grid h-11 w-11 place-items-center rounded-lg border border-line bg-surface hover:bg-canvas"><Plus size={16} aria-hidden="true" /></button>
+                <span className="ml-1 text-xs text-muted">{item.product.unit}</span>
+            </div> : <strong className="font-display font-semibold tabular-nums">{item.currentStock} <span className="text-xs font-normal text-muted">{item.product.unit}</span></strong>}
+        </td>
+        <td className={Cell + ' md:text-right'}><span className="text-muted md:hidden">Mínimo</span>
+            {editing ? <input type="number" min="0" step="0.01" aria-label={`Stock mínimo de ${item.product.name}`} value={newMin === 0 ? '' : newMin} onChange={event => setNewMin(parseFloat(event.target.value) || 0)} className="h-11 w-20 rounded-lg border border-line bg-surface px-2 text-center text-ink tabular-nums" /> : <span className="tabular-nums">{item.minStock}</span>}
+        </td>
+        <td className={Cell}><span className="text-muted md:hidden">Estado</span><StatusBadge tone={status.tone}><status.Icon size={14} className="mr-1" aria-hidden="true" />{status.label}</StatusBadge></td>
+        <td className={Cell}><span className="text-muted md:hidden">Fecha / motivo</span>
+            {editing ? <select aria-label={`Motivo del ajuste de ${item.product.name}`} value={reason} onChange={event => setReason(event.target.value)} className="h-11 rounded-lg border border-line bg-surface px-2 text-ink">
+                <option value="AJUSTE">Ajuste</option><option value="ENTRADA">Entrada</option><option value="MERMA">Merma</option><option value="INVENTARIO_FISICO">Inv. físico</option>
+            </select> : <span className="text-muted">{new Date(item.lastUpdated).toLocaleDateString('es-PE', { day: '2-digit', month: 'short' })}</span>}
+        </td>
+        {canEdit && <td className={Cell + ' md:text-right'}><span className="text-muted md:hidden">Acciones</span><div className="flex flex-wrap items-center justify-end gap-2">
+            {toast && <span role={toast === 'Guardado' ? 'status' : 'alert'} className={`text-sm font-semibold ${toast === 'Guardado' ? 'text-success' : 'text-danger'}`}>{toast}</span>}
+            {editing ? <div className="flex flex-wrap justify-end gap-2"><Button size="touch" onClick={save} disabled={saving}>{saving ? <Loader2 size={16} className="animate-spin" aria-hidden="true" /> : <Save size={16} aria-hidden="true" />} Guardar</Button>
+                    <Button variant="secondary" size="touch" onClick={() => { setEditing(false); setNewStock(item.currentStock); setNewMin(item.minStock); }} disabled={saving}><X size={16} aria-hidden="true" /> Cancelar</Button></div>
+                    : <Button variant="quiet" size="touch" onClick={() => setEditing(true)} aria-label={`Ajustar stock de ${item.product.name}`}><Pencil size={17} aria-hidden="true" /> <span className="md:sr-only">Ajustar</span></Button>}</div>
+        </td>}
+    </tr>;
 }
 
 /* ── Página principal ── */
@@ -245,120 +172,41 @@ export default function StockPage() {
         return matchSearch && matchFilter;
     });
 
-    return (
-        <div className="min-h-screen relative overflow-hidden" style={{ background: 'radial-gradient(ellipse at 60% 20%, #2d0a3e 0%, #0a0a0f 55%, #1a0508 100%)' }}>
-            <div className="absolute inset-0 pointer-events-none overflow-hidden">
-                <div className="absolute -top-32 -left-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(192,38,211,0.2) 0%, transparent 70%)' }} />
-                <div className="absolute -bottom-32 -right-32 w-[500px] h-[500px] rounded-full" style={{ background: 'radial-gradient(circle, rgba(220,38,38,0.15) 0%, transparent 70%)' }} />
-                <div className="absolute inset-0 opacity-[0.03]" style={{ backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='56' height='100'%3E%3Cpath d='M28 66L0 50V16L28 0l28 16v34L28 66z' fill='none' stroke='%23fff' stroke-width='1'/%3E%3C/svg%3E")`, backgroundSize: '56px 100px' }} />
-            </div>
-            <div className="max-w-7xl mx-auto">
-                {/* Header */}
-                <div className="flex items-center justify-between mb-6">
-                    <div>
-                        <button onClick={() => window.history.back()} className="text-sm text-white/60 hover:text-white/80 flex items-center gap-1 mb-1"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
-                        <h1 className="text-2xl font-bold text-white/90 flex items-center gap-2">
-                            <Package className="h-7 w-7 text-green-400" /> Stock por Sucursal
-                            {selectedBranchName && <span className="text-base font-normal text-white/60">— {selectedBranchName}</span>}
-                        </h1>
-                    </div>
-                    <div className="flex gap-2">
-                        {selectedBranchId && (
-                            <button onClick={() => loadStock(selectedBranchId)}
-                                className="flex items-center gap-1.5 px-3 py-2 bg-white/5 border border-white/10 text-white/70 rounded-xl text-sm hover:bg-white/5 transition">
-                                <RefreshCw className="h-4 w-4" /> Actualizar
-                            </button>
-                        )}
-                        <Link href="/inventory/transfers/request"
-                            className="flex items-center gap-1.5 px-3 py-2 bg-green-600 text-white rounded-xl text-sm font-semibold hover:bg-green-700 transition">
-                            + Solicitar transferencia
-                        </Link>
-                    </div>
+    return <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8">
+        <div className="mx-auto max-w-7xl space-y-5">
+            <header className="flex flex-wrap items-end justify-between gap-4">
+                <div>
+                    <button type="button" onClick={() => window.history.back()} className="mb-4 inline-flex min-h-11 items-center gap-2 font-semibold text-brand hover:underline"><ArrowLeft size={18} aria-hidden="true" /> Volver atrás</button>
+                    <div className="mb-2 flex items-center gap-2 text-sm text-muted"><Package size={16} aria-hidden="true" /> Inventario <span aria-hidden="true">›</span> Stock</div>
+                    <h1 className="font-display text-2xl font-semibold sm:text-3xl">Stock por sucursal</h1>
+                    {selectedBranchName && <p className="mt-2 text-muted">{selectedBranchName}</p>}
                 </div>
-
-                {/* Selector sucursal */}
-                <div className="bg-white/5 backdrop-blur-md rounded-2xl shadow-sm border border-white/10 p-4 mb-5">
-                    <label className="block text-sm font-semibold text-white/80 mb-1.5">
-                        {isAdmin ? 'Seleccioná una sucursal:' : 'Tu sucursal:'}
-                    </label>
-                    <select value={selectedBranchId} onChange={e => handleBranchChange(e.target.value)}
-                        disabled={!isAdmin && !!user?.branchIds?.[0]}
-                        className="w-full max-w-sm border border-white/20 rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-white/5">
-                        <option value="" className="bg-gray-900 text-white">-- Elegí una sucursal --</option>
-                        {branches.map(b => <option key={b.id} value={b.id} className="bg-gray-900 text-white">{b.name} ({b.type})</option>)}
-                    </select>
+                <div className="flex flex-wrap gap-2">
+                    {selectedBranchId && <Button variant="secondary" size="touch" onClick={() => loadStock(selectedBranchId)} disabled={loading}><RefreshCw size={18} className={loading ? 'animate-spin' : ''} aria-hidden="true" /> Actualizar</Button>}
+                    <Link href="/inventory/transfers/request" className="inline-flex min-h-12 items-center rounded-lg bg-brand px-4 py-2 font-semibold text-white hover:brightness-90">Solicitar transferencia</Link>
                 </div>
-
-                {/* KPIs */}
-                {summary && (
-                    <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-5">
-                        {[
-                            { label: 'Total ítems', value: summary.total, color: 'bg-blue-500/10 text-blue-400', f: 'ALL' as const },
-                            { label: 'Stock OK', value: summary.ok, color: 'bg-green-500/10 text-green-400', f: 'OK' as const },
-                            { label: 'Stock bajo', value: summary.low, color: 'bg-yellow-500/10 text-yellow-400', f: 'LOW' as const },
-                            { label: 'Sin stock', value: summary.critical, color: 'bg-red-500/10 text-red-400', f: 'CRITICAL' as const },
-                        ].map(kpi => (
-                            <button key={kpi.label} onClick={() => setFilter(kpi.f)}
-                                className={`${kpi.color} rounded-2xl p-4 text-left transition-all ${filter === kpi.f ? 'ring-2 ring-current' : 'hover:scale-105'}`}>
-                                <p className="text-xs font-medium opacity-70">{kpi.label}</p>
-                                <p className="text-3xl font-black mt-1">{kpi.value}</p>
-                            </button>
-                        ))}
-                    </div>
-                )}
-
-                {/* Buscador */}
-                {selectedBranchId && (
-                    <div className="relative mb-4">
-                        <Search className="absolute left-3 top-2.5 h-5 w-5 text-white/40" />
-                        <input type="text" placeholder="Buscar por nombre o SKU…" value={search}
-                            onChange={e => setSearch(e.target.value)}
-                            className="w-full pl-10 pr-4 py-2.5 border border-white/20 rounded-xl bg-white/5 text-white placeholder-white/40 text-sm focus:outline-none focus:ring-2 focus:ring-green-500" />
-                    </div>
-                )}
-
-                {/* Tabla */}
-                {loading ? (
-                    <div className="flex justify-center py-20"><Loader2 className="h-8 w-8 animate-spin text-green-400" /></div>
-                ) : !selectedBranchId ? (
-                    <div className="text-center py-24 text-white/40">
-                        <Package className="h-14 w-14 mx-auto mb-4 opacity-20" />
-                        <p>Seleccioná una sucursal para ver su inventario</p>
-                    </div>
-                ) : (
-                    <div className="bg-white/5 rounded-2xl shadow overflow-hidden">
-                        <table className="w-full text-sm">
-                            <thead className="bg-white/5 border-b border-white/20">
-                                <tr>
-                                    <th className="text-left px-5 py-3 font-semibold text-white/70">Producto</th>
-                                    <th className="text-left px-5 py-3 font-semibold text-white/70">SKU</th>
-                                    <th className="text-left px-5 py-3 font-semibold text-white/70">Tipo</th>
-                                    <th className="text-right px-5 py-3 font-semibold text-white/70">Stock actual</th>
-                                    <th className="text-right px-5 py-3 font-semibold text-white/70">Mín.</th>
-                                    <th className="text-center px-5 py-3 font-semibold text-white/70">Estado</th>
-                                    <th className="text-left px-5 py-3 font-semibold text-white/70">Fecha / Motivo</th>
-                                    {canEdit && <th className="px-5 py-3" />}
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {filtered.map(item => (
-                                    <StockRow key={item.id} item={item} canEdit={canEdit}
-                                        onSaved={() => loadStock(selectedBranchId)} />
-                                ))}
-                                {filtered.length === 0 && (
-                                    <tr><td colSpan={canEdit ? 8 : 7} className="px-6 py-16 text-center text-white/40">
-                                        No se encontraron productos
-                                    </td></tr>
-                                )}
-                            </tbody>
-                        </table>
-                        <div className="px-5 py-3 bg-white/5 border-t text-xs text-white/40">
-                            {filtered.length} producto{filtered.length !== 1 ? 's' : ''} · {selectedBranchName}
-                            {canEdit && <span className="ml-3 text-green-400 font-medium">✏️ Hacé click en el lápiz para ajustar stock</span>}
-                        </div>
-                    </div>
-                )}
-            </div>
+            </header>
+            <Card className="p-4"><label htmlFor="stock-branch" className="mb-2 block text-sm font-semibold">{isAdmin ? 'Seleccioná una sucursal' : 'Tu sucursal'}</label>
+                <select id="stock-branch" value={selectedBranchId} onChange={event => handleBranchChange(event.target.value)} disabled={!isAdmin && !!user?.branchIds?.[0]} className="min-h-12 w-full max-w-sm rounded-lg border border-line bg-surface px-3 text-ink disabled:opacity-70">
+                    <option value="">Elegí una sucursal</option>{branches.map(branch => <option key={branch.id} value={branch.id}>{branch.name} ({branch.type})</option>)}
+                </select></Card>
+            {summary && <div className="grid grid-cols-2 gap-3 lg:grid-cols-4" aria-label="Resumen de stock">{[
+                { label: 'Total ítems', value: summary.total, f: 'ALL' as const, tone: 'neutral' as const },
+                { label: 'Stock OK', value: summary.ok, f: 'OK' as const, tone: 'success' as const },
+                { label: 'Stock bajo', value: summary.low, f: 'LOW' as const, tone: 'warning' as const },
+                { label: 'Sin stock', value: summary.critical, f: 'CRITICAL' as const, tone: 'error' as const },
+            ].map(kpi => <button key={kpi.f} type="button" aria-pressed={filter === kpi.f} onClick={() => setFilter(kpi.f)} className={`min-h-24 rounded-xl border bg-surface p-4 text-left hover:border-brand ${filter === kpi.f ? 'border-brand' : 'border-line-subtle'}`}>
+                <span className="block text-sm text-muted">{kpi.label}</span><span className="mt-2 block font-display text-3xl font-semibold tabular-nums">{kpi.value}</span><StatusBadge tone={kpi.tone} className="mt-2">{filter === kpi.f ? 'Filtro activo' : 'Ver ítems'}</StatusBadge>
+            </button>)}</div>}
+            {selectedBranchId && <Card className="p-4"><label htmlFor="stock-search" className="mb-2 flex items-center gap-2 text-sm font-semibold"><Search size={16} aria-hidden="true" /> Buscar producto</label><input id="stock-search" type="search" placeholder="Nombre o SKU" value={search} onChange={event => setSearch(event.target.value)} className="min-h-12 w-full rounded-lg border border-line bg-surface px-3 text-ink placeholder:text-muted" /></Card>}
+            {loading ? <Card className="flex items-center justify-center gap-3 p-12 text-muted" role="status"><Loader2 size={22} className="animate-spin" aria-hidden="true" /> Cargando stock…</Card>
+                : !selectedBranchId ? <Card className="p-12 text-center text-muted">Seleccioná una sucursal para ver su inventario</Card>
+                    : <Card className="overflow-hidden"><div className="md:overflow-x-auto"><table className="block w-full md:table md:min-w-[900px]"><thead className="hidden bg-canvas text-muted md:table-header-group"><tr>
+                        <th scope="col" className="px-4 py-3 text-left">Producto</th><th scope="col" className="px-4 py-3 text-left">SKU</th><th scope="col" className="px-4 py-3 text-left">Tipo</th><th scope="col" className="px-4 py-3 text-right">Stock actual</th><th scope="col" className="px-4 py-3 text-right">Mínimo</th><th scope="col" className="px-4 py-3 text-left">Estado</th><th scope="col" className="px-4 py-3 text-left">Fecha / motivo</th>{canEdit && <th scope="col" className="px-4 py-3 text-right">Acciones</th>}
+                    </tr></thead><tbody className="grid gap-3 p-3 md:table-row-group md:p-0">{filtered.map(item => <StockRow key={item.id} item={item} canEdit={canEdit} onSaved={() => loadStock(selectedBranchId)} />)}</tbody></table></div>
+                        {filtered.length === 0 && <p className="p-10 text-center text-muted">No se encontraron productos</p>}
+                        <p className="border-t border-line-subtle px-4 py-3 text-sm text-muted">{filtered.length} producto{filtered.length !== 1 ? 's' : ''} · {selectedBranchName}</p>
+                    </Card>}
         </div>
-    );
+    </main>;
 }
