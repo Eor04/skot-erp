@@ -8,6 +8,7 @@ import {
     Truck, ClipboardCheck, Package, X,
 } from 'lucide-react';
 import { useSession } from '@/lib/session-context';
+import { Dialog } from '@/components/ui/dialog';
 
 type Product = { id: string; name: string; sku: string; unit: string; type: string };
 type Branch = { id: string; name: string; type: string };
@@ -72,8 +73,8 @@ function QuickProductModal({
     }
 
     return (
-        <div role="dialog" aria-modal="true" aria-labelledby="new-receiving-product-title" className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4">
-            <div className="bg-surface border border-line-subtle  rounded-xl shadow-2xl w-full max-w-md">
+        <Dialog open onClose={() => { if (!saving) onClose(); }} labelledBy="new-receiving-product-title" className="max-w-md">
+            <div>
                 <div className="flex items-center justify-between px-6 py-4 border-b border-line-subtle">
                     <h2 id="new-receiving-product-title" className="flex items-center gap-2 font-display font-semibold text-ink">
                         <Plus className="h-5 w-5 text-brand" /> Nuevo Producto
@@ -137,7 +138,7 @@ function QuickProductModal({
                     </div>
                 </form>
             </div>
-        </div>
+        </Dialog>
     );
 }
 
@@ -160,6 +161,7 @@ export default function FactoryReceivingPage() {
     const [productSearch, setProductSearch] = useState<Record<number, string>>({});
     const [productDropdown, setProductDropdown] = useState<number | null>(null);
     const dropdownRef = useRef<HTMLDivElement>(null);
+    const quickProductTrigger = useRef<HTMLElement | null>(null);
 
     const [showNewProduct, setShowNewProduct] = useState(false);
     const [newProductForRow, setNewProductForRow] = useState<number | null>(null);
@@ -255,6 +257,7 @@ export default function FactoryReceivingPage() {
     }
 
     function handleNewProduct(rowIdx: number) {
+        quickProductTrigger.current = document.activeElement as HTMLElement;
         setNewProductForRow(rowIdx);
         setShowNewProduct(true);
         setProductDropdown(null);
@@ -317,7 +320,7 @@ export default function FactoryReceivingPage() {
             {/* Modal */}
             {showNewProduct && (
                 <QuickProductModal
-                    onClose={() => { setShowNewProduct(false); setNewProductForRow(null); }}
+                    onClose={() => { setShowNewProduct(false); setNewProductForRow(null); requestAnimationFrame(() => quickProductTrigger.current?.focus()); }}
                     onCreated={handleProductCreated}
                 />
             )}
@@ -391,7 +394,7 @@ export default function FactoryReceivingPage() {
                                 <h2 className="font-bold text-ink flex items-center gap-2">
                                     <Package className="h-5 w-5 text-muted" /> Productos recibidos
                                 </h2>
-                                <button type="button" onClick={() => { setNewProductForRow(null); setShowNewProduct(true); }}
+                                <button type="button" onClick={event => { quickProductTrigger.current = event.currentTarget; setNewProductForRow(null); setShowNewProduct(true); }}
                                     className="flex items-center gap-1.5 text-xs text-brand hover:text-brand font-semibold bg-green-50 hover:bg-canvas px-3 py-1.5 rounded-lg transition">
                                     <Plus className="h-3.5 w-3.5" /> Nuevo producto
                                 </button>

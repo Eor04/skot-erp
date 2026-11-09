@@ -7,6 +7,7 @@ import {
     Receipt, Filter, DollarSign, X
 } from 'lucide-react';
 import { useSession } from '@/lib/session-context';
+import { Dialog } from '@/components/ui/dialog';
 
 interface Expense {
     id: string;
@@ -281,12 +282,12 @@ export default function ExpensesPage() {
             </div>
 
             {/* Modal: Nuevo gasto */}
-            {showForm && (
-                <div className="fixed inset-0 bg-black/50 z-40 flex items-end sm:items-center justify-center p-4">
+            <Dialog open={showForm} onClose={() => { if (!submitting) setShowForm(false); }} labelledBy="expense-dialog" className="max-w-lg">
+
                     <div className="bg-surface rounded-xl shadow-xl border border-line-subtle w-full max-w-md max-h-[90dvh] overflow-y-auto">
                         <div className="flex items-center justify-between p-5 border-b border-line-subtle">
-                            <h2 className="text-lg font-bold text-ink">Registrar Gasto</h2>
-                            <button onClick={() => { setShowForm(false); setForm(BLANK); }} className="text-muted hover:text-muted">
+                            <h2 id="expense-dialog" className="text-lg font-bold text-ink">Registrar Gasto</h2>
+                            <button type="button" aria-label="Cerrar registro de gasto" disabled={submitting} onClick={() => { setShowForm(false); setForm(BLANK); }} className="grid h-11 w-11 place-items-center rounded-lg text-muted hover:bg-canvas disabled:opacity-50">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
@@ -360,8 +361,8 @@ export default function ExpensesPage() {
                             </div>
                         </form>
                     </div>
-                </div>
-            )}
+
+            </Dialog>
         </div>
 </main>
     );

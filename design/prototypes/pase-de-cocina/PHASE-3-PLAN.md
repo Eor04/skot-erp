@@ -1,6 +1,6 @@
 # Skot ERP · Preparación de Fase 3
 
-**Estado (8 de noviembre de 2026):** implementación autorizada y en curso en `frontend-new`. La identidad «Pase de Cocina» y su variante contextual siguen seleccionadas. Los [prototipos refinados](./index.html) y la [variante de marca](./index-brand.html) permanecen como referencias aisladas con datos de demostración. La línea base de abajo describe el estado **previo** a la implementación; el avance real se registra después de ella.
+**Estado (9 de noviembre de 2026):** migración visual de las 42 rutas completada en `frontend-new`; regresión simulada y límites de aceptación registrados en [el informe de cierre](../../../docs/phase3-regression-2026-11-09.md). La identidad «Pase de Cocina» y su variante contextual siguen seleccionadas. Los [prototipos refinados](./index.html) y la [variante de marca](./index-brand.html) permanecen como referencias aisladas con datos de demostración. La línea base y la tabla histórica de avance de abajo describen el estado al iniciar la implementación.
 
 ### Línea base verificada antes de implementar
 

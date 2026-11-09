@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Dialog } from '@/components/ui/dialog';
 import { ArrowLeft, Plus, Pencil, Trash2, X, AlertCircle, CheckCircle2, Settings2 } from 'lucide-react';
 
 type Modifier = {
@@ -44,12 +45,14 @@ export default function ModifiersPage() {
     useEffect(() => { loadData(); }, []);
 
     function openCreate() {
+        setToast(null);
         setEditingId(null);
         setForm(EMPTY_FORM);
         setShowModal(true);
     }
 
     function openEdit(m: Modifier) {
+        setToast(null);
         setEditingId(m.id);
         setForm({ name: m.name, description: m.description || '', price: m.price, category: m.category || 'BURGER', active: m.active });
         setShowModal(true);
@@ -101,13 +104,13 @@ export default function ModifiersPage() {
                 </div>
             )}
 
-            {confirmDelete && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-surface border border-line-subtle rounded-xl shadow-lg w-full max-w-sm p-6 text-center">
+            <Dialog open={Boolean(confirmDelete)} onClose={() => setConfirmDelete(null)} labelledBy="modifiers-delete-title" className="max-w-sm">
+                {confirmDelete && <div>
+                    <div className="p-6 text-center">
                         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                             <Trash2 className="h-6 w-6 text-red-600" />
                         </div>
-                        <h3 className="text-lg font-bold text-ink mb-1">¿Desactivar modificador?</h3>
+                        <h3 id="modifiers-delete-title" className="text-lg font-bold text-ink mb-1">¿Desactivar modificador?</h3>
                         <p className="text-muted text-sm mb-6">
                             <strong>{confirmDelete.name}</strong> no aparecerá más en el POS.
                         </p>
@@ -122,8 +125,8 @@ export default function ModifiersPage() {
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
+                </div>}
+            </Dialog>
 
             <div className="relative z-10 max-w-4xl mx-auto">
                 {/* Header */}
@@ -247,16 +250,17 @@ export default function ModifiersPage() {
             </div>
 
             {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-                    <div className="bg-surface border border-line-subtle rounded-xl shadow-lg w-full max-w-sm">
+            <Dialog open={showModal} onClose={() => { if (!submitting) setShowModal(false); }} labelledBy="modifiers-form-title" className="max-w-md">
+                {showModal && <div>
+                    <div>
                         <div className="flex items-center justify-between p-6 border-b border-line-subtle">
-                            <h2 className="text-lg font-bold text-ink">
+                            <h2 id="modifiers-form-title" className="text-lg font-bold text-ink">
                                 {editingId ? 'Editar modificador' : 'Nuevo modificador'}
                             </h2>
                             <button onClick={() => setShowModal(false)} className="grid h-11 w-11 place-items-center rounded-lg text-muted hover:bg-canvas hover:text-ink"><X className="h-5 w-5" /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            {toast?.type === 'error' && <p role="alert" className="rounded-lg bg-[var(--status-error-bg)] p-3 text-sm font-semibold text-danger">{toast.msg}</p>}
                             <div>
                                 <label className="block text-sm font-semibold text-ink mb-1.5">Nombre *</label>
                                 <input required type="text" placeholder="Ej: Queso doble" value={form.name}
@@ -304,8 +308,8 @@ export default function ModifiersPage() {
                             </div>
                         </form>
                     </div>
-                </div>
-            )}
+                </div>}
+            </Dialog>
         </main>
     );
 }

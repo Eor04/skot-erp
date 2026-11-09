@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Package, Clock, CheckCircle2, Truck, XCircle, AlertCircle, ChevronDown, ChevronUp, X, ThumbsUp, ThumbsDown, PackageCheck } from 'lucide-react';
 import { useSession } from '@/lib/session-context';
+import { Dialog } from '@/components/ui/dialog';
 
 type OrderStatus = 'PENDING' | 'APPROVED' | 'DISPATCHED' | 'RECEIVED' | 'CANCELLED';
 
@@ -333,7 +334,7 @@ export default function InternalOrdersPage() {
                                                         <div className="mb-4 flex items-center gap-2 bg-blue-500/10 p-3 rounded-xl border border-blue-100">
                                                             <Truck className="h-4 w-4 text-info" />
                                                             <span className="text-sm font-semibold text-blue-900">Reasignar Fábrica:</span>
-                                                            <select 
+                                                            <select
                                                                 value={order.toBranch.id}
                                                                 onChange={e => changeOrderFactory(order.id, e.target.value)}
                                                                 onClick={e => e.stopPropagation()}
@@ -365,9 +366,9 @@ export default function InternalOrdersPage() {
                                                                 <td className="py-2 text-ink">{item.requestedQty} {item.unit}</td>
                                                                 <td className="py-2 text-ink">
                                                                     {canApproveOrDispatch && order.status === 'PENDING' ? (
-                                                                        <input 
-                                                                            type="number" 
-                                                                            min="0" 
+                                                                        <input
+                                                                            type="number"
+                                                                            min="0"
                                                                             step="0.01"
                                                                             className="w-20 bg-surface text-ink border border-blue-400/40 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-blue-400 placeholder:text-muted"
                                                                             value={(editedQuantities[`${order.id}_${item.id}`] ?? item.requestedQty) === 0 ? '' : (editedQuantities[`${order.id}_${item.id}`] ?? item.requestedQty)}
@@ -380,9 +381,9 @@ export default function InternalOrdersPage() {
                                                                 </td>
                                                                 <td className="py-2 text-ink">
                                                                     {canApproveOrDispatch && order.status === 'APPROVED' ? (
-                                                                        <input 
-                                                                            type="number" 
-                                                                            min="0" 
+                                                                        <input
+                                                                            type="number"
+                                                                            min="0"
                                                                             step="0.01"
                                                                             className="w-20 bg-surface text-ink border border-purple-400/40 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-1 focus:ring-purple-400 placeholder:text-muted"
                                                                             value={(editedQuantities[`${order.id}_${item.id}`] ?? item.approvedQty ?? item.requestedQty) === 0 ? '' : (editedQuantities[`${order.id}_${item.id}`] ?? item.approvedQty ?? item.requestedQty)}
@@ -416,12 +417,12 @@ export default function InternalOrdersPage() {
             </div>
 
             {/* Modal nuevo pedido */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 z-40 flex items-start justify-center p-4 overflow-y-auto pt-10">
+            <Dialog open={showModal} onClose={() => { if (!submitting) setShowModal(false); }} labelledBy="internal-order-dialog" className="max-w-lg">
+
                     <div className="bg-surface rounded-2xl shadow-xl w-full max-w-lg border border-line-subtle">
                         <div className="flex items-center justify-between p-6 border-b border-line-subtle">
-                            <h2 className="text-lg font-bold text-ink">Nuevo Pedido Interno</h2>
-                            <button onClick={() => setShowModal(false)} className="text-muted hover:text-muted">
+                            <h2 id="internal-order-dialog" className="text-lg font-bold text-ink">Nuevo Pedido Interno</h2>
+                            <button type="button" aria-label="Cerrar pedido interno" disabled={submitting} onClick={() => setShowModal(false)} className="grid h-11 w-11 place-items-center rounded-lg text-muted hover:bg-canvas disabled:opacity-50">
                                 <X className="h-5 w-5" />
                             </button>
                         </div>
@@ -469,10 +470,10 @@ export default function InternalOrdersPage() {
                                 </div>
                                 {form.items.map((item, idx) => (
                                     <div key={idx} className="flex gap-2 mb-2 items-center">
-                                        <ProductCombobox 
-                                            products={products} 
-                                            value={item.productId} 
-                                            onChange={val => updateItem(idx, 'productId', val)} 
+                                        <ProductCombobox
+                                            products={products}
+                                            value={item.productId}
+                                            onChange={val => updateItem(idx, 'productId', val)}
                                         />
                                         <input type="number" min="0.01" step="0.01" value={item.requestedQty === 0 ? '' : item.requestedQty}
                                             onChange={e => updateItem(idx, 'requestedQty', parseFloat(e.target.value))}
@@ -509,8 +510,8 @@ export default function InternalOrdersPage() {
                             </div>
                         </form>
                     </div>
-                </div>
-            )}
+
+            </Dialog>
         </main>
     );
 }
@@ -518,7 +519,7 @@ export default function InternalOrdersPage() {
 function ProductCombobox({ products, value, onChange }: { products: any[], value: string, onChange: (id: string) => void }) {
     const [search, setSearch] = useState('');
     const [show, setShow] = useState(false);
-    
+
     useEffect(() => {
         if (value) {
             const p = products.find(p => p.id === value);
@@ -532,7 +533,7 @@ function ProductCombobox({ products, value, onChange }: { products: any[], value
 
     return (
         <div className="relative flex-1 min-w-0">
-            <input 
+            <input
                 type="text"
                 placeholder="🔍 Buscar y seleccionar producto..."
                 value={search}
@@ -548,7 +549,7 @@ function ProductCombobox({ products, value, onChange }: { products: any[], value
             {show && (
                 <div className="absolute z-50 mt-1 w-full bg-surface border border-line rounded-lg shadow-xl max-h-48 overflow-y-auto">
                     {filtered.length > 0 ? filtered.map(p => (
-                        <div 
+                        <div
                             key={p.id}
                             className="px-2 py-2 hover:bg-canvas cursor-pointer text-xs text-ink border-b border-line-subtle last:border-0"
                             onClick={() => {

@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Dialog } from '@/components/ui/dialog';
 import {
     ArrowLeft, Plus, Pencil, Trash2, X, AlertCircle, CheckCircle2,
     Package, Search, ChevronDown, ChevronUp, Layers
@@ -53,6 +54,7 @@ export default function CombosPage() {
     useEffect(() => { loadData(); }, []);
 
     function openCreate() {
+        setToast(null);
         setEditingId(null);
         setForm(EMPTY_FORM);
         setItems([]);
@@ -61,6 +63,7 @@ export default function CombosPage() {
     }
 
     function openEdit(combo: Combo) {
+        setToast(null);
         setEditingId(combo.id);
         setForm({ name: combo.name, description: combo.description || '', price: combo.price, active: combo.active, imageUrl: combo.imageUrl || '' });
         setItems(combo.items.map(i => ({ productId: i.productId, quantity: i.quantity })));
@@ -130,13 +133,13 @@ export default function CombosPage() {
             )}
 
             {/* Confirm Delete */}
-            {confirmDelete && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-surface border border-line-subtle rounded-xl shadow-lg w-full max-w-sm p-6 text-center">
+            <Dialog open={Boolean(confirmDelete)} onClose={() => setConfirmDelete(null)} labelledBy="combos-delete-title" className="max-w-sm">
+                {confirmDelete && <div>
+                    <div className="p-6 text-center">
                         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                             <Trash2 className="h-6 w-6 text-red-600" />
                         </div>
-                        <h3 className="text-lg font-bold text-ink mb-1">¿Desactivar combo?</h3>
+                        <h3 id="combos-delete-title" className="text-lg font-bold text-ink mb-1">¿Desactivar combo?</h3>
                         <p className="text-muted text-sm mb-6"><strong>{confirmDelete.name}</strong> no aparecerá en el POS.</p>
                         <div className="flex gap-3">
                             <button onClick={() => setConfirmDelete(null)}
@@ -149,8 +152,8 @@ export default function CombosPage() {
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
+                </div>}
+            </Dialog>
 
             <div className="relative z-10 max-w-4xl mx-auto">
                 {/* Header */}
@@ -251,17 +254,18 @@ export default function CombosPage() {
             </div>
 
             {/* Modal */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
+            <Dialog open={showModal} onClose={() => { if (!submitting) setShowModal(false); }} labelledBy="combos-form-title" className="max-w-md">
+                {showModal && <div>
                     <div className="bg-surface border border-line-subtle rounded-xl shadow-lg w-full max-w-lg max-h-[92vh] overflow-y-auto">
                         <div className="flex items-center justify-between p-6 border-b border-line-subtle sticky top-0 bg-surface border border-line-subtle z-10">
-                            <h2 className="text-lg font-bold text-ink">
+                            <h2 id="combos-form-title" className="text-lg font-bold text-ink">
                                 {editingId ? 'Editar combo' : 'Nuevo combo'}
                             </h2>
                             <button onClick={() => setShowModal(false)} className="grid h-11 w-11 place-items-center rounded-lg text-muted hover:bg-canvas hover:text-ink"><X className="h-5 w-5" /></button>
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                            {toast?.type === 'error' && <p role="alert" className="rounded-lg bg-[var(--status-error-bg)] p-3 text-sm font-semibold text-danger">{toast.msg}</p>}
                             {/* Imagen */}
                             <div className="flex items-start gap-5">
                                 <div>
@@ -372,8 +376,8 @@ export default function CombosPage() {
                             </div>
                         </form>
                     </div>
-                </div>
-            )}
+                </div>}
+            </Dialog>
         </main>
     );
 }

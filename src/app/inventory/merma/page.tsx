@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Trash2, AlertCircle, CheckCircle2, X, Search } from 'lucide-react';
 import { useSession } from '@/lib/session-context';
+import { Dialog } from '@/components/ui/dialog';
 
 const MERMA_REASONS = [
     { value: 'VENCIMIENTO', label: '🗓️ Vencimiento' },
@@ -225,14 +226,14 @@ export default function MermaPage() {
             </div>
 
             {/* Modal registrar merma */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
+            <Dialog open={showModal} onClose={() => { if (!submitting) setShowModal(false); }} labelledBy="merma-dialog" className="max-w-lg">
+
                     <div className="bg-surface rounded-2xl shadow-xl w-full max-w-md">
                         <div className="flex items-center justify-between p-6 border-b border-line-subtle">
-                            <h2 className="text-lg font-bold text-ink flex items-center gap-2">
+                            <h2 id="merma-dialog" className="text-lg font-bold text-ink flex items-center gap-2">
                                 <Trash2 className="h-5 w-5 text-red-500" /> Registrar Merma
                             </h2>
-                            <button onClick={() => setShowModal(false)} className="text-muted hover:text-muted"><X className="h-5 w-5" /></button>
+                            <button type="button" aria-label="Cerrar registro de merma" disabled={submitting} onClick={() => setShowModal(false)} className="grid h-11 w-11 place-items-center rounded-lg text-muted hover:bg-canvas disabled:opacity-50"><X className="h-5 w-5" /></button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
                             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -297,8 +298,8 @@ export default function MermaPage() {
                             </div>
                         </form>
                     </div>
-                </div>
-            )}
+
+            </Dialog>
         </main>
     );
 }

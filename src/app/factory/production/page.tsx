@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Dialog } from '@/components/ui/dialog';
 import { PlayCircle, Plus, ArrowLeft, Clock, CheckCircle, Loader, X, AlertCircle, CheckCircle2, Beef } from 'lucide-react';
 
 type Order = {
@@ -208,9 +209,8 @@ export default function ProductionPage() {
             </div>
 
             {/* Modal nueva orden */}
-            {showModal && (
-                <div role="dialog" aria-modal="true" aria-labelledby="new-production-title" className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
-                    <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl border border-line-subtle bg-surface">
+            <Dialog open={showModal} onClose={() => { if (!submitting) setShowModal(false); }} labelledBy="new-production-title" className="max-w-md">
+                    <div>
                         <div className="flex items-center justify-between p-6 border-b border-line-subtle">
                             <div>
                                 <h2 id="new-production-title" className="text-lg font-display font-semibold text-ink">Nueva Orden de Producción</h2>
@@ -287,17 +287,15 @@ export default function ProductionPage() {
                             </div>
                         </form>
                     </div>
-                </div>
-            )}
+            </Dialog>
 
             {/* Modal Completar Orden */}
-            {completingOrder && (
-                <div role="dialog" aria-modal="true" aria-labelledby="complete-production-title" className="fixed inset-0 z-40 flex items-center justify-center bg-black/60 p-4">
-                    <div className="max-h-[90dvh] w-full max-w-md overflow-y-auto rounded-xl border border-line-subtle bg-surface">
+            <Dialog open={Boolean(completingOrder)} onClose={() => { if (!submitting) setCompletingOrder(null); }} labelledBy="complete-production-title" className="max-w-md">
+                    <div>
                         <div className="flex items-center justify-between p-6 border-b border-line-subtle">
                             <div>
                                 <h2 id="complete-production-title" className="text-lg font-display font-semibold text-ink">Completar Producción</h2>
-                                <p className="text-xs text-muted mt-0.5">{completingOrder.orderNumber}</p>
+                                <p className="text-xs text-muted mt-0.5">{completingOrder?.orderNumber}</p>
                             </div>
                             <button onClick={() => setCompletingOrder(null)} aria-label="Cerrar confirmación" className="grid h-11 w-11 place-items-center rounded-lg text-muted hover:bg-canvas">
                                 <X className="h-5 w-5" />
@@ -329,8 +327,7 @@ export default function ProductionPage() {
                             </div>
                         </form>
                     </div>
-                </div>
-            )}
+            </Dialog>
         </div>
         </main>
     );

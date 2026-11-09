@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Dialog } from '@/components/ui/dialog';
 import {
     Users, Plus, ArrowLeft, X, AlertCircle, CheckCircle2,
     Shield, Pencil, Trash2, Loader2
@@ -86,12 +87,14 @@ export default function UsersPage() {
     }
 
     function openCreate() {
+        setToast(null);
         setEditingUser(null);
         setForm(BLANK_FORM);
         setShowModal(true);
     }
 
     function openEdit(u: User) {
+        setToast(null);
         setEditingUser(u);
         setForm({
             name: u.name,
@@ -165,13 +168,13 @@ export default function UsersPage() {
             )}
 
             {/* Modal de confirmación de eliminación */}
-            {confirmDelete && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-surface border border-line-subtle rounded-2xl shadow-xl w-full max-w-sm p-6 text-center">
+            <Dialog open={Boolean(confirmDelete)} onClose={() => setConfirmDelete(null)} labelledBy="users-delete-title" className="max-w-sm">
+                {confirmDelete && <div>
+                    <div className="p-6 text-center">
                         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                             <Trash2 className="h-6 w-6 text-red-600" />
                         </div>
-                        <h3 className="text-lg font-bold text-ink mb-1">¿Eliminar usuario?</h3>
+                        <h3 id="users-delete-title" className="text-lg font-bold text-ink mb-1">¿Eliminar usuario?</h3>
                         <p className="text-muted text-sm mb-6">
                             Se eliminará <strong>{confirmDelete.name}</strong>. Esta acción no se puede deshacer.
                         </p>
@@ -186,8 +189,8 @@ export default function UsersPage() {
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
+                </div>}
+            </Dialog>
 
             <div className="relative z-10 max-w-5xl mx-auto">
                 <div className="flex items-center justify-between mb-8">
@@ -280,11 +283,11 @@ export default function UsersPage() {
             </div>
 
             {/* Modal crear / editar */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-                    <div className="bg-surface border border-line-subtle rounded-2xl shadow-xl w-full max-w-md">
+            <Dialog open={showModal} onClose={() => { if (!submitting) setShowModal(false); }} labelledBy="users-form-title" className="max-w-md">
+                {showModal && <div>
+                    <div>
                         <div className="flex items-center justify-between p-6 border-b border-line-subtle">
-                            <h2 className="text-lg font-bold text-ink">
+                            <h2 id="users-form-title" className="text-lg font-bold text-ink">
                                 {editingUser ? `Editar — ${editingUser.name}` : 'Nuevo Usuario'}
                             </h2>
                             <button onClick={closeModal} className="text-muted hover:text-muted">
@@ -292,6 +295,7 @@ export default function UsersPage() {
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            {toast?.type === 'error' && <p role="alert" className="rounded-lg bg-[var(--status-error-bg)] p-3 text-sm font-semibold text-danger">{toast.msg}</p>}
                             <div>
                                 <label className="block text-sm font-semibold text-ink mb-1.5">Nombre completo *</label>
                                 <input required type="text" placeholder="Juan Pérez" value={form.name}
@@ -378,8 +382,8 @@ export default function UsersPage() {
                             </div>
                         </form>
                     </div>
-                </div>
-            )}
+                </div>}
+            </Dialog>
         </main>
     );
 }

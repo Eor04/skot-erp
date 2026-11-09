@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useSession } from '@/lib/session-context';
 import Link from 'next/link';
+import { Dialog } from '@/components/ui/dialog';
 import {
     ArrowLeft, ShoppingBag, Plus, Trash2, Check, AlertCircle,
     Loader2, Package, Search, X, Calendar, TrendingDown,
@@ -195,7 +196,7 @@ export default function PurchaseOrdersPage() {
                         </h1>
                         <p className="text-muted text-sm mt-1">Gestioná compras de materia prima e insumos</p>
                     </div>
-                    <button onClick={() => setShowForm(true)}
+                    <button onClick={() => { setToast(null); setShowForm(true); }}
                         className="flex items-center gap-2 bg-brand hover:brightness-90 text-white px-5 py-2.5 rounded-xl font-semibold transition shadow-md">
                         <Plus className="h-4 w-4" /> Nuevo Pedido
                     </button>
@@ -241,7 +242,7 @@ export default function PurchaseOrdersPage() {
                     <div className="text-center py-20 text-muted">
                         <ShoppingBag className="h-12 w-12 mx-auto mb-3 opacity-30" />
                         <p>No hay pedidos registrados aún</p>
-                        <button onClick={() => setShowForm(true)} className="mt-3 text-brand hover:underline text-sm">Crear el primero</button>
+                        <button onClick={() => { setToast(null); setShowForm(true); }} className="mt-3 text-brand hover:underline text-sm">Crear el primero</button>
                     </div>
                 ) : (
                     <div className="space-y-3">
@@ -324,11 +325,10 @@ export default function PurchaseOrdersPage() {
             </div>
 
             {/* Modal de nuevo pedido */}
-            {showForm && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-start justify-center overflow-y-auto py-8 px-4">
-                    <div className="bg-surface border border-line-subtle rounded-2xl shadow-2xl w-full max-w-2xl">
+            <Dialog open={showForm} onClose={() => { if (!submitting) setShowForm(false); }} labelledBy="purchase-form-title" className="max-w-2xl">
+                {showForm && <div>
                         <div className="flex items-center justify-between p-6 border-b border-line-subtle">
-                            <h2 className="text-xl font-bold text-ink flex items-center gap-2">
+                            <h2 id="purchase-form-title" className="font-display text-xl font-semibold text-ink flex items-center gap-2">
                                 <ShoppingBag className="h-5 w-5 text-brand" /> Nuevo Pedido
                             </h2>
                             <button onClick={() => setShowForm(false)} className="text-muted hover:text-muted">
@@ -337,6 +337,7 @@ export default function PurchaseOrdersPage() {
                         </div>
 
                         <form onSubmit={handleSubmit} className="p-6 space-y-5">
+                            {toast?.type === 'error' && <p role="alert" className="rounded-lg bg-[var(--status-error-bg)] p-3 text-sm font-semibold text-danger">{toast.msg}</p>}
                             {/* Sucursal y Proveedor */}
                             <div className="grid grid-cols-2 gap-4">
                                 <div>
@@ -470,9 +471,8 @@ export default function PurchaseOrdersPage() {
                                 </button>
                             </div>
                         </form>
-                    </div>
-                </div>
-            )}
+                </div>}
+            </Dialog>
         </main>
     );
 }

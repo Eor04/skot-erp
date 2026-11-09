@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
+import { Dialog } from '@/components/ui/dialog';
 import {
     Store, Plus, ArrowLeft, MapPin, Phone, X,
     AlertCircle, CheckCircle2, Pencil, Trash2, Loader2
@@ -62,12 +63,14 @@ export default function BranchesPage() {
     }
 
     function openCreate() {
+        setToast(null);
         setEditingBranch(null);
         setForm(BLANK_FORM);
         setShowModal(true);
     }
 
     function openEdit(b: Branch) {
+        setToast(null);
         setEditingBranch(b);
         setForm({ name: b.name, type: b.type, address: b.address || '', phone: b.phone || '', active: b.active });
         setShowModal(true);
@@ -134,13 +137,13 @@ export default function BranchesPage() {
             )}
 
             {/* Modal confirmar eliminación */}
-            {confirmDelete && (
-                <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4">
-                    <div className="bg-surface border border-line-subtle rounded-xl shadow-lg w-full max-w-sm p-6 text-center">
+            <Dialog open={Boolean(confirmDelete)} onClose={() => setConfirmDelete(null)} labelledBy="branches-delete-title" className="max-w-sm">
+                {confirmDelete && <div>
+                    <div className="p-6 text-center">
                         <div className="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center mx-auto mb-4">
                             <Trash2 className="h-6 w-6 text-red-600" />
                         </div>
-                        <h3 className="text-lg font-bold text-ink mb-1">¿Eliminar sucursal?</h3>
+                        <h3 id="branches-delete-title" className="text-lg font-bold text-ink mb-1">¿Eliminar sucursal?</h3>
                         <p className="text-muted text-sm mb-6">
                             Se eliminará <strong>{confirmDelete.name}</strong>. Esta acción no se puede deshacer.
                         </p>
@@ -155,8 +158,8 @@ export default function BranchesPage() {
                             </button>
                         </div>
                     </div>
-                </div>
-            )}
+                </div>}
+            </Dialog>
 
             <div className="relative z-10 max-w-5xl mx-auto">
                 <div className="flex items-center justify-between mb-8">
@@ -231,11 +234,11 @@ export default function BranchesPage() {
             </div>
 
             {/* Modal crear / editar */}
-            {showModal && (
-                <div className="fixed inset-0 bg-black/50 z-40 flex items-center justify-center p-4">
-                    <div className="bg-surface border border-line-subtle rounded-xl shadow-lg w-full max-w-md">
+            <Dialog open={showModal} onClose={() => { if (!submitting) setShowModal(false); }} labelledBy="branches-form-title" className="max-w-md">
+                {showModal && <div>
+                    <div>
                         <div className="flex items-center justify-between p-6 border-b border-line-subtle">
-                            <h2 className="text-lg font-bold text-ink">
+                            <h2 id="branches-form-title" className="text-lg font-bold text-ink">
                                 {editingBranch ? `Editar — ${editingBranch.name}` : 'Nueva Sucursal'}
                             </h2>
                             <button onClick={closeModal} className="grid h-11 w-11 place-items-center rounded-lg text-muted hover:bg-canvas hover:text-ink">
@@ -243,6 +246,7 @@ export default function BranchesPage() {
                             </button>
                         </div>
                         <form onSubmit={handleSubmit} className="p-6 space-y-4">
+                            {toast?.type === 'error' && <p role="alert" className="rounded-lg bg-[var(--status-error-bg)] p-3 text-sm font-semibold text-danger">{toast.msg}</p>}
                             <div>
                                 <label className="block text-sm font-semibold text-ink mb-1.5">Nombre *</label>
                                 <input required type="text" placeholder="Ej: Skot Açaí Miraflores" value={form.name}
@@ -291,8 +295,8 @@ export default function BranchesPage() {
                             </div>
                         </form>
                     </div>
-                </div>
-            )}
+                </div>}
+            </Dialog>
         </main>
     );
 }
