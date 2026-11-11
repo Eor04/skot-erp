@@ -94,7 +94,7 @@ export function StockAlerts({ branchId, onCreateTransfer }: StockAlertsProps) {
                         <span className="font-semibold text-orange-900">Stock Bajo</span>
                     </div>
                     <p className="text-3xl font-bold text-orange-700 mt-2">
-                        {summary.totalLowStock}
+                        {Math.max(0, summary.totalLowStock - summary.critical)}
                     </p>
                 </div>
 

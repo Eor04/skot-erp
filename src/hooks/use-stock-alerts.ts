@@ -36,13 +36,18 @@ export function useStockAlerts(enabled = true, branchId?: string): {
             const d = await res.json();
             if (d.success) {
                 const s = d.data?.summary ?? {};
+                const critical = s.critical ?? 0;
+                const stockAlerts = s.totalLowStock ?? 0; // Incluye los productos sin stock.
+                const expiringSoon = s.totalExpiring ?? 0;
+                const pendingOrders = s.totalPendingOrders ?? 0;
+                const pendingTransfers = s.totalPendingTransfers ?? 0;
                 setAlerts({
-                    critical: s.critical ?? 0,
-                    low: s.totalLowStock ?? 0,
-                    expiringSoon: s.totalExpiring ?? 0,
-                    pendingOrders: s.totalPendingOrders ?? 0,
-                    pendingTransfers: s.totalPendingTransfers ?? 0,
-                    total: (s.critical ?? 0) + (s.totalLowStock ?? 0) + (s.totalPendingOrders ?? 0) + (s.totalPendingTransfers ?? 0),
+                    critical,
+                    low: Math.max(0, stockAlerts - critical),
+                    expiringSoon,
+                    pendingOrders,
+                    pendingTransfers,
+                    total: stockAlerts + expiringSoon + pendingOrders + pendingTransfers,
                 });
             }
         } catch { /* silencioso */ }
