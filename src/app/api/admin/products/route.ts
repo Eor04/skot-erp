@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
             BURGER_EXTRA: 'BURGER_EXTRA',
             BEVERAGE: 'BEVERAGE',
             RAW_MATERIAL: 'RAW_MATERIAL',
-            PACKAGING: 'RAW_MATERIAL', // fallback
+            PACKAGING: 'SUPPLY',
+            SUPPLY: 'SUPPLY',
         };
         const productType = typeMap[type || category] || 'RAW_MATERIAL';
 

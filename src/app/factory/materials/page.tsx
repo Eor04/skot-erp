@@ -43,6 +43,7 @@ const TYPE_LABELS: Record<string, string> = {
     'ACAI_TOPPING': 'Toppings',
     'BEVERAGE': 'Bebidas',
     'PACKAGING': 'Empaques',
+    'SUPPLY': 'Suministros',
 };
 
 function StockBar({ current, min }: { current: number; min: number }) {

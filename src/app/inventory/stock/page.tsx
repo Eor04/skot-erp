@@ -34,6 +34,7 @@ const TYPE_LABELS: Record<string, string> = {
     BEVERAGE: 'Bebida',
     RAW_MATERIAL: 'Materia Prima',
     PACKAGING: 'Empaque',
+    SUPPLY: 'Suministros',
 };
 /* ── Fila editable ── */
 function StockRow({

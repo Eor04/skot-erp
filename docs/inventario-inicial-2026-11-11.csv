@@ -1,0 +1,84 @@
+sku,grupo,imagen,linea,nombre,cantidad,unidad,origen_unidad,tipo,categoria,uso,observaciones
+INI-ACAI-001,ACAI,1,1,Leche condensada,12,bote,inferida,ACAI_TOPPING,COBERTURAS,ACAI,Sin peso ni capacidad confirmados
+INI-ACAI-002,ACAI,1,2,Leche en polvo,59,bolsa,inferida,ACAI_TOPPING,LACTEOS,ACAI,Sin peso confirmado; no asumir 750 g del seed anterior
+INI-ACAI-003,ACAI,1,3,Granola nacional,40,bolsa,inferida,ACAI_TOPPING,CEREALES,ACAI,
+INI-ACAI-004,ACAI,1,4,Granola con frutos secos,19,bolsa,inferida,ACAI_TOPPING,CEREALES,ACAI,
+INI-ACAI-005,ACAI,1,5,Zucaritas,34,bolsa,inferida,ACAI_TOPPING,CEREALES,ACAI,
+INI-ACAI-006,ACAI,1,6,Cereal de maíz,3,bolsa,inferida,ACAI_TOPPING,CEREALES,ACAI,
+INI-ACAI-007,ACAI,1,7,Gota Pingo blanco,30,bolsa,inferida,ACAI_TOPPING,TOPPINGS,ACAI,
+INI-ACAI-008,ACAI,1,8,Gota Pingo chocolate,12,bolsa,inferida,ACAI_TOPPING,TOPPINGS,ACAI,
+INI-ACAI-009,ACAI,1,9,Choco Power mediano,12,bolsa,inferida,ACAI_TOPPING,TOPPINGS,ACAI,
+INI-ACAI-010,ACAI,1,10,Turrón,200,unidad,inferida,ACAI_TOPPING,GOLOSINAS,ACAI,
+INI-ACAI-011,ACAI,1,11,Dulce de leche,10,bote,inferida,ACAI_TOPPING,COBERTURAS,ACAI,
+INI-ACAI-012,ACAI,1,12,Nutella,2,bote,inferida,ACAI_TOPPING,COBERTURAS,ACAI,
+INI-ACAI-013,ACAI,1,13,Jalea de chocolate,16,bote,inferida,ACAI_TOPPING,COBERTURAS,ACAI,
+INI-ACAI-014,ACAI,1,14,Jalea de frutilla,8,bote,inferida,ACAI_TOPPING,COBERTURAS,ACAI,
+INI-ACAI-015,ACAI,1,15,Tapioca,35,envase,inferida,ACAI_TOPPING,COMPLEMENTOS,ACAI,Presentación no especificada; no asumir kg ni litros
+INI-ACAI-016,ACAI,1,16,Tubitos,2,bolsa,inferida,ACAI_TOPPING,GOLOSINAS,ACAI,
+INI-ACAI-017,ACAI,1,17,Frutillas ácidas,2,bolsa,inferida,ACAI_TOPPING,GOLOSINAS,ACAI,
+INI-ACAI-018,ACAI,1,18,Gusanito,1,bolsa,inferida,ACAI_TOPPING,GOLOSINAS,ACAI,
+INI-ACAI-019,ACAI,2,1,Mora,2,bolsa,inferida,ACAI_TOPPING,GOLOSINAS,ACAI,Se interpreta como golosina por su contexto; no como fruta fresca
+INI-ACAI-020,ACAI,2,2,Sandía,2,bolsa,inferida,ACAI_TOPPING,GOLOSINAS,ACAI,Se interpreta como golosina por su contexto
+INI-ACAI-021,ACAI,2,3,Diente,1,bolsa,inferida,ACAI_TOPPING,GOLOSINAS,ACAI,
+INI-ACAI-022,ACAI,2,4,Osito,1,bolsa,inferida,ACAI_TOPPING,GOLOSINAS,ACAI,
+INI-ACAI-023,ACAI,2,5,Ladrillo,1,bolsa,inferida,ACAI_TOPPING,GOLOSINAS,ACAI,
+INI-ACAI-024,ACAI,2,6,Coco blanco,4,bolsa,inferida,ACAI_TOPPING,FRUTOS SECOS,ACAI,Lectura normalizada de Coco blanca; revisar foto si se dispone
+INI-ACAI-025,ACAI,2,7,Maní normal,3,bolsa,inferida,ACAI_TOPPING,FRUTOS SECOS,ACAI,
+INI-ACAI-026,ACAI,2,8,Maní confitado,1,bolsa,inferida,ACAI_TOPPING,FRUTOS SECOS,ACAI,
+INI-ACAI-027,ACAI,2,9,Almendra confitada,2,bolsa,inferida,ACAI_TOPPING,FRUTOS SECOS,ACAI,
+INI-ACAI-028,ACAI,2,10,Chispas de chocolate,20,bolsa,inferida,ACAI_TOPPING,TOPPINGS,ACAI,
+INI-ACAI-029,ACAI,2,11,Chispas de colores,20,bolsa,inferida,ACAI_TOPPING,TOPPINGS,ACAI,
+INI-ACAI-030,ACAI,2,12,Mousse de pistacho,10,envase,inferida,ACAI_TOPPING,MOUSSES,ACAI,Sin capacidad confirmada
+INI-ACAI-031,ACAI,2,13,Mousse de frutos rojos,8,envase,inferida,ACAI_TOPPING,MOUSSES,ACAI,Sin capacidad confirmada
+INI-ACAI-032,ACAI,2,14,Mousse de maracuyá,6,envase,inferida,ACAI_TOPPING,MOUSSES,ACAI,Sin capacidad confirmada
+INI-ACAI-033,ACAI,2,15,Mousse de frutilla,30,envase,inferida,ACAI_TOPPING,MOUSSES,ACAI,Sin capacidad confirmada
+INI-ACAI-034,ACAI,2,16,Chicharrón de coco,1,bolsa,inferida,ACAI_TOPPING,TOPPINGS,ACAI,
+INI-ACAI-035,ACAI,2,17,Oreo,1,paquete,inferida,ACAI_TOPPING,GALLETAS,ACAI,
+INI-ACAI-036,ACAI,2,18,Mantequilla de maní,1,bote,inferida,ACAI_TOPPING,COBERTURAS,ACAI,
+INI-ACAI-037,ACAI,3,1,Durazno,6,kg,inferida,ACAI_TOPPING,FRUTAS,ACAI,Se infiere peso de fruta; no hay presentación explícita en la foto
+INI-ACAI-038,ACAI,3,2,Cereal de colores,1,bolsa,inferida,ACAI_TOPPING,CEREALES,ACAI,
+INI-ACAI-039,ACAI,3,3,Brownie,1,unidad,inferida,ACAI_TOPPING,COMPLEMENTOS,ACAI,Unidad de la presentación contada; no inferir porciones ni clasificar como mousse
+INI-BUR-001,HAMBURGUESAS,4,1,Carne Junior,210,unidad,inferida,RAW_MATERIAL,CARNES,HAMBURGUESAS,Medallones contados; no aplicar los 100 g del piloto anterior
+INI-BUR-002,HAMBURGUESAS,4,2,Carne clásica,430,unidad,inferida,RAW_MATERIAL,CARNES,HAMBURGUESAS,Medallones contados
+INI-BUR-003,HAMBURGUESAS,4,3,Chorizo,17,unidad,inferida,RAW_MATERIAL,CARNES,HAMBURGUESAS,
+INI-BUR-004,HAMBURGUESAS,4,4,Lomito,120,unidad,inferida,RAW_MATERIAL,CARNES,HAMBURGUESAS,Unidad o porción contada; peso no especificado
+INI-BUR-005,HAMBURGUESAS,4,5,Tomate,20,kg,explicita,RAW_MATERIAL,VERDURAS,HAMBURGUESAS,La foto dice 20 kilos
+INI-BUR-006,HAMBURGUESAS,4,6,Lechuga,15,unidad,explicita,RAW_MATERIAL,VERDURAS,HAMBURGUESAS,Una unidad equivale a una cabeza de lechuga
+INI-BUR-007,HAMBURGUESAS,4,7,Sal negra (balde),3,balde,explicita,RAW_MATERIAL,CONDIMENTOS,HAMBURGUESAS,Lectura literal: baldes sal negra; posible salsa negra; mantener separado del registro Salsa negra sin equivalencia de envases
+INI-BUR-008,HAMBURGUESAS,4,8,Papa (porción),360,porcion,explicita,RAW_MATERIAL,ACOMPANAMIENTOS,HAMBURGUESAS,Porciones contadas; no convertir a kg
+INI-BUR-009,HAMBURGUESAS,4,9,Tocino,200,unidad,inferida,RAW_MATERIAL,CARNES,HAMBURGUESAS,Unidad contada; no inventar peso por loncha o porción
+INI-BUR-010,HAMBURGUESAS,4,10,Pan Junior,100,unidad,inferida,RAW_MATERIAL,PANES,HAMBURGUESAS,
+INI-BUR-011,HAMBURGUESAS,4,11,Pan clásico,250,unidad,inferida,RAW_MATERIAL,PANES,HAMBURGUESAS,
+INI-BUR-012,HAMBURGUESAS,4,12,Pan de lomito,0,unidad,inferida,RAW_MATERIAL,PANES,HAMBURGUESAS,Crear aunque el saldo sea cero
+INI-BUR-013,HAMBURGUESAS,4,13,Salsa roja,0,envase,inferida,RAW_MATERIAL,SALSAS,HAMBURGUESAS,Sin capacidad confirmada
+INI-BUR-014,HAMBURGUESAS,4,14,Salsa negra,0,envase,inferida,RAW_MATERIAL,SALSAS,HAMBURGUESAS,No sumar ni fusionar con los 3 baldes de la línea 7
+INI-BUR-015,HAMBURGUESAS,4,15,Salsa verde,0,envase,inferida,RAW_MATERIAL,SALSAS,HAMBURGUESAS,Sin capacidad confirmada
+INI-BUR-016,SUMINISTROS,4,16,Gas chico,0,unidad,inferida,SUPPLY,COMBUSTIBLES,HAMBURGUESAS,Una unidad representa una garrafa; sin capacidad confirmada
+INI-BUR-017,SUMINISTROS,4,17,Gas grande,0,unidad,inferida,SUPPLY,COMBUSTIBLES,HAMBURGUESAS,Una unidad representa una garrafa; sin capacidad confirmada
+INI-BUR-018,HAMBURGUESAS,5,1,Refresco de maracuyá,0,envase,inferida,BEVERAGE,BEBIDAS,HAMBURGUESAS,Imagen 6 repite esta hoja; no duplicar; capacidad desconocida
+INI-BUR-019,HAMBURGUESAS,5,2,Refresco de copoazú,0,envase,inferida,BEVERAGE,BEBIDAS,HAMBURGUESAS,Imagen 6 repetida; nombre normalizado de Copuazu
+INI-BUR-020,HAMBURGUESAS,5,3,Refresco de canela,0,envase,inferida,BEVERAGE,BEBIDAS,HAMBURGUESAS,Imagen 6 repetida
+INI-BUR-021,HAMBURGUESAS,5,4,Refresco de guayaba,0,envase,inferida,BEVERAGE,BEBIDAS,HAMBURGUESAS,Imagen 6 repetida
+INI-BUR-022,HAMBURGUESAS,5,5,Mantequilla,50,unidad,inferida,RAW_MATERIAL,LACTEOS,HAMBURGUESAS,Unidad de presentación contada; no asumir kg; imagen 6 repetida
+INI-BUR-023,HAMBURGUESAS,5,6,Huevo,30,unidad,inferida,RAW_MATERIAL,INSUMOS,HAMBURGUESAS,Se cuentan huevos; no multiplicar por tamaño de maple; imagen 6 repetida
+INI-BUR-024,HAMBURGUESAS,5,7,Aceite para lomito,50,envase,inferida,RAW_MATERIAL,ACEITES,HAMBURGUESAS,Sin volumen confirmado; no asumir litros; imagen 6 repetida
+INI-SUM-001,SUMINISTROS,7,1,Papel higiénico,8,rollo,inferida,SUPPLY,LIMPIEZA,GENERAL,Se infiere conteo por rollo; no inventar tamaño de paquete; no es plástico ni vendible
+INI-SUM-002,SUMINISTROS,7,2,Vaso de 250 ml,100,unidad,inferida,SUPPLY,VASOS,AMBOS,250 ml es capacidad del vaso; cantidad 100 unidades
+INI-SUM-003,SUMINISTROS,7,3,Vaso de 400 ml,300,unidad,inferida,SUPPLY,VASOS,AMBOS,400 ml es capacidad del vaso; cantidad 300 unidades
+INI-SUM-004,SUMINISTROS,8,1,Mondadientes,2,caja,inferida,SUPPLY,UTENSILIOS,AMBOS,Se infieren cajas contadas; no multiplicar por piezas por caja
+INI-SUM-005,SUMINISTROS,8,2,Palitos para hamburguesas,2,paquete,inferida,SUPPLY,UTENSILIOS,HAMBURGUESAS,Se infieren paquetes contados; no son ingredientes
+INI-SUM-006,SUMINISTROS,8,3,Servilletas,6,paquete,inferida,SUPPLY,HIGIENE,AMBOS,Paquetes contados; no inventar piezas por paquete
+INI-SUM-007,SUMINISTROS,8,4,Hoja para bandeja y papas,10000,hoja,explicita,SUPPLY,ENVOLTURAS,HAMBURGUESAS,La notación 10.000 representa diez mil hojas
+INI-SUM-008,SUMINISTROS,8,5,Hoja para envolver hamburguesas,5000,hoja,explicita,SUPPLY,ENVOLTURAS,HAMBURGUESAS,La notación 5.000 representa cinco mil hojas
+INI-SUM-009,SUMINISTROS,8,6,Bolsita para salsa,20,paquete,inferida,SUPPLY,BOLSAS,HAMBURGUESAS,Se infieren paquetes contados; sin equivalencia a piezas
+INI-SUM-010,SUMINISTROS,8,7,Bolsa mediana,16,paquete,inferida,SUPPLY,BOLSAS,AMBOS,Paquetes contados; sin dimensiones ni piezas por paquete confirmadas
+INI-SUM-011,SUMINISTROS,8,8,Bolsa chica,20,paquete,inferida,SUPPLY,BOLSAS,AMBOS,Paquetes contados; sin dimensiones ni piezas por paquete confirmadas
+INI-SUM-012,SUMINISTROS,8,9,Bolsa tamaño uva,8,paquete,inferida,SUPPLY,BOLSAS,AMBOS,Lectura literal tamaño uva; no inventar medidas; se infieren paquetes
+INI-SUM-013,SUMINISTROS,8,10,Vaso de 12 oz,1500,unidad,inferida,SUPPLY,VASOS,ACAI,Capacidad nominal; no fusionar con vasos expresados en ml
+INI-SUM-014,SUMINISTROS,8,11,Vaso de 16 oz,1000,unidad,inferida,SUPPLY,VASOS,ACAI,Capacidad nominal; no convertir a 500 ml ni fusionar presentaciones
+INI-SUM-015,SUMINISTROS,8,12,Vaso de 1 kilo,400,unidad,inferida,SUPPLY,VASOS,ACAI,Una unidad es un vaso vacío de presentación nominal 1 kilo; no es kg de alimento
+INI-SUM-016,SUMINISTROS,8,13,Tapa para vaso de 12 oz,1000,unidad,inferida,SUPPLY,TAPAS,ACAI,No descontar ni sumar junto con vasos; se inventaría por separado
+INI-SUM-017,SUMINISTROS,8,14,Tapa para vaso de 16 oz,1000,unidad,inferida,SUPPLY,TAPAS,ACAI,
+INI-SUM-018,SUMINISTROS,8,15,Tapa para vaso de 1 kilo,400,unidad,inferida,SUPPLY,TAPAS,ACAI,Presentación nominal 1 kilo; se cuentan tapas
+INI-SUM-019,SUMINISTROS,8,16,Vaso de 500 ml,500,unidad,inferida,SUPPLY,VASOS,AMBOS,Presentación distinta de 250 ml y 400 ml
+INI-SUM-020,SUMINISTROS,8,17,Tapa para vaso de 500 ml,100,unidad,inferida,SUPPLY,TAPAS,AMBOS,No asumir correspondencia uno a uno con las 500 unidades de vaso

@@ -1,0 +1,1 @@
+ALTER TYPE "ProductType" ADD VALUE 'SUPPLY';

@@ -21,6 +21,7 @@ type HistoryReceipt = {
 
 const PRODUCT_TYPES = [
     { value: 'RAW_MATERIAL',  label: 'Materia Prima' },
+    { value: 'SUPPLY',       label: 'Suministros' },
     { value: 'ACAI_BASE',     label: 'Açaí Base' },
     { value: 'ACAI_TOPPING',  label: 'Topping Açaí' },
     { value: 'BURGER',        label: 'Ingrediente Burger' },
@@ -31,7 +32,7 @@ const PRODUCT_TYPES = [
 const UNITS = ['KG', 'G', 'L', 'ML', 'UN', 'CAJA', 'BOLSA', 'PAQUETE', 'DOCENA'];
 
 const TYPE_LABEL: Record<string, string> = {
-    RAW_MATERIAL: 'Mat. Prima', ACAI_BASE: 'Açaí Base', ACAI_TOPPING: 'Topping',
+    SUPPLY: 'Suministros', RAW_MATERIAL: 'Mat. Prima', ACAI_BASE: 'Açaí Base', ACAI_TOPPING: 'Topping',
     BURGER: 'Burger', BURGER_EXTRA: 'Extra', BEVERAGE: 'Bebida',
 };
 

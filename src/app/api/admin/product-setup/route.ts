@@ -31,7 +31,7 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { id, name, sku, unit, category, description, imageUrl, mode, recipeId, recipe, branches, publish, draftState } = body;
-        const types = ['BURGER', 'BURGER_EXTRA', 'BEVERAGE', 'ACAI_BASE', 'ACAI_TOPPING', 'RAW_MATERIAL', 'PACKAGING'];
+        const types = ['BURGER', 'BURGER_EXTRA', 'BEVERAGE', 'ACAI_BASE', 'ACAI_TOPPING', 'RAW_MATERIAL', 'PACKAGING', 'SUPPLY'];
         if (typeof name !== 'string' || !name.trim() || typeof sku !== 'string' || !sku.trim() ||
             typeof unit !== 'string' || !unit.trim() || !types.includes(category) || typeof publish !== 'boolean') {
             throw new OperationError('Completa nombre, SKU, unidad y categoría');
@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
             const data = { name: name.trim(), sku: sku.trim(), unit: unit.trim(), category,
                 description: typeof description === 'string' ? description : null,
                 imageUrl: typeof imageUrl === 'string' && imageUrl ? imageUrl : null,
-                type: category === 'PACKAGING' ? 'RAW_MATERIAL' as const : category as Exclude<typeof category, 'PACKAGING'> };
+                type: category === 'PACKAGING' ? 'SUPPLY' as const : category as Exclude<typeof category, 'PACKAGING'> };
             const draft = publish ? Prisma.DbNull : draftState as Prisma.InputJsonValue;
             const product = current ? await tx.product.update({ where: { id }, data: { ...data, setupDraft: draft, ...(publish ? { active: true } : {}) } })
                 : await tx.product.create({ data: { ...data, setupDraft: draft, active: publish } });

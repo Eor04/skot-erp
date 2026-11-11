@@ -84,6 +84,7 @@ export async function POST(request: NextRequest) {
         }
         const product = await prisma.product.findUnique({ where: { id: productId }, include: consumptionInclude });
         if (!product || !product.active || product.deletedAt) return NextResponse.json({ success: false, error: 'Producto no disponible' }, { status: 400 });
+        if (product.type === 'SUPPLY' && active !== false) return NextResponse.json({ success: false, error: 'Los suministros no se pueden habilitar para venta' }, { status: 400 });
         if (active !== false) {
             const price = product.type === 'ACAI_BASE' ? pricePerKg : customPrice;
             if (['BURGER', 'BURGER_EXTRA', 'BEVERAGE', 'ACAI_BASE'].includes(product.type) && !(typeof price === 'number' && price > 0)) {

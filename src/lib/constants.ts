@@ -19,6 +19,7 @@ export const PRODUCT_TYPE_LABELS: Record<string, string> = {
     BURGER_EXTRA: 'Extra / Porción',
     BEVERAGE: 'Bebida',
     RAW_MATERIAL: 'Materia Prima',
+    SUPPLY: 'Suministros',
     PACKAGING: 'Empaque',
     COMBO: 'Combo',
 };
@@ -31,6 +32,7 @@ export const PRODUCT_TYPE_COLORS: Record<string, string> = {
     BURGER_EXTRA: 'bg-amber-100 text-amber-700',
     BEVERAGE: 'bg-blue-100 text-blue-700',
     RAW_MATERIAL: 'bg-gray-100 text-gray-700',
+    SUPPLY: 'bg-teal-100 text-teal-700',
     PACKAGING: 'bg-teal-100 text-teal-700',
     COMBO: 'bg-indigo-100 text-indigo-700',
 };

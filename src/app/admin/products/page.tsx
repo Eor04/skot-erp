@@ -16,17 +16,18 @@ type Product = {
     consumptionMode: 'STOCK' | 'RECIPE' | null; saleRecipeId: string | null;
 };
 
-const CATEGORIES = ['ACAI_BASE', 'ACAI_TOPPING', 'BURGER', 'BURGER_EXTRA', 'BEVERAGE', 'RAW_MATERIAL', 'PACKAGING'];
+const CATEGORIES = ['ACAI_BASE', 'ACAI_TOPPING', 'BURGER', 'BURGER_EXTRA', 'BEVERAGE', 'RAW_MATERIAL', 'SUPPLY'];
 const CAT_LABELS: Record<string, string> = {
     ACAI_BASE: 'Base Açaí', ACAI_TOPPING: 'Topping Açaí', BURGER: 'Hamburguesa',
-    BURGER_EXTRA: 'Extra / Porción', BEVERAGE: 'Bebida', RAW_MATERIAL: 'Materia Prima', PACKAGING: 'Empaque',
+    BURGER_EXTRA: 'Extra / Porción', BEVERAGE: 'Bebida', RAW_MATERIAL: 'Materia Prima', SUPPLY: 'Suministros',
 };
-const EMPTY_FORM = { name: '', sku: '', unit: 'kg', category: 'RAW_MATERIAL', price: 0, costPrice: 0, description: '', imageUrl: '' };
+const EMPTY_FORM = { name: '', sku: '', unit: 'kg', category: 'RAW_MATERIAL', subcategory: '', price: 0, costPrice: 0, description: '', imageUrl: '' };
 const fieldClass = 'min-h-12 w-full rounded-lg border border-line bg-surface px-3 py-2 text-ink placeholder:text-muted';
 
 export default function ProductsPage() {
     const [products, setProducts] = useState<Product[]>([]);
     const [loading, setLoading] = useState(true);
+    const [loadError, setLoadError] = useState('');
     const [search, setSearch] = useState('');
     const [catFilter, setCatFilter] = useState('');
     const [showModal, setShowModal] = useState(false);
@@ -47,9 +48,15 @@ export default function ProductsPage() {
 
     function loadProducts() {
         setLoading(true);
+        setLoadError('');
         fetch('/api/admin/products')
-            .then(response => response.json())
-            .then(data => { if (data.success) setProducts(data.data); })
+            .then(async response => {
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || 'No se pudo cargar el catálogo');
+                if (!Array.isArray(data.data)) throw new Error('La respuesta del catálogo no tiene un formato válido');
+                setProducts(data.data);
+            })
+            .catch(error => setLoadError(error instanceof Error ? error.message : 'Error de conexión al cargar productos'))
             .finally(() => setLoading(false));
     }
     useEffect(() => { loadProducts(); }, []);
@@ -100,7 +107,7 @@ export default function ProductsPage() {
         setEditingId(product.id);
         setForm({
             name: product.name, sku: product.sku, unit: product.unit,
-            category: product.category || product.type, price: product.price,
+            category: product.type, subcategory: product.category || '', price: product.price,
             costPrice: product.costPrice, description: product.description || '',
             imageUrl: product.imageUrl || '',
         });
@@ -116,7 +123,7 @@ export default function ProductsPage() {
             const method = isEdit ? 'PUT' : 'POST';
             const response = await fetch(url, {
                 method, headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ ...form, type: form.category }),
+                body: JSON.stringify({ ...form, type: form.category, category: form.subcategory || null }),
             });
             const data = await response.json();
             if (data.success) {
@@ -182,6 +189,7 @@ export default function ProductsPage() {
 
             <Card className="overflow-hidden">
                 {loading ? <div role="status" className="flex items-center justify-center gap-3 p-16 text-muted"><Loader2 size={22} className="animate-spin" aria-hidden="true" /> Cargando productos…</div>
+                    : loadError ? <div role="alert" className="p-8 text-center text-danger">{loadError}. Actualiza la página o vuelve a iniciar sesión.</div>
                     : <><div className="divide-y divide-line-subtle md:hidden">{filtered.map(product => <article key={product.id} className="space-y-3 p-4">
                         <div className="flex items-start gap-3">
                             {product.imageUrl ? <img src={product.imageUrl} alt="" className="h-12 w-12 shrink-0 rounded-lg border border-line-subtle object-cover" />
@@ -230,13 +238,13 @@ export default function ProductsPage() {
                         <input id="product-sku" required type="text" placeholder="ACAI-XL-001" value={form.sku} onChange={event => setForm(previous => ({ ...previous, sku: event.target.value.toUpperCase() }))} className={`${fieldClass} font-mono`} /></div>
                     <div><label htmlFor="product-unit" className="mb-1 block text-sm font-semibold">Unidad *</label>
                         <select id="product-unit" required value={form.unit} onChange={event => setForm(previous => ({ ...previous, unit: event.target.value }))} className={fieldClass}>
-                            {['kg', 'gr', 'litro', 'ml', 'unidad', 'doc', 'bolsa', 'paquete'].map(unit => <option key={unit}>{unit}</option>)}
+                            {['kg', 'gr', 'litro', 'ml', 'unidad', 'doc', 'bolsa', 'paquete', 'bote', 'envase', 'caja', 'hoja', 'rollo', 'balde', 'porcion'].map(unit => <option key={unit}>{unit}</option>)}
                         </select></div>
                     <div className="sm:col-span-2"><label htmlFor="product-form-category" className="mb-1 block text-sm font-semibold">Categoría *</label>
                         <select id="product-form-category" required value={form.category} onChange={event => setForm(previous => ({ ...previous, category: event.target.value }))} className={fieldClass}>
                             {CATEGORIES.map(category => <option key={category} value={category}>{CAT_LABELS[category] || category}</option>)}
                         </select></div>
-                    <p className="sm:col-span-2 text-sm text-muted">Los precios de venta se definen para cada sucursal.</p>
+                    <div><label htmlFor="product-subcategory" className="mb-1 block text-sm font-semibold">Subcategoría</label><input id="product-subcategory" value={form.subcategory} onChange={event => setForm(previous => ({ ...previous, subcategory: event.target.value }))} className={fieldClass} placeholder="Ej: VASOS, TAPAS, CARNES" /></div><p className="sm:col-span-2 text-sm text-muted">Los precios de venta se definen para cada sucursal.</p>
                     <div className="sm:col-span-2"><label htmlFor="product-description" className="mb-1 block text-sm font-semibold">Descripción</label>
                         <textarea id="product-description" rows={2} placeholder="Descripción opcional…" value={form.description} onChange={event => setForm(previous => ({ ...previous, description: event.target.value }))} className={`${fieldClass} resize-y`} /></div>
                 </div>

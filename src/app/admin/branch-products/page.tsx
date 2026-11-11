@@ -24,13 +24,13 @@ type BPRow = {
 const TYPE_LABELS: Record<string, string> = {
     ACAI_BASE: 'Base Açaí', ACAI_TOPPING: 'Topping Açaí',
     BURGER: 'Hamburguesa', BURGER_EXTRA: 'Extra / Porción',
-    BEVERAGE: 'Bebida', RAW_MATERIAL: 'Materia Prima', PACKAGING: 'Empaque',
+    BEVERAGE: 'Bebida', RAW_MATERIAL: 'Materia Prima', PACKAGING: 'Empaque', SUPPLY: 'Suministros',
 };
 const TYPE_COLORS: Record<string, string> = {
     ACAI_BASE: 'bg-purple-100 text-purple-700', ACAI_TOPPING: 'bg-pink-100 text-pink-700',
     BURGER: 'bg-orange-100 text-orange-700', BURGER_EXTRA: 'bg-amber-100 text-amber-700',
     BEVERAGE: 'bg-blue-100 text-blue-700', RAW_MATERIAL: 'bg-canvas text-ink',
-    PACKAGING: 'bg-teal-100 text-brand',
+    PACKAGING: 'bg-teal-100 text-brand', SUPPLY: 'bg-teal-100 text-brand',
 };
 
 export default function BranchProductsPage() {

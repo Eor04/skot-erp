@@ -50,6 +50,7 @@ export async function validateSalePrices(tx: Prisma.TransactionClient, branchId:
     for (const item of items) {
         const product = productMap.get(item.productId);
         if (!product || (!offline && (!product.active || product.deletedAt))) fail('Producto no disponible');
+        if (product!.type === 'SUPPLY') fail('Los suministros no están habilitados para venta');
         const auth = productAuth.get(item);
         const productType = offline ? auth!.productType : product!.type;
         if (item.comboId || item.comboGroup !== undefined) {

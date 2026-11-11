@@ -33,7 +33,7 @@ export async function PUT(
                 ...(sku !== undefined && { sku }),
                 ...(unit !== undefined && { unit }),
                 ...(category !== undefined && { category }),
-                ...(type !== undefined && { type: (type === 'PACKAGING' ? 'RAW_MATERIAL' : type) as any }),
+                ...(type !== undefined && { type: (type === 'PACKAGING' ? 'SUPPLY' : type) as any }),
                 ...(active !== undefined && { active }),
                 ...(imageUrl !== undefined && { imageUrl: imageUrl || null }),
             },

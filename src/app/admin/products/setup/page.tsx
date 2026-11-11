@@ -10,8 +10,8 @@ type Product = { id: string; name: string; sku: string; unit: string; category: 
     branchProducts: { branchId: string; active: boolean; customPrice: number | null; pricePerKg: number | null }[] };
 type Recipe = { id: string; name: string; productId: string; yield: number; yieldUnit: string };
 type Branch = { id: string; name: string };
-const categories = ['BURGER', 'BURGER_EXTRA', 'BEVERAGE', 'ACAI_BASE', 'ACAI_TOPPING', 'RAW_MATERIAL', 'PACKAGING'];
-const labels: Record<string, string> = { BURGER: 'Hamburguesa', BURGER_EXTRA: 'Extra / porción', BEVERAGE: 'Bebida', ACAI_BASE: 'Base Açaí', ACAI_TOPPING: 'Topping', RAW_MATERIAL: 'Materia prima', PACKAGING: 'Empaque' };
+const categories = ['BURGER', 'BURGER_EXTRA', 'BEVERAGE', 'ACAI_BASE', 'ACAI_TOPPING', 'RAW_MATERIAL', 'PACKAGING', 'SUPPLY'];
+const labels: Record<string, string> = { BURGER: 'Hamburguesa', BURGER_EXTRA: 'Extra / porción', BEVERAGE: 'Bebida', ACAI_BASE: 'Base Açaí', ACAI_TOPPING: 'Topping', RAW_MATERIAL: 'Materia prima', PACKAGING: 'Empaque', SUPPLY: 'Suministros' };
 const field = 'min-h-12 w-full rounded-lg border border-line bg-surface px-3 py-2 text-ink';
 
 export default function ProductSetup() {
