@@ -10,7 +10,7 @@ playwright-report/
 playwright/.cache/
 
 # Local execution plans and generated handoff documents
-docs/plan-correccion-transferencias-origen-roles.md
+docs/plan-*.md
 
 # Next.js
 .next/

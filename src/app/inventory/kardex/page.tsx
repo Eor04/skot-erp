@@ -95,9 +95,9 @@ export default function KardexPage() {
                 {/* Header */}
                 <div className="flex items-center justify-between flex-wrap gap-4">
                     <div>
-                        <button onClick={() => window.history.back()} className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-2">
-                            <ArrowLeft className="h-4 w-4" /> Volver atrás
-                        </button>
+                        <Link href="/inventory" className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-2">
+                            <ArrowLeft className="h-4 w-4" /> Volver a inventario
+                        </Link>
                         <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink flex items-center gap-3">
                             <RefreshCw className="h-7 w-7 text-brand" /> Kardex de Movimientos
                         </h1>

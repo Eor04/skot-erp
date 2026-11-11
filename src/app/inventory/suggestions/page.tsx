@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect, useCallback } from 'react';
+import Link from 'next/link';
 import { useSession } from '@/lib/session-context';
 import { TrendingUp, ArrowLeft, AlertTriangle, CheckCircle, RefreshCw } from 'lucide-react';
 
@@ -88,7 +89,7 @@ export default function SuggestionsPage() {
             <div className="mx-auto max-w-5xl">
                 <div className="flex flex-wrap items-end justify-between gap-4 mb-8">
                     <div>
-                        <button onClick={() => window.history.back()} className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver atrás</button>
+                        <Link href="/inventory" className="text-sm text-muted hover:text-ink flex items-center gap-1 mb-2"><ArrowLeft className="h-4 w-4" /> Volver a inventario</Link>
                         <h1 className="font-display text-2xl sm:text-3xl font-semibold text-ink flex items-center gap-3">
                             <TrendingUp className="h-8 w-8 text-success" /> Sugerencias de Reabastecimiento
                         </h1>

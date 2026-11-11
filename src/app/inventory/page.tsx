@@ -60,7 +60,7 @@ function InventoryFrame({ title, description, context, action, children }: {
         <div className="mx-auto max-w-7xl">
             <header className="mb-7 flex flex-wrap items-end justify-between gap-4">
                 <div className="min-w-0">
-                    <button type="button" onClick={() => window.history.back()} className="mb-4 inline-flex min-h-11 items-center gap-2 font-semibold text-brand hover:underline"><ArrowLeft size={18} aria-hidden="true" /> Volver atrás</button>
+                    <Link href="/" className="mb-4 inline-flex min-h-11 items-center gap-2 font-semibold text-brand hover:underline"><ArrowLeft size={18} aria-hidden="true" /> Volver al inicio</Link>
                     <div className="mb-2 flex items-center gap-2 text-sm text-muted"><Package size={16} aria-hidden="true" /> Inventario {context && <><ChevronRight size={14} aria-hidden="true" /><span>{context}</span></>}</div>
                     <h1 className="font-display text-2xl font-semibold sm:text-3xl">{title}</h1>
                     <p className="mt-2 text-muted">{description}</p>

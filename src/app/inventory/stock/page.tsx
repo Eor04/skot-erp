@@ -176,7 +176,7 @@ export default function StockPage() {
         <div className="mx-auto max-w-7xl space-y-5">
             <header className="flex flex-wrap items-end justify-between gap-4">
                 <div>
-                    <button type="button" onClick={() => window.history.back()} className="mb-4 inline-flex min-h-11 items-center gap-2 font-semibold text-brand hover:underline"><ArrowLeft size={18} aria-hidden="true" /> Volver atrás</button>
+                    <Link href="/inventory" className="mb-4 inline-flex min-h-11 items-center gap-2 font-semibold text-brand hover:underline"><ArrowLeft size={18} aria-hidden="true" /> Volver a inventario</Link>
                     <div className="mb-2 flex items-center gap-2 text-sm text-muted"><Package size={16} aria-hidden="true" /> Inventario <span aria-hidden="true">›</span> Stock</div>
                     <h1 className="font-display text-2xl font-semibold sm:text-3xl">Stock por sucursal</h1>
                     {selectedBranchName && <p className="mt-2 text-muted">{selectedBranchName}</p>}
