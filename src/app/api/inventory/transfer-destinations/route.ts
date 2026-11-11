@@ -8,7 +8,7 @@ export async function GET(request: NextRequest) {
     if (!source) return NextResponse.json({ success: false, error: 'Falta origen' }, { status: 400 });
     const access = await requireBranchAccess(request, source, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
     if (access instanceof NextResponse) return access;
-    const branches = await prisma.branch.findMany({ where: { active: true, deletedAt: null },
+    const branches = await prisma.branch.findMany({ where: { active: true, deletedAt: null, id: { not: source } },
         select: { id: true, name: true, type: true }, orderBy: { name: 'asc' } });
     return NextResponse.json({ success: true, data: branches });
 }

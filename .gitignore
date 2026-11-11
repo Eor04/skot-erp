@@ -5,6 +5,12 @@ node_modules/
 
 # Testing
 coverage/
+test-results/
+playwright-report/
+playwright/.cache/
+
+# Local execution plans and generated handoff documents
+docs/plan-correccion-transferencias-origen-roles.md
 
 # Next.js
 .next/

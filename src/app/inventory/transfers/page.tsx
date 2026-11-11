@@ -34,8 +34,6 @@ export default function TransfersPage() {
     const [toast, setToast] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [statusFilter, setStatusFilter] = useState('');
 
-    const isAdmin = user?.role === 'ADMIN' || user?.role === 'MANAGER';
-
     useEffect(() => {
         if (!sessionLoading) {
             fetchTransfers();
@@ -47,12 +45,10 @@ export default function TransfersPage() {
         try {
             const params = new URLSearchParams();
             if (statusFilter) params.set('status', statusFilter);
-            if (!isAdmin && user?.branchIds?.[0]) {
-                params.set('branchId', user.branchIds[0]);
-            }
             const res = await fetch(`/api/inventory/transfers?${params}`);
             const d = await res.json();
             if (d.success) setTransfers(d.data);
+            else showToast('error', d.error || 'Error al cargar transferencias');
         } catch {
             showToast('error', 'Error al cargar transferencias');
         } finally {
@@ -126,7 +122,7 @@ export default function TransfersPage() {
                 </div>
 
                 {/* Alertas de pendientes para admin */}
-                {isAdmin && pending.length > 0 && (
+                {(user?.role === 'ADMIN' || user?.role === 'MANAGER') && pending.length > 0 && (
                     <div className="bg-[var(--status-warning-bg)] border border-line-subtle rounded-2xl p-4 mb-6 flex items-center gap-3">
                         <Clock className="h-5 w-5 text-warning flex-shrink-0" />
                         <p className="text-yellow-300 text-sm font-medium">

@@ -6,17 +6,22 @@ import { ArrowLeft, Plus, Trash2, Send, Loader2, CheckCircle, AlertCircle } from
 import { useSession } from '@/lib/session-context';
 
 interface Branch { id: string; name: string; type: string; }
-interface Product { id: string; name: string; sku: string; unit: string; currentStock: number; }
+interface Product { id: string; name: string; sku: string; unit: string; currentStock?: number; }
 interface TransferItem { productId: string; productName: string; requestedQty: number; unit: string; }
 
 export default function TransferRequestPage() {
     const { user, loading: sessionLoading } = useSession();
+    // `branches` holds selectable sources in request mode and destinations in send mode.
     const [branches, setBranches] = useState<Branch[]>([]);
+    const [requestDestinations, setRequestDestinations] = useState<Branch[]>([]);
+    const [outgoingSource, setOutgoingSource] = useState<Branch | null>(null);
     const [products, setProducts] = useState<Product[]>([]);
     const [items, setItems] = useState<TransferItem[]>([]);
     const [notification, setNotification] = useState<{ type: 'success' | 'error'; msg: string } | null>(null);
     const [submitting, setSubmitting] = useState(false);
     const [outgoing, setOutgoing] = useState(false);
+    const [branchLoadError, setBranchLoadError] = useState('');
+    const [productLoadError, setProductLoadError] = useState('');
     const [readiness, setReadiness] = useState<Record<string, string>>({});
     const loadedForUser = useRef<string | null>(null);
 
@@ -44,7 +49,7 @@ export default function TransferRequestPage() {
             return;
         }
         const controller = new AbortController();
-        const params = new URLSearchParams({ fromBranchId: form.fromBranchId, toBranchId: form.myBranchId });
+        const params = new URLSearchParams({ fromBranchId: form.fromBranchId, toBranchId: form.myBranchId, intent: outgoing ? 'SEND' : 'REQUEST' });
         for (const item of items) params.append('productId', item.productId);
         fetch(`/api/inventory/transfer-readiness?${params}`, { signal: controller.signal })
             .then(response => response.json())
@@ -53,48 +58,87 @@ export default function TransferRequestPage() {
                 else setReadiness({});
             }).catch(error => { if (error.name !== 'AbortError') setReadiness({}); });
         return () => controller.abort();
-    }, [form.fromBranchId, form.myBranchId, items]);
+    }, [form.fromBranchId, form.myBranchId, items, outgoing]);
 
     const loadBranches = async () => {
         const params = new URLSearchParams(window.location.search);
         const source = params.get('from');
         const outgoingRequest = Boolean(source);
         setOutgoing(outgoingRequest);
-        const res = await fetch(source ? `/api/inventory/transfer-destinations?fromBranchId=${encodeURIComponent(source)}` : '/api/branches');
-        const d = await res.json();
-        if (d.success) {
-            setBranches(d.data);
-            // Pre-seleccionar la primera sucursal del usuario como destino
+        setBranchLoadError('');
+        try {
             if (source) {
+                const [destinationsResponse, ownBranchesResponse] = await Promise.all([
+                    fetch(`/api/inventory/transfer-destinations?fromBranchId=${encodeURIComponent(source)}`),
+                    fetch('/api/branches'),
+                ]);
+                const [destinationsData, ownBranchesData] = await Promise.all([destinationsResponse.json(), ownBranchesResponse.json()]);
+                if (!destinationsResponse.ok || !destinationsData.success) throw new Error(destinationsData.error || 'No se pudieron cargar los destinos');
+                if (!ownBranchesResponse.ok || !ownBranchesData.success) throw new Error(ownBranchesData.error || 'No se pudo validar la sucursal de origen');
+                setBranches(destinationsData.data);
+                setRequestDestinations([]);
+                setOutgoingSource(ownBranchesData.data.find((b: Branch) => b.id === source) || null);
                 setForm(f => ({ ...f, myBranchId: '', fromBranchId: source }));
-                await loadProducts(source, params.get('product'), Number(params.get('qty')));
-            } else if (user?.branchIds?.[0]) {
-                setForm(f => ({ ...f, myBranchId: user.branchIds[0] }));
+                await loadProducts(source, params.get('product'), Number(params.get('qty')), 'SEND');
+            } else {
+                const response = await fetch('/api/branches');
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || 'No se pudieron cargar las sucursales asignadas');
+                setRequestDestinations(data.data);
+                setOutgoingSource(null);
+                const destinationId = user?.branchIds?.[0] || (user?.role === 'ADMIN' ? data.data[0]?.id : '');
+                setForm(f => ({ ...f, myBranchId: destinationId || '', fromBranchId: '' }));
+                setProducts([]);
+                setItems([]);
+                if (destinationId) await loadSources(destinationId);
             }
-        } else {
-            showNotification('error', d.error || 'No se pudieron cargar las sucursales');
+        } catch (error) {
+            setBranches([]);
+            setBranchLoadError(error instanceof Error ? error.message : 'No se pudieron cargar las sucursales');
         }
     };
 
-    const loadProducts = async (branchId: string, initialProduct?: string | null, initialQty?: number) => {
-        if (!branchId) return;
-        const res = await fetch(`/api/inventory/stock?branchId=${encodeURIComponent(branchId)}&limit=10000`);
-        const d = await res.json();
-        if (d.success) {
-            const loaded: Product[] = d.data.map((s: any) => ({
-                id: s.productId,
-                name: s.product.name,
-                sku: s.product.sku,
-                unit: s.product.unit,
-                currentStock: s.currentStock,
-            }));
-            setProducts(loaded);
-            const product = loaded.find(p => p.id === initialProduct);
-            if (product && initialQty && initialQty > 0 && product.currentStock > 0) setItems([{
-                productId: product.id, productName: product.name, unit: product.unit,
-                requestedQty: Math.min(initialQty, product.currentStock),
-            }]);
-            if (product && initialQty && product.currentStock < initialQty) showNotification('error', 'La cantidad precargada se ajustó al stock disponible en origen.');
+    const loadSources = async (destinationId: string) => {
+        setBranchLoadError('');
+        setBranches([]);
+        try {
+            const response = await fetch(`/api/inventory/transfer-sources?toBranchId=${encodeURIComponent(destinationId)}`);
+            const data = await response.json();
+            if (!response.ok || !data.success) throw new Error(data.error || 'No se pudieron cargar los orígenes');
+            setBranches(data.data);
+            if (data.data.length === 0) setBranchLoadError('No hay otra sucursal activa disponible como origen.');
+        } catch (error) {
+            setBranchLoadError(error instanceof Error ? error.message : 'No se pudieron cargar los orígenes');
+        }
+    };
+
+    const loadProducts = async (sourceId: string, initialProduct?: string | null, initialQty?: number, intent: 'REQUEST' | 'SEND' = 'REQUEST') => {
+        if (!sourceId || !form.myBranchId && !outgoing) return;
+        setProductLoadError('');
+        setProducts([]);
+        try {
+            const destinationId = outgoing ? '' : form.myBranchId;
+            const params = new URLSearchParams({ fromBranchId: sourceId, toBranchId: destinationId || (outgoing ? new URLSearchParams(window.location.search).get('to') || '' : ''), intent });
+            // In outgoing links the destination is selected after loading; fetch active product/stock catalog
+            // using the source as authorization and use the existing stock endpoint for accurate quantities.
+            if (intent === 'SEND') {
+                const response = await fetch(`/api/inventory/stock?branchId=${encodeURIComponent(sourceId)}&limit=10000`);
+                const data = await response.json();
+                if (!response.ok || !data.success) throw new Error(data.error || 'No tienes acceso al inventario del origen');
+                const loaded: Product[] = data.data.map((row: any) => ({ id: row.productId, name: row.product.name, sku: row.product.sku, unit: row.product.unit, currentStock: row.currentStock }));
+                setProducts(loaded);
+                const product = loaded.find(p => p.id === initialProduct);
+                if (product && initialQty && initialQty > 0 && (product.currentStock || 0) > 0) setItems([{ productId: product.id, productName: product.name, unit: product.unit, requestedQty: Math.min(initialQty, product.currentStock || 0) }]);
+                if (product && initialQty && (product.currentStock || 0) < initialQty) showNotification('error', 'La cantidad precargada se ajustó al stock disponible en origen.');
+                return;
+            }
+            const response = await fetch(`/api/inventory/transfer-products?${params}`);
+            const data = await response.json();
+            if (!response.ok || !data.success) throw new Error(data.error || 'No se pudieron cargar los productos');
+            setProducts(data.data);
+            if (data.data.length === 0) setProductLoadError('No hay productos activos para solicitar.');
+        } catch (error) {
+            setProductLoadError(error instanceof Error ? error.message : 'No se pudieron cargar los productos');
         }
     };
 
@@ -102,7 +146,15 @@ export default function TransferRequestPage() {
         setForm(f => ({ ...f, fromBranchId: branchId }));
         setItems([]);
         setSelectedProduct('');
-        loadProducts(branchId);
+        loadProducts(branchId, null, undefined, outgoing ? 'SEND' : 'REQUEST');
+    };
+
+    const handleDestinationChange = (branchId: string) => {
+        setForm(f => ({ ...f, myBranchId: branchId, fromBranchId: '' }));
+        setItems([]);
+        setProducts([]);
+        setSelectedProduct('');
+        if (branchId) loadSources(branchId);
     };
 
     const addItem = () => {
@@ -153,6 +205,7 @@ export default function TransferRequestPage() {
                     fromBranchId: form.fromBranchId, // de donde vienen los productos
                     toBranchId: form.myBranchId,     // a donde van (mi sucursal)
                     requestedBy: user?.userId,
+                    intent: outgoing ? 'SEND' : 'REQUEST',
                     notes: form.notes || null,
                     items: items.map(i => ({ productId: i.productId, requestedQty: i.requestedQty })),
                 }),
@@ -163,7 +216,7 @@ export default function TransferRequestPage() {
                 showNotification('success', `Transferencia ${data.data.transferNumber} creada y pendiente de despacho`);
                 setItems([]);
                 setForm(f => ({ ...f, fromBranchId: outgoing ? f.fromBranchId : '', notes: '' }));
-                if (outgoing) loadProducts(form.fromBranchId);
+                if (outgoing) loadProducts(form.fromBranchId, null, undefined, 'SEND');
                 else setProducts([]);
             } else {
                 showNotification('error', data.error || 'Error al enviar la solicitud');
@@ -175,9 +228,9 @@ export default function TransferRequestPage() {
         }
     };
 
-    const myBranch = branches.find(b => b.id === form.myBranchId);
-    const fromBranch = branches.find(b => b.id === form.fromBranchId);
-    const otherBranches = branches.filter(b => b.id !== form.myBranchId);
+    const myBranch = outgoing ? branches.find(b => b.id === form.myBranchId) : requestDestinations.find(b => b.id === form.myBranchId);
+    const fromBranch = outgoing ? outgoingSource : branches.find(b => b.id === form.fromBranchId);
+    const otherBranches = outgoing ? branches.filter(b => b.id !== form.fromBranchId) : branches.filter(b => b.id !== form.myBranchId);
 
     return (
         <main data-brand="admin" className="skot-experience min-w-0 px-4 py-6 sm:px-6 lg:px-8">
@@ -211,30 +264,36 @@ export default function TransferRequestPage() {
                                 <select
                                     aria-label="Mi sucursal que recibe"
                                     value={form.myBranchId}
-                                    onChange={e => setForm(f => ({ ...f, myBranchId: e.target.value }))}
-                                    disabled={!outgoing && !!(user?.branchIds?.[0] && user.role !== 'ADMIN')}
+                                    onChange={e => outgoing
+                                        ? setForm(f => ({ ...f, myBranchId: e.target.value }))
+                                        : handleDestinationChange(e.target.value)}
+                                    disabled={!outgoing && requestDestinations.length <= 1}
                                     className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-surface"
                                 >
                                     <option value="" className="bg-surface text-ink">-- Seleccioná --</option>
-                                    {branches.map(b => <option key={b.id} value={b.id} className="bg-surface text-ink">{b.name}</option>)}
+                                    {(outgoing ? branches : requestDestinations).map(b => <option key={b.id} value={b.id} className="bg-surface text-ink">{b.name}</option>)}
                                 </select>
                             </div>
                             <div>
                                 <label className="block text-sm font-semibold text-ink mb-1.5">
-                                    Sucursal de origen (provee) *
+                                    {outgoing ? 'Mi sucursal de origen (provee)' : 'Sucursal de origen (provee) *'}
                                 </label>
-                                <select
-                                    aria-label="Sucursal de origen que provee"
-                                    value={form.fromBranchId}
-                                    onChange={e => handleFromBranchChange(e.target.value)}
-                                    disabled={outgoing}
-                                    className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300"
-                                >
-                                    <option value="" className="bg-surface text-ink">-- Seleccioná --</option>
-                                    {otherBranches.map(b => <option key={b.id} value={b.id} className="bg-surface text-ink">{b.name} ({b.type})</option>)}
-                                </select>
+                                {outgoing ? (
+                                    <input aria-label="Mi sucursal de origen que provee" value={outgoingSource?.name || 'Cargando sucursal…'} disabled
+                                        className="w-full border border-line rounded-xl px-3 py-2.5 text-sm bg-canvas" />
+                                ) : (
+                                    <select aria-label="Sucursal de origen que provee" value={form.fromBranchId}
+                                        onChange={e => handleFromBranchChange(e.target.value)}
+                                        disabled={!form.myBranchId || branches.length === 0}
+                                        className="w-full border border-line rounded-xl px-3 py-2.5 text-sm focus:outline-none focus:ring-2 focus:ring-green-300 disabled:bg-canvas">
+                                        <option value="">-- Seleccioná una sucursal --</option>
+                                        {otherBranches.map(b => <option key={b.id} value={b.id}>{b.name} ({b.type})</option>)}
+                                    </select>
+                                )}
                             </div>
                         </div>
+
+                        {branchLoadError && <p role="alert" className="mt-3 rounded-lg bg-[var(--status-error-bg)] p-3 text-sm text-danger">{branchLoadError}</p>}
 
                         {myBranch && fromBranch && (
                             <div className="mt-3 p-3 bg-[var(--status-success-bg)] rounded-xl text-sm text-success">
@@ -260,7 +319,7 @@ export default function TransferRequestPage() {
                         <h2 className="font-bold text-ink mb-4">Productos a solicitar</h2>
 
                         {!form.fromBranchId ? (
-                            <p className="text-muted text-sm">Seleccioná la sucursal de origen para ver sus productos disponibles</p>
+                            <p className="text-muted text-sm">Seleccioná la sucursal de origen para ver sus productos</p>
                         ) : (
                             <>
                                 <div className="flex flex-wrap gap-3 mb-4">
@@ -285,6 +344,8 @@ export default function TransferRequestPage() {
                                         <Plus className="h-4 w-4" /> Agregar
                                     </button>
                                 </div>
+
+                                {productLoadError && <p role="alert" className="mb-3 rounded-lg bg-[var(--status-error-bg)] p-3 text-sm text-danger">{productLoadError}</p>}
 
                                 {/* Lista de items */}
                                 {items.length > 0 ? (

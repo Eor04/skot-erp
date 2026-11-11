@@ -8,15 +8,21 @@ export async function GET(request: NextRequest) {
     const params = new URL(request.url).searchParams;
     const fromBranchId = params.get('fromBranchId');
     const toBranchId = params.get('toBranchId');
+    const intent = params.get('intent') || 'SEND';
     const productIds = params.getAll('productId');
-    if (!fromBranchId || !toBranchId || !productIds.length || productIds.length > 100 || productIds.some(id => !id)) {
+    if (!fromBranchId || !toBranchId || fromBranchId === toBranchId || !['REQUEST', 'SEND'].includes(intent) || !productIds.length || productIds.length > 100 || productIds.some(id => !id)) {
         return NextResponse.json({ success: false, error: 'Selecciona origen, destino y productos válidos' }, { status: 400 });
     }
-    const access = await requireBranchAccess(request, fromBranchId, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
+    const access = intent === 'REQUEST'
+        ? await requireBranchAccess(request, toBranchId, ['ADMIN', 'MANAGER', 'CASHIER', 'WAREHOUSE'])
+        : await requireBranchAccess(request, fromBranchId, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
     if (access instanceof NextResponse) return access;
     try {
-        const destination = await prisma.branch.findFirst({ where: { id: toBranchId, active: true, deletedAt: null }, select: { type: true } });
-        if (!destination) return NextResponse.json({ success: false, error: 'Destino no disponible' }, { status: 400 });
+        const [source, destination] = await Promise.all([
+            prisma.branch.findFirst({ where: { id: fromBranchId, active: true, deletedAt: null }, select: { id: true } }),
+            prisma.branch.findFirst({ where: { id: toBranchId, active: true, deletedAt: null }, select: { type: true } }),
+        ]);
+        if (!source || !destination) return NextResponse.json({ success: false, error: 'Origen o destino no disponible' }, { status: 400 });
         if (destination.type === 'FABRICA') return NextResponse.json({ success: true, data: [] });
         const products = await prisma.product.findMany({ where: { id: { in: productIds }, active: true, deletedAt: null },
             include: { ...consumptionInclude, branchProducts: { where: { branchId: toBranchId }, take: 1 } } });

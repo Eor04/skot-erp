@@ -76,12 +76,14 @@ export async function POST(request: NextRequest) {
     try {
         const body = await request.json();
         const { fromBranchId, toBranchId, items, notes, requestedBy } = body;
+        // Legacy callers create an outgoing shipment unless they explicitly request stock.
+        const intent = body.intent || 'SEND';
 
-        if (!fromBranchId || !toBranchId || !Array.isArray(items) || items.length === 0 || !requestedBy) {
+        if (!fromBranchId || !toBranchId || !Array.isArray(items) || items.length === 0 || !requestedBy || !['REQUEST', 'SEND'].includes(intent)) {
             return NextResponse.json(
                 {
                     success: false,
-                    error: 'Faltan campos requeridos: fromBranchId, toBranchId, items, requestedBy',
+                    error: 'Revisa origen, destino, intención, productos y solicitante',
                 },
                 { status: 400 }
             );
@@ -97,11 +99,16 @@ export async function POST(request: NextRequest) {
             );
         }
 
-        const access = await requireBranchAccess(request, fromBranchId, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
+        const access = intent === 'REQUEST'
+            ? await requireBranchAccess(request, toBranchId, ['ADMIN', 'MANAGER', 'CASHIER', 'WAREHOUSE'])
+            : await requireBranchAccess(request, fromBranchId, ['ADMIN', 'MANAGER', 'WAREHOUSE']);
         if (access instanceof NextResponse) return access;
         if (requestedBy !== access.userId) return NextResponse.json({ success: false, error: 'Usuario no permitido' }, { status: 403 });
-        const destination = await prisma.branch.findFirst({ where: { id: toBranchId, active: true, deletedAt: null }, select: { id: true } });
-        if (!destination) return NextResponse.json({ success: false, error: 'Sucursal de destino no disponible' }, { status: 400 });
+        const [source, destination] = await Promise.all([
+            prisma.branch.findFirst({ where: { id: fromBranchId, active: true, deletedAt: null }, select: { id: true } }),
+            prisma.branch.findFirst({ where: { id: toBranchId, active: true, deletedAt: null }, select: { id: true } }),
+        ]);
+        if (!source || !destination) return NextResponse.json({ success: false, error: 'Origen o destino no disponible' }, { status: 400 });
         if (items.some((item: any) => !Number.isFinite(item.requestedQty) || item.requestedQty <= 0)) {
             return NextResponse.json({ success: false, error: 'Cantidad de transferencia inválida' }, { status: 400 });
         }
@@ -110,28 +117,20 @@ export async function POST(request: NextRequest) {
             return NextResponse.json({ success: false, error: 'Revisa los productos de la transferencia' }, { status: 400 });
         }
 
-        // Validar disponibilidad de stock
-        for (const item of items) {
-            const inventory = await prisma.inventory.findUnique({
-                where: {
-                    branchId_productId: {
-                        branchId: fromBranchId,
-                        productId: item.productId,
-                    },
-                },
-                include: {
-                    product: true,
-                },
-            });
+        const products = await prisma.product.findMany({ where: { id: { in: items.map((item: any) => item.productId) }, active: true, deletedAt: null }, select: { id: true } });
+        if (products.length !== items.length) return NextResponse.json({ success: false, error: 'Hay productos no disponibles' }, { status: 400 });
 
-            if (!inventory || inventory.currentStock < item.requestedQty) {
-                return NextResponse.json(
-                    {
-                        success: false,
-                        error: `Stock insuficiente de ${inventory?.product.name || 'producto'}. Disponible: ${inventory?.currentStock || 0}, Solicitado: ${item.requestedQty}`,
-                    },
-                    { status: 400 }
-                );
+        // A requester may queue demand without permission to inspect source stock.
+        // SEND still checks stock here; dispatch checks it again transactionally.
+        if (intent === 'SEND') {
+            for (const item of items) {
+                const inventory = await prisma.inventory.findUnique({
+                    where: { branchId_productId: { branchId: fromBranchId, productId: item.productId } },
+                    include: { product: true },
+                });
+                if (!inventory || inventory.currentStock < item.requestedQty) {
+                    return NextResponse.json({ success: false, error: `Stock insuficiente de ${inventory?.product.name || 'producto'}. Disponible: ${inventory?.currentStock || 0}, Solicitado: ${item.requestedQty}` }, { status: 400 });
+                }
             }
         }
 

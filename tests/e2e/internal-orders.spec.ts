@@ -99,3 +99,36 @@ test('producción terminada prepara y despacha una transferencia', async ({ brow
         expect((await prisma.inventory.findUniqueOrThrow({ where: { branchId_productId: { branchId: branch.id, productId: product.id } } })).currentStock).toBe(10);
     } finally { await context.close(); await destinationContext.close(); await prisma.$disconnect(); }
 });
+
+test('caja solicita productos de una fábrica aunque solo esté asignada al destino', async ({ page, context }) => {
+    const db = new URL(process.env.DATABASE_URL || '');
+    expect([db.hostname, db.port, db.pathname]).toEqual(['127.0.0.1', '55432', '/skot_test']);
+    const prisma = new PrismaClient();
+    const suffix = randomUUID();
+    const branch = await prisma.branch.create({ data: { name: `Destino solicitud ${suffix}`, type: 'HAMBURGUESAS' } });
+    const factory = await prisma.branch.create({ data: { name: `Fábrica origen ${suffix}`, type: 'FABRICA' } });
+    const cashier = await prisma.user.create({ data: { name: 'Caja', email: `request-c-${suffix}@test.invalid`, password: 'test', role: 'CASHIER', branches: { create: { branchId: branch.id } } } });
+    const product = await prisma.product.create({ data: { name: `Insumo solicitado ${suffix}`, sku: `REQUEST-${suffix}`, type: 'RAW_MATERIAL', unit: 'kg' } });
+    const token = await new SignJWT({ userId: cashier.id, email: cashier.email, name: cashier.name, role: 'CASHIER' })
+        .setProtectedHeader({ alg: 'HS256' }).setIssuedAt().setExpirationTime('1h').sign(new TextEncoder().encode(process.env.JWT_SECRET));
+    try {
+        await context.addCookies([{ name: 'skot-session', value: token, domain: '127.0.0.1', path: '/' }]);
+        await page.setViewportSize({ width: 375, height: 850 });
+        await page.goto('http://127.0.0.1:3100/inventory/transfers/request');
+        await expect(page.getByLabel('Mi sucursal que recibe')).toHaveValue(branch.id);
+        await expect(page.getByLabel('Sucursal de origen que provee')).toContainText(factory.name);
+        await page.getByLabel('Sucursal de origen que provee').selectOption(factory.id);
+        const search = page.getByLabel('Buscar y seleccionar producto');
+        await search.fill(product.name);
+        await page.getByText(product.name, { exact: false }).last().click();
+        await page.getByLabel('Cantidad a solicitar').fill('3');
+        await page.getByRole('button', { name: 'Agregar', exact: true }).click();
+        const response = page.waitForResponse(r => r.url().endsWith('/api/inventory/transfers') && r.request().method() === 'POST');
+        await page.getByRole('button', { name: 'Enviar solicitud' }).click();
+        expect((await response).status()).toBe(201);
+        const transfer = await prisma.stockTransfer.findFirstOrThrow({ where: { fromBranchId: factory.id, toBranchId: branch.id } });
+        expect(transfer.status).toBe('PENDING');
+        expect(await prisma.stockMovement.count({ where: { transferId: transfer.id } })).toBe(0);
+        expect(await page.evaluate(() => document.documentElement.scrollWidth <= document.documentElement.clientWidth)).toBe(true);
+    } finally { await prisma.$disconnect(); }
+});
